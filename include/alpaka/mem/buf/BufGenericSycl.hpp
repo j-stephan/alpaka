@@ -100,7 +100,6 @@ namespace alpaka::traits
     {
         using type = TElem;
     };
-
     //! The BufGenericSycl extent get trait specialization.
     template<typename TIdxIntegralConst, typename TElem, typename TDim, typename TIdx, typename TDev>
     struct GetExtent<TIdxIntegralConst, experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>
@@ -112,7 +111,6 @@ namespace alpaka::traits
             return buf.m_extentElements[TIdxIntegralConst::value];
         }
     };
-
     //! The BufGenericSycl native pointer get trait specialization.
     template<typename TElem, typename TDim, typename TIdx, typename TDev>
     struct GetPtrNative<experimental::BufGenericSycl<TElem, TDim, TIdx, TDev>>

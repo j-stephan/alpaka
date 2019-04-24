@@ -195,7 +195,6 @@ namespace alpaka::traits
             }
         }
     };
-
     //! The SYCL vectors' offset get trait specialization.
     template<typename TOffsets>
     struct GetOffset<
