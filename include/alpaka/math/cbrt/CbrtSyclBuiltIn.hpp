@@ -16,7 +16,7 @@
 #include <alpaka/core/Unused.hpp>
 
 #if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_GPU_SYCL_ENABLED is set, the compiler has to support SYCL!
+    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
 #include <alpaka/math/cbrt/Traits.hpp>
