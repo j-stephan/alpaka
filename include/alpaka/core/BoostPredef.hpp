@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz, Matthias Werner
+/* Copyright 2019 Benjamin Worpitz, Matthias Werner, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -16,6 +16,16 @@
 // BOOST_PREDEF_MAKE_10_VVRRP(V)
 #if !defined(BOOST_PREDEF_MAKE_10_VVRRP)
     #define BOOST_PREDEF_MAKE_10_VVRRP(V) BOOST_VERSION_NUMBER(((V)/1000)%100,((V)/10)%100,(V)%10)
+#endif
+
+//-------------------------------------SYCL------------------------------------
+// CL_SYCL_LANGUAGE_VERSION is required by the SYCL standard so all compilers
+// should support it
+#if !defined(BOOST_LANG_SYCL)
+  #if defined(CL_SYCL_LANGUAGE_VERSION)
+    #include <CL/sycl.hpp>
+    #define BOOST_LANG_SYCL BOOST_VERSION_NUMBER_AVAILABLE
+  #endif
 #endif
 
 //---------------------------------------HIP-----------------------------------
