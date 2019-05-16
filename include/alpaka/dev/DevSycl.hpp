@@ -59,17 +59,9 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             auto operator=(DevSycl &&) -> DevSycl & = default;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator==(DevSycl const & rhs) const
-            -> bool
-            {
-                return m_Device.get() == rhs.m_Device.get();
-            }
+            ALPAKA_FN_HOST auto operator==(DevSycl const & rhs) const -> bool = default;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator!=(DevSycl const & rhs) const
-            -> bool
-            {
-                return !((*this) == rhs);
-            }
+            ALPAKA_FN_HOST auto operator!=(DevSycl const & rhs) const -> bool = default;
             //-----------------------------------------------------------------------------
             ~DevSycl() = default;
 
@@ -132,7 +124,7 @@ namespace alpaka
                 {
                     // FIXME: There is no way in either SYCL or OpenCL to
                     // query free memory.
-                    return 0;
+                    throw std::runtime_error{"Querying free device memory not supported on SYCL platforms"};
                 }
             };
 
@@ -150,6 +142,7 @@ namespace alpaka
                 -> void
                 {
                     ALPAKA_DEBUG_FULL_LOG_SCOPE;
+                    throw std::runtime_error{"Explicit device reset not supported on SYCL platforms"};
                 }
             };
         }
