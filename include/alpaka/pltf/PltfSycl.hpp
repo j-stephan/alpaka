@@ -231,12 +231,6 @@ namespace alpaka
                     for(const auto& ext : extensions)
                         std::cout << "\t" << ext << std::endl;
 
-                    const auto fp16_it = std::find(begin(ext), end(ext), "cl_khr_fp16");
-                    const auto has_fp16 = (fp16_it != std::end(ext));
-
-                    const auto fp64_it = std::find(begin(ext), end(ext), "cl_khr_fp64");
-                    const auto has_fp64 = (fp64_it != std::end(ext));
-
                     std::cout << "Available compute units: "
                         << device.get_info<cl::sycl::info::device::max_compute_units>()
                         << std::endl;
@@ -409,7 +403,7 @@ namespace alpaka
                         find_and_print(cl::sycl::info::fp_config::soft_float);
                     };
 
-                    if(has_fp16)
+                    if(device.has_extension("cl_khr_fp16"))
                     {
                         const auto fp16_conf =
                             device.get_info<cl::sycl::info::device::half_fp_config>();
@@ -420,7 +414,7 @@ namespace alpaka
                         device.get_info<cl::sycl::info::device::single_fp_config>();
                     print_fp_config("FP32", fp32_conf);
 
-                    if(has_fp64)
+                    if(device.has_extension("cl_khr_fp64")
                     {
                         const auto fp64_conf =
                             device.get_info<cl::sycl::info::device::double_fp_config>();
