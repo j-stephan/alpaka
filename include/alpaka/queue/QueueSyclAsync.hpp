@@ -27,13 +27,6 @@
 
 #include <alpaka/core/Sycl.hpp>
 
-#include <stdexcept>
-#include <memory>
-#include <functional>
-#include <mutex>
-#include <condition_variable>
-#include <thread>
-
 namespace alpaka
 {
     namespace event
@@ -73,7 +66,7 @@ namespace alpaka
 
         public:
             dev::DevSycl const & m_dev; //!< The device this queue is bound to.
-            std::vector<cl::sycl::event> m_events;
+            cl::sycl::event m_event; //!< The last event in the dependency graph.
         };
     }
 
@@ -138,8 +131,7 @@ namespace alpaka
                 -> void
                 {
                     // task must be a SYCL command group function object
-                    auto event = queue.m_dev.m_Queue.submit(task);
-                    queue.m_events.push_back(std::move(event));
+                    queue.m_event = queue.m_dev.m_Queue.submit(task);
                 }
             };
 
@@ -155,7 +147,24 @@ namespace alpaka
                 -> bool
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-                    return queue.m_events.empty();
+                    // check for previous events
+                    if(auto prev = queue.m_event.get_wait_list(); prev.empty())
+                    {
+                        switch(queue.m_event.get_info<
+                                cl::sycl::info::event::command_execution_status>())
+                        {
+                            // Last event is completed
+                            case cl::sycl::info::event_command_status::complete:
+                                return true;
+
+                            // Last event is submitted or running
+                            default:
+                                return false;
+                        }
+                    }
+
+                    // we are still waiting for previous events
+                    return false;
                 }
             };
         }
