@@ -111,7 +111,7 @@ namespace alpaka
 
             //#############################################################################
             //! The SYCL device free memory get trait specialization. Note that
-            //! this function will always return 0 as there is no way in SYCL
+            //! this function will always throw a runtime error as there is no way in SYCL
             //! or OpenCL to query free memory.
             template<>
             struct GetFreeMemBytes<
@@ -123,7 +123,8 @@ namespace alpaka
                 -> std::size_t
                 {
                     // FIXME: There is no way in either SYCL or OpenCL to
-                    // query free memory.
+                    // query free memory. If you find a way be sure to update the
+                    // documentation above.
                     throw std::runtime_error{"Querying free device memory not supported on SYCL platforms"};
                 }
             };
