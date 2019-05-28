@@ -77,12 +77,12 @@ namespace alpaka
                     typename TExtent>
                 ALPAKA_FN_HOST BufSycl(
                     dev::DevSycl const & dev,
-                    cl::sycl::buffer<TElem, TDim::value>&& pMem,
+                    cl::sycl::buffer<TElem, TDim::value>&& buf,
                     TIdx const & pitchBytes,
                     TExtent const & extent) :
                         m_dev(dev),
                         m_extentElements(extent::getExtentVecEnd<TDim>(extent)),
-                        m_spMem(std::move(pMem)),
+                        m_buf(std::move(buf)),
                         m_pitchBytes(pitchBytes)
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -98,7 +98,7 @@ namespace alpaka
             public:
                 dev::DevSycl m_dev;
                 vec::Vec<TDim, TIdx> m_extentElements;
-                cl::sycl::buffer<TElem, TDim::value> m_spMem;
+                cl::sycl::buffer<TElem, TDim::value> m_buf;
                 TIdx m_pitchBytes;
             };
         }
@@ -314,7 +314,6 @@ namespace alpaka
                         std::cout << __func__
                             << " ew: " << width
                             << " ewb: " << widthBytes
-                            // << " ptr: " << memPtr // not supported
                             << std::endl;
 #endif
                         return mem::buf::BufSycl<TElem, dim::DimInt<1u>, TIdx> {
