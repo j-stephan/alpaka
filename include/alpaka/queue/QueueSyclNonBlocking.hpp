@@ -40,29 +40,29 @@ namespace alpaka
     namespace queue
     {
         //#############################################################################
-        //! The SYCL sync queue.
-        class QueueSyclSync final
+        //! The SYCL non-blocking queue.
+        class QueueSyclNonBlocking final
         {
         public:
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST QueueSyclSync(
+            ALPAKA_FN_HOST QueueSyclNonBlocking(
                 dev::DevSycl const & dev)
                 : m_dev{dev}
             {}
             //-----------------------------------------------------------------------------
-            QueueSyclSync(QueueSyclSync const &) = default;
+            QueueSyclNonBlocking(QueueSyclNonBlocking const &) = default;
             //-----------------------------------------------------------------------------
-            QueueSyclSync(QueueSyclSync &&) = default;
+            QueueSyclNonBlocking(QueueSyclNonBlocking &&) = default;
             //-----------------------------------------------------------------------------
-            auto operator=(QueueSyclSync const &) -> QueueSyclSync & = default;
+            auto operator=(QueueSyclNonBlocking const &) -> QueueSyclNonBlocking & = default;
             //-----------------------------------------------------------------------------
-            auto operator=(QueueSyclSync &&) -> QueueSyclSync & = default;
+            auto operator=(QueueSyclNonBlocking &&) -> QueueSyclNonBlocking & = default;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator==(QueueSyclSync const & rhs) const -> bool = default;
+            ALPAKA_FN_HOST auto operator==(QueueSyclNonBlocking const & rhs) const -> bool = default;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator!=(QueueSyclSync const & rhs) const -> bool = default;
+            ALPAKA_FN_HOST auto operator!=(QueueSyclNonBlocking const & rhs) const -> bool = default;
             //-----------------------------------------------------------------------------
-            ~QueueSyclSync() = default;
+            ~QueueSyclNonBlocking() = default;
 
         public:
             dev::DevSycl const & m_dev; //!< The device this queue is bound to.
@@ -75,22 +75,22 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The SYCL sync queue device type trait specialization.
+            //! The SYCL non-blocking queue device type trait specialization.
             template<>
             struct DevType<
-                queue::QueueSyclSync>
+                queue::QueueSyclNonBlocking>
             {
                 using type = dev::DevSycl;
             };
             //#############################################################################
-            //! The SYCL sync queue device get trait specialization.
+            //! The SYCL non-blocking queue device get trait specialization.
             template<>
             struct GetDev<
-                queue::QueueSyclSync>
+                queue::QueueSyclNonBlocking>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto getDev(
-                    queue::QueueSyclSync const & queue)
+                    queue::QueueSyclNonBlocking const & queue)
                 -> dev::DevSycl
                 {
                     return queue.m_dev;
@@ -103,10 +103,10 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The SYCL sync queue event type trait specialization.
+            //! The SYCL non-blocking queue event type trait specialization.
             template<>
             struct EventType<
-                queue::QueueSyclSync>
+                queue::QueueSyclNonBlocking>
             {
                 using type = event::EventSycl;
             };
@@ -117,33 +117,33 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The SYCL sync queue enqueue trait specialization.
+            //! The SYCL non-blocking queue enqueue trait specialization.
             template<
                 typename TTask>
             struct Enqueue<
-                queue::QueueSycl,
+                queue::QueueSyclNonBlocking,
                 TTask>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueSyclSync & queue,
+                    queue::QueueSyclNonBlocking & queue,
                     TTask const & task)
                 -> void
                 {
-                    // task has to be a SYCL command group object
+                    // task must be a SYCL command group function object
                     queue.m_event = queue.m_dev.m_Queue.submit(task);
-                    queue.m_dev.m_Queue.wait_and_throw();
                 }
             };
+
             //#############################################################################
-            //! The SYCL sync queue test trait specialization.
+            //! The SYCL non-blocking queue test trait specialization.
             template<>
             struct Empty<
-                queue::QueueSyclSync>
+                queue::QueueSyclNonBlocking>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto empty(
-                    queue::QueueSyclSync const & queue)
+                    queue::QueueSyclNonBlocking const & queue)
                 -> bool
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -169,21 +169,22 @@ namespace alpaka
             };
         }
     }
+
     namespace wait
     {
         namespace traits
         {
             //#############################################################################
-            //! The SYCL sync queue thread wait trait specialization.
+            //! The SYCL non-blocking queue thread wait trait specialization.
             //!
             //! Blocks execution of the calling thread until the queue has finished processing all previously requested tasks (kernels, data copies, ...)
             template<>
             struct CurrentThreadWaitFor<
-                queue::QueueSyclSync>
+                queue::QueueSyclNonBlocking>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto currentThreadWaitFor(
-                    queue::QueueSyclSync const & queue)
+                    queue::QueueSyclNonBlocking const & queue)
                 -> void
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
