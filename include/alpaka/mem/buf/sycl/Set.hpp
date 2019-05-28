@@ -92,6 +92,8 @@ namespace alpaka
                         // is a concatenation of the correct number of bytes.
                         using value_type = elem::Elem<TView>;
 
+                        //TODO: Trait for trivially constructible types
+
                         // First step: Create data type of same size and
                         // alignment as the actual data type. Our data type
                         // might not be trivially constructible so we have to
