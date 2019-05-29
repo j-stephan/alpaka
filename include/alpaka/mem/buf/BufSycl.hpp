@@ -52,6 +52,78 @@ namespace alpaka
     {
         namespace buf
         {
+            namespace sycl
+            {
+                namespace detail
+                {
+                    template<
+                        typename TElem,
+                        typename TDim,
+                        typename TIdx,
+                        typename TExtent>
+                    auto make_sycl_buf(TExtent const & extent)
+                    {
+                        if constexpr(dim::Dim<TDim>::value == 1)
+                        {
+                            auto const width(extent::getWidth(extent));
+                            auto const widthBytes(width * static_cast<TIdx>(sizeof(TElem)));
+
+#if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
+                            std::cout << " ew: " << width
+                                      << " ewb: " << widthBytes
+                                      << std::endl;
+#endif
+                            auto buf = cl::sycl::buffer<TElem, 1>{
+                                            cl::sycl::range<1>{width}};
+                            // we don't want any implicit memory copies
+                            buf.set_write_back(false);
+                            return buf;
+                        }
+                        else if constexpr(dim::Dim<TDim>::value == 2)
+                        {
+                            auto const width(extent::getWidth(extent));
+                            auto const widthBytes(width * static_cast<TIdx>(sizeof(TElem)));
+                            auto const height(extent::getHeight(extent));
+
+#if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
+                            std::cout << " ew: " << width
+                                      << " eh: " << height
+                                      << " ewb: " << widthBytes
+                                      << std::endl;
+#endif
+                            auto buf = cl::sycl::buffer<TElem, 2>{
+                                            cl::sycl::range<2>{width,
+                                                               height}};
+                            // we don't want any implicit memory copies
+                            buf.set_write_back(false);
+                            return buf;
+                        }
+                        else
+                        {
+                            auto const width(extent::getWidth(extent));
+                            auto const widthBytes(width * static_cast<TIdx>(sizeof(TElem)));
+                            auto const height(extent::getHeight(extent));
+                            auto const depth(extent::getDepth(extent));
+
+#if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
+                            std::cout << " ew: " << width
+                                      << " eh: " << height
+                                      << " ed: " << depth
+                                      << " ewb: " << widthBytes
+                                      << std::endl;
+#endif
+                            auto buf = cl::sycl::buffer<TElem, 3>{
+                                            cl::sycl::range<3>{width,
+                                                               height,
+                                                               depth}};
+                            // we don't want any implicit memory copies
+                            buf.set_write_back(false);
+                            return buf;
+                        }
+                    }
+                } // namespace detail
+            } // namespace sycl
+
             //#############################################################################
             //! The SYCL memory buffer.
             template<
@@ -63,9 +135,11 @@ namespace alpaka
                 static_assert(
                     !std::is_const<TElem>::value,
                     "The elem type of the buffer can not be const because the C++ Standard forbids containers of const elements!");
+
                 static_assert(
                     !std::is_const<TIdx>::value,
                     "The idx type of the buffer can not be const!");
+
             private:
                 using Elem = TElem;
                 using Dim = TDim;
@@ -90,6 +164,7 @@ namespace alpaka
                     static_assert(
                         TDim::value == dim::Dim<TExtent>::value,
                         "The dimensionality of TExtent and the dimensionality of the TDim template parameter have to be identical!");
+
                     static_assert(
                         std::is_same<TIdx, idx::Idx<TExtent>>::value,
                         "The idx type of TExtent and the TIdx template parameter have to be identical!");
@@ -307,20 +382,20 @@ namespace alpaka
                     {
                         ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                        auto const width(extent::getWidth(extent));
-                        auto const widthBytes(width * static_cast<TIdx>(sizeof(TElem)));
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                        std::cout << __func__
-                            << " ew: " << width
-                            << " ewb: " << widthBytes
-                            << std::endl;
+                        std::cout << __func__;
+                        // buffer allocation prints the values, keeping this
+                        // here for consistency
 #endif
+
+                        auto buf = mem::buf::sycl::detail::make_sycl_buf<TElem, TDim, TIdx>(extent);
+
                         return mem::buf::BufSycl<TElem, dim::DimInt<1u>, TIdx> {
-                            dev,
-                            cl::sycl::buffer<TElem, TDim::value>{cl::sycl::range<TDim::value>{width}},
-                            static_cast<TIdx>(widthBytes),
-                            extent};
+                                dev,
+                                std::move(buf),
+                                static_cast<TIdx>(widthBytes),
+                                extent};
                     }
                 };
 
