@@ -62,7 +62,7 @@ namespace alpaka
         //#############################################################################
         //! The SYCL accelerator.
         //!
-        //! This accelerator allows parallel kernel execution on GPUs supporting SYCL.
+        //! This accelerator allows parallel kernel execution on SYCL devices.
         template<
             typename TDim,
             typename TIdx>
@@ -85,7 +85,8 @@ namespace alpaka
         public:
             //-----------------------------------------------------------------------------
             AccSycl(
-                vec::Vec<TDim, TIdx> const & threadElemExtent) :
+                vec::Vec<TDim, TIdx> const & threadElemExtent,
+                cl::sycl::nd_item<dim::Dim<TDim>::value> work_item) :
                     workdiv::WorkDivSyclBuiltIn<TDim, TIdx>(threadElemExtent),
                     idx::gb::IdxGbSyclBuiltIn<TDim, TIdx>(),
                     idx::bt::IdxBtSyclBuiltIn<TDim, TIdx>(),
@@ -94,12 +95,14 @@ namespace alpaka
                         atomic::AtomicSyclBuiltIn, // atomics between blocks
                         atomic::AtomicSyclBuiltIn  // atomics between threads
                     >(),*/
-                    math::MathSyclBuiltIn()
+                    math::MathSyclBuiltIn(),
                     /*block::shared::dyn::BlockSharedMemDynSyclBuiltIn(),
                     block::shared::st::BlockSharedMemStSyclBuiltIn(),
                     block::sync::BlockSyncSyclBuiltIn(),
                     rand::RandCuRand(),
                     time::TimeSyclBuiltIn()*/
+                    my_item{work_item}
+
             {}
 
         public:
@@ -113,6 +116,9 @@ namespace alpaka
             auto operator=(AccSycl &&) -> AccSycl & = delete;
             //-----------------------------------------------------------------------------
             ~AccSycl() = default;
+
+        public:
+            cl::sycl::nd_item<dim::Dim<TDim>::value> my_item;
         };
     }
 

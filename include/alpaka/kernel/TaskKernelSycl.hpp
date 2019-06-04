@@ -30,8 +30,8 @@
 #include <alpaka/acc/AccSycl.hpp>
 #include <alpaka/dev/DevSycl.hpp>
 #include <alpaka/kernel/Traits.hpp>
-#include <alpaka/queue/QueueSyclAsync.hpp>
-#include <alpaka/queue/QueueSyclSync.hpp>
+#include <alpaka/queue/QueueSyclNonBlocking.hpp>
+#include <alpaka/queue/QueueSyclBlocking.hpp>
 #include <alpaka/workdiv/WorkDivMembers.hpp>
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
@@ -78,7 +78,6 @@ namespace alpaka
                             TArgs>...
                         >::value,
                     "The given kernel function object and its arguments have to fulfill is_trivially_copyable!");
-
                 //-----------------------------------------------------------------------------
                 template<
                     typename TWorkDiv>
@@ -107,6 +106,27 @@ namespace alpaka
 
                 TKernelFnObj m_kernelFnObj;
                 std::tuple<TArgs...> m_args;
+                
+                auto operator()(cl::sycl::handler& cgh)
+                {
+                    static_assert(
+                        std::is_same_v<std::result_of_t<
+                            TKernelFnObj(acc::AccSycl<TDim, TIdx> const &, TArgs const & ...)>, void>,
+                        "The TKernelFnObj is required to return void!");
+ 
+                    const auto acc = acc::AccSycl<TDim, TIdx>{extent, work_item};
+                    // unpack variadic arguments
+                    auto kernel_args = std::tuple_cat(std::tie(acc), m_args);
+
+                    cgh.parallel_for<class sycl_kernel>(
+                            cl::sycl::nd_range<dim::Dim<TDim>::value> {
+                            // TODO: Global and local work size
+                            },
+                    [=](cl::sycl::nd_item<dim::Dim<TDim>::value> work_item)
+                    {
+                        std::apply(m_kernelFnObj, kernel_args);
+                    });
+                }
             };
         }
     }
