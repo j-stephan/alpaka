@@ -51,6 +51,7 @@
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
     #include <iostream>
 #endif
+#include <experimental/type_traits>
 
 namespace alpaka
 {
@@ -109,14 +110,21 @@ namespace alpaka
                 
                 auto operator()(cl::sycl::handler& cgh)
                 {
-                    static_assert(
+                    /*static_assert(
                         std::is_same_v<std::result_of_t<
                             TKernelFnObj(acc::AccSycl<TDim, TIdx> const &, TArgs const & ...)>, void>,
-                        "The TKernelFnObj is required to return void!");
+                        "The TKernelFnObj is required to return void!");*/
  
+                    // add Accelerator to variadic arguments
                     const auto acc = acc::AccSycl<TDim, TIdx>{extent, work_item};
-                    // unpack variadic arguments
                     auto kernel_args = std::tuple_cat(std::tie(acc), m_args);
+
+                    // bind buffer to accessor
+                    for(auto&& arg : {kernel_args...})
+                    {
+                        if(is_placeholder<decltype(arg)>)
+                            cgh.require(arg.m_buf, arg.m_acc);
+                    }
 
                     cgh.parallel_for<class sycl_kernel>(
                             cl::sycl::nd_range<dim::Dim<TDim>::value> {
@@ -127,6 +135,7 @@ namespace alpaka
                         std::apply(m_kernelFnObj, kernel_args);
                     });
                 }
+
             };
         }
     }

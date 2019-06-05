@@ -275,10 +275,36 @@ namespace alpaka
     }
     namespace mem
     {
+        namespace access
+        {
+            namespace traits
+            {
+                //#############################################################################
+                //! The BufSycl accessor get trait specialization.
+                template<
+                    typename TElem,
+                    typename TDim,
+                    typename TIdx,
+                    access::mode AccessMode,
+                    access::target AccessTarget>
+                struct GetAccess
+                {
+                    ALPAKA_FN_HOST static auto getAccess(
+                        mem::buf::BufSycl<TElem, TDim, TIdx> const & buf)
+                    {
+
+                    };
+                };
+            }
+        }
+    }
+    namespace mem
+    {
         namespace view
         {
             namespace traits
             {
+
                 //#############################################################################
                 //! The BufSycl native pointer get trait specialization.
                 template<
