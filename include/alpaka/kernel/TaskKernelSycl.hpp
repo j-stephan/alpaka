@@ -120,10 +120,11 @@ namespace alpaka
                     auto kernel_args = std::tuple_cat(std::tie(acc), m_args);
 
                     // bind buffer to accessor
+                    // TODO: add checks for illegal arguments
                     for(auto&& arg : {kernel_args...})
                     {
                         if(is_placeholder<decltype(arg)>)
-                            cgh.require(arg.m_buf, arg.m_acc);
+                            cgh.require(arg.m_acc);
                     }
 
                     cgh.parallel_for<class sycl_kernel>(
