@@ -315,21 +315,24 @@ namespace alpaka
                     mem::buf::BufSycl<TElem, TDim, TIdx>>
                 {
                     //-----------------------------------------------------------------------------
-                    // FIXME: Find a workaround
+                    // FIXME: Implement a pointer bookkeeping option instead of
+                    // accessors
                     ALPAKA_FN_HOST static auto getPtrNative(
                         mem::buf::BufSycl<TElem, TDim, TIdx> const & buf)
-                    -> TElem const *
                     {
-                        static_assert(1 == 0, "SYCL does not expose device pointers to host code");
-                        throw std::runtime_error{"SYCL does not expose device pointers to host code"};
+                        return cl::sycl::accessor<TElem, dim::Dim<TDim>::value,
+                                                  cl::sycl::access::mode::read, // buf is const
+                                                  cl::sycl::access::target::global_buffer,
+                                                  cl::sycl::access::placeholder::true_t>{buf.m_buf};
                     }
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrNative(
                         mem::buf::BufSycl<TElem, TDim, TIdx> & buf)
-                    -> TElem *
                     {
-                        static_assert(1 == 0, "SYCL does not expose device pointers to host code");
-                        throw std::runtime_error{"SYCL does not expose device pointers to host code"};
+                        return cl::sycl::accessor<TElem, dim::Dim<TDim>::value,
+                                                  cl::sycl::access::mode::read_write,
+                                                  cl::sycl::access::target::global_buffer,
+                                                  cl::sycl::access::placeholder::true_t>{buf.m_buf};
                     }
                 };
 
@@ -346,11 +349,11 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrDev(
                         mem::buf::BufSycl<TElem, TDim, TIdx> const & buf,
-                        dev::Sycl const & dev)
-                    -> TElem const *
+                        dev::Sycl const & /* dev */)
                     {
-                        static_assert(1 == 0, "SYCL does not expose device pointers to host code");
-                        throw std::runtime_error{"SYCL does not expose device pointers to host code"};
+                        // In SYCL these functions are equivalent to getPtrNative since all memory
+                        // is internally copied around if necessary
+                        return getPtrNative(buf);
                     }
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrDev(
@@ -358,8 +361,9 @@ namespace alpaka
                         dev::DevSycl const & dev)
                     -> TElem *
                     {
-                        static_assert(1 == 0, "SYCL does not expose device pointers to host code");
-                        throw std::runtime_error{"SYCL does not expose device pointers to host code"};
+                        // In SYCL these functions are equivalent to getPtrNative since all memory
+                        // is internally copied around if necessary
+                        return getPtrNative(buf);
                     }
                 };
                 //#############################################################################
@@ -664,8 +668,8 @@ namespace alpaka
                         dev::DevSycl const &)
                     -> TElem const *
                     {
-                        static_assert(1 == 0, "SYCL does not expose device pointers to host code");
-                        throw std::runtime_error{"SYCL does not expose device pointers to host code"};
+                        static_assert(1 == 0, "SYCL does not expose host pointers to device code");
+                        throw std::runtime_error{"SYCL does not expose host pointers to device code"};
                     }
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrDev(
@@ -673,8 +677,8 @@ namespace alpaka
                         dev::DevSycl const &)
                     -> TElem *
                     {
-                        static_assert(1 == 0, "SYCL does not expose device pointers to host code");
-                        throw std::runtime_error{"SYCL does not expose device pointers to host code"};
+                        static_assert(1 == 0, "SYCL does not expose host pointers to device code");
+                        throw std::runtime_error{"SYCL does not expose host pointers to device code"};
                     }
                 };
             }
