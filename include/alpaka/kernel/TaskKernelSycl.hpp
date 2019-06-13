@@ -48,6 +48,7 @@
 #include <stdexcept>
 #include <tuple>
 #include <type_traits>
+#include <utility>
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
     #include <iostream>
 #endif
@@ -120,12 +121,8 @@ namespace alpaka
                     auto kernel_args = std::tuple_cat(std::tie(acc), m_args);
 
                     // bind buffer to accessor
-                    // TODO: add checks for illegal arguments
                     for(auto&& arg : {kernel_args...})
-                    {
-                        if(is_placeholder<decltype(arg)>)
-                            cgh.require(arg.m_acc);
-                    }
+                        require_acc(cgh, std::forward<decltype(arg)>(arg), special);
 
                     cgh.parallel_for<class sycl_kernel>(
                             cl::sycl::nd_range<dim::Dim<TDim>::value> {
@@ -133,8 +130,44 @@ namespace alpaka
                             },
                     [=](cl::sycl::nd_item<dim::Dim<TDim>::value> work_item)
                     {
-                        std::apply(m_kernelFnObj, kernel_args);
+                        auto transformed_args = std::make_tuple(std::apply([](auto&&... args)
+                        {
+                            ((return get_pointer(std::forward<decltype(args)>(args), special)), ...);
+                        }, kernel_args));
+
+                        std::apply(m_kernelFnObj, transformed_args);
                     });
+                }
+
+            private:
+                struct general {};
+                struct special {};
+                template <typename> struct acc { using type = int; };
+
+                template <typename Val,
+                          typename acc<decltype(std::declval<Val>().is_placeholder())>::type = 0>
+                auto require_acc(cl::sycl::handler& cgh, Val&& val, special)
+                {
+                    cgh.require(val);
+                }
+
+                template <typename Val>
+                auto require_acc(cl::sycl::handler& cgh, Val&& val, general)
+                {
+                    // do nothing
+                }
+
+                template <typename Val,
+                          typename acc<decltype(std::declval<Val>().is_placeholder())>::type = 0>
+                auto get_pointer(Val&& val, special)
+                {
+                    return val.get_pointer();
+                }
+
+                template <typename Val>
+                auto get_pointer(Val&& val, general)
+                {
+                    return val;
                 }
 
             };

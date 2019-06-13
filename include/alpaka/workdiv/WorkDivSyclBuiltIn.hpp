@@ -41,8 +41,9 @@ namespace alpaka
 
             //-----------------------------------------------------------------------------
             WorkDivSyclBuiltIn(
-                vec::Vec<TDim, TIdx> const & threadElemExtent) :
-                    m_threadElemExtent(threadElemExtent)
+                vec::Vec<TDim, TIdx> const & threadElemExtent,
+                cl::sycl::nd_item<dim::Dim<TDim>::value> work_item)
+                : m_threadElemExtent{threadElemExtent}, my_item{work_item}
             {}
             //-----------------------------------------------------------------------------
             WorkDivSyclBuiltIn(WorkDivSyclBuiltIn const &) = delete;
@@ -57,6 +58,8 @@ namespace alpaka
 
         public:
             vec::Vec<TDim, TIdx> const & m_threadElemExtent;
+            cl::sycl::nd_item<dim::Dim<TDim>::value> my_item;
+
         };
     }
 
@@ -112,8 +115,7 @@ namespace alpaka
                     WorkDivSyclBuiltIn<TDim, TIdx> const & workDiv)
                 -> vec::Vec<TDim, TIdx>
                 {
-                    alpaka::ignore_unused(workDiv);
-                    return vec::cast<TIdx>(extent::getExtentVecEnd<TDim>(gridDim));
+                    return vec::cast<TIdx>(workDiv.my_item.get_group_range());
                 }
             };
 
@@ -133,8 +135,7 @@ namespace alpaka
                     WorkDivSyclBuiltIn<TDim, TIdx> const & workDiv)
                 -> vec::Vec<TDim, TIdx>
                 {
-                    alpaka::ignore_unused(workDiv);
-                    return vec::cast<TIdx>(extent::getExtentVecEnd<TDim>(blockDim));
+                    return vec::cast<TIdx>(workDiv.my_item.get_local_range());
                 }
             };
 
