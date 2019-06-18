@@ -56,70 +56,62 @@ namespace alpaka
                     template<
                         typename TElem,
                         typename TDim,
-                        copy_type>
+                        copy_type ctype>
                     struct TaskCopySycl;
 
                     //#############################################################################
                     //! The host-to-device SYCL memory copy trait.
-                    template<
-                        typename TElem,
-                        typename TDim,
-                        copy_type::host_to_device>
-                    struct TaskCopySycl
+                    template <typename TElem, typename TDim>
+                    struct TaskCopySycl<TElem, TDim, copy_type::host_to_device>
                     {
-                        auto operator()(cl::sycl::handler &cgh) -> void
+                        auto operator()(cl::sycl::handler& cgh) -> void
                         {
-                            auto dst_acc = dst_buf.get_access<
-                                            cl::sycl::access::mode::write>(cgh, range);
+                            auto dst_acc = dst_buf.template get_access<
+                                cl::sycl::access::mode::write,
+                                cl::sycl::access::target::global_buffer>(cgh, range);
                             cgh.copy(src_ptr, dst_acc);
                         }
 
-                        const TElem * const src_ptr;
-                        cl::sycl::buffer<TElem, dim::Dim<TDim>::value>& dst_buf;
-                        cl::sycl::range<dim::Dim<TDim>::value> range;
+                        TElem * const src_ptr;
+                        cl::sycl::buffer<TElem, TDim::value> dst_buf;
+                        cl::sycl::range<TDim::value> range;
                     };
 
                     //#############################################################################
                     //! The device-to-host SYCL memory copy trait.
-                    template<
-                        typename TElem,
-                        typename TDim,
-                        copy_type::device_to_host>
-                    struct TaskCopySycl
+                    template <typename TElem, typename TDim>
+                    struct TaskCopySycl<TElem, TDim, copy_type::device_to_host>
                     {
-                        auto operator()(cl::sycl::handler &cgh) -> void
+                        auto operator()(cl::sycl::handler& cgh) -> void
                         {
-                            auto src_acc = src_buf.get_access<
+                            auto src_acc = src_buf.template get_access<
                                             cl::sycl::access::mode::read>(cgh, range);
                             cgh.copy(src_acc, dst_ptr);
                         }
 
-                        const cl::sycl::buffer<TElem, dim::Dim<TDim>::value>& src_buf;
+                        cl::sycl::buffer<TElem, TDim::value>& src_buf;
                         TElem * const dst_ptr;
-                        cl::sycl::range<dim::Dim<TDim>::value> range;
+                        cl::sycl::range<TDim::value> range;
                     };
 
                     //#############################################################################
                     //! The device-to-device SYCL memory copy trait.
-                    template<
-                        typename TElem,
-                        typename TDim,
-                        copy_type::device_to_device>
-                    struct TaskCopySycl
+                    template <typename TElem, typename TDim>
+                    struct TaskCopySycl<TElem, TDim, copy_type::device_to_device>
                     {
-                        auto operator()(cl::sycl::handler &cgh) -> void
+                        auto operator()(cl::sycl::handler& cgh) -> void
                         {
-                            auto src_acc = src_buf.get_access<
+                            auto src_acc = src_buf.template get_access<
                                             cl::sycl::access::mode::read>(cgh, range);
-                            auto dst_acc = dst_buf.get_access<
+                            auto dst_acc = dst_buf.template get_access<
                                             cl::sycl::access::mode::write>(cgh, range);
 
                             cgh.copy(src_acc, dst_acc);
                         }
 
-                        const cl::sycl::buffer<TElem, dim::Dim<TDim>::value>& src_buf;
-                        cl::sycl::buffer<TElem, dim::Dim<TDim>::value>& dst_buf;
-                        cl::sycl::range<dim::Dim<TDim>::value> range;
+                        cl::sycl::buffer<TElem, TDim::value>& src_buf;
+                        cl::sycl::buffer<TElem, TDim::value>& dst_buf;
+                        cl::sycl::range<TDim::value> range;
                     };
                 }
             }
@@ -143,7 +135,7 @@ namespace alpaka
                         typename TViewDst>
                     ALPAKA_FN_HOST static auto createTaskCopy(
                         TViewDst & viewDst,
-                        TViewSrc const & viewSrc,
+                        TViewSrc & viewSrc,
                         TExtent const & extent)
                     {
                         static_assert(
@@ -190,16 +182,16 @@ namespace alpaka
                         typename TViewDst>
                     ALPAKA_FN_HOST static auto createTaskCopy(
                         TViewDst & viewDst,
-                        TViewSrc const & viewSrc,
+                        TViewSrc & viewSrc,
                         TExtent const & extent)
                     {
                         static_assert(
                             !std::is_const<TViewDst>::value,
                             "The destination view can not be const!");
 
-                        static_assert(
+                        /*static_assert(
                             dim::Dim<TViewDst>::value == dim::Dim<TViewSrc>::value,
-                            "The source and the destination view are required to have the same dimensionality!");
+                            "The source and the destination view are required to have the same dimensionality!");*/
                         static_assert(
                             dim::Dim<TViewDst>::value == dim::Dim<TExtent>::value,
                             "The views and the extent are required to have the same dimensionality!");
@@ -237,7 +229,7 @@ namespace alpaka
                         typename TViewDst>
                     ALPAKA_FN_HOST static auto createTaskCopy(
                         TViewDst & viewDst,
-                        TViewSrc const & viewSrc,
+                        TViewSrc & viewSrc,
                         TExtent const & extent)
                     {
                         static_assert(

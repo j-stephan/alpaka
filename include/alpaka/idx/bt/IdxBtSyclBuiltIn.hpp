@@ -44,6 +44,9 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 IdxBtSyclBuiltIn() = default;
                 //-----------------------------------------------------------------------------
+                explicit IdxBtSyclBuiltIn(cl::sycl::nd_item<TDim::value> work_item)
+                : my_item{work_item} {}
+                //-----------------------------------------------------------------------------
                 IdxBtSyclBuiltIn(IdxBtSyclBuiltIn const &) = delete;
                 //-----------------------------------------------------------------------------
                 IdxBtSyclBuiltIn(IdxBtSyclBuiltIn &&) = delete;
@@ -53,6 +56,8 @@ namespace alpaka
                 auto operator=(IdxBtSyclBuiltIn &&) -> IdxBtSyclBuiltIn & = delete;
                 //-----------------------------------------------------------------------------
                 /*virtual*/ ~IdxBtSyclBuiltIn() = default;
+
+                cl::sycl::nd_item<TDim::value> my_item;
             };
         }
     }
@@ -96,8 +101,7 @@ namespace alpaka
                     TWorkDiv const &)
                 -> vec::Vec<TDim, TIdx>
                 {
-                    alpaka::ignore_unused(idx);
-                    return vec::cast<TIdx>(offset::getOffsetVecEnd<TDim>(threadIdx));
+                    return vec::cast<TIdx>(idx.my_item.get_local_id(TDim::value));
                 }
             };
         }

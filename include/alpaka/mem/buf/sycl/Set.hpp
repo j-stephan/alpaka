@@ -86,21 +86,19 @@ namespace alpaka
                         std::uint8_t const & byte,
                         TExtent const & extent)
                     {
-
                         // SYCL doesn't support byte-wise filling. So we create
                         // a corresponding element of our actual type which
                         // is a concatenation of the correct number of bytes.
                         using value_type = elem::Elem<TView>;
 
-                        //TODO: Trait for trivially constructible types
-
                         // First step: Create data type of same size and
-                        // alignment as the actual data type. Our data type
-                        // might not be trivially constructible so we have to
+                        // alignment as the actual data type. If our data type
+                        // is not be trivially constructible we have to
                         // do this the hard way.
-                        using data_type = std::aligned_storage_t<
-                                            sizeof(value_type),
-                                            alignof(value_type)>;
+                        using data_type = std::conditional_t<
+                            std::is_trivially_constructible_v<value_type>,
+                            value_type,
+                            std::aligned_storage_t<sizeof(value_type), alignof(value_type)>>;
 
                         // Second step: Create single element and initialize
                         // to our byte value.
@@ -108,14 +106,15 @@ namespace alpaka
                         std::memset(&data_value, byte, sizeof(data_type));
 
                         // Third step: Reinterpret element as actual data
-                        // type. std::launder is a requirement of C++17
-                        auto element = *std::launder(reinterpret_cast<value_type*>(&data_value));
+                        // type.
+                        auto element = *reinterpret_cast<value_type*>(&data_value);
                         
                         // Fourth step: Create task. We pass the element by
                         // value so it gets copied. This is required because the
-                        // uninitialized storage is allocated with placement new
-                        // and we have to call the destructor by hand to prevent
-                        // memory leaks.
+                        // uninitialized storage for non-trivially constructible
+                        // elements is allocated with placement new and we have
+                        // to call the destructor by hand to prevent memory
+                        // leaks.
                         auto task = mem::view::sycl::detail::TaskSetSycl<
                                         value_type, 
                                         TDim>{
@@ -125,7 +124,8 @@ namespace alpaka
                                         };
 
                         // Destroy dummy object
-                        std::launder(reinterpret_cast<value_type*>(&data_value))->~value_type();
+                        if constexpr(!std::is_trivially_constructible_v<value_type>)
+                            reinterpret_cast<value_type*>(&data_value)->~value_type();
 
                         // Return task
                         return task;

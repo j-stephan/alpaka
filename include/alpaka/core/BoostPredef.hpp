@@ -19,10 +19,10 @@
 #endif
 
 //-------------------------------------SYCL------------------------------------
-// CL_SYCL_LANGUAGE_VERSION is required by the SYCL standard so all compilers
-// should support it
+// __SYCL_DEVICE_ONLY__ or __SYCL_SINGLE_SOURCE__ have to be supported by a
+// SYCL compiler during compilation.
 #if !defined(BOOST_LANG_SYCL)
-  #if defined(CL_SYCL_LANGUAGE_VERSION)
+  #if defined(__SYCL_DEVICE_ONLY__)  || defined(__SYCL_SINGLE_SOURCE__)
     #include <CL/sycl.hpp>
     #define BOOST_LANG_SYCL BOOST_VERSION_NUMBER_AVAILABLE
   #endif

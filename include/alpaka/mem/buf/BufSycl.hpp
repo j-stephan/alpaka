@@ -63,7 +63,7 @@ namespace alpaka
                         typename TExtent>
                     auto make_sycl_buf(TExtent const & extent)
                     {
-                        if constexpr(dim::Dim<TDim>::value == 1)
+                        if constexpr(TDim::value == 1)
                         {
                             auto const width(extent::getWidth(extent));
                             auto const widthBytes(width * static_cast<TIdx>(sizeof(TElem)));
@@ -79,7 +79,7 @@ namespace alpaka
                             buf.set_write_back(false);
                             return buf;
                         }
-                        else if constexpr(dim::Dim<TDim>::value == 2)
+                        else if constexpr(TDim::value == 2)
                         {
                             auto const width(extent::getWidth(extent));
                             auto const widthBytes(width * static_cast<TIdx>(sizeof(TElem)));
@@ -275,31 +275,6 @@ namespace alpaka
     }
     namespace mem
     {
-        namespace access
-        {
-            namespace traits
-            {
-                //#############################################################################
-                //! The BufSycl accessor get trait specialization.
-                template<
-                    typename TElem,
-                    typename TDim,
-                    typename TIdx,
-                    access::mode AccessMode,
-                    access::target AccessTarget>
-                struct GetAccess
-                {
-                    ALPAKA_FN_HOST static auto getAccess(
-                        mem::buf::BufSycl<TElem, TDim, TIdx> const & buf)
-                    {
-
-                    };
-                };
-            }
-        }
-    }
-    namespace mem
-    {
         namespace view
         {
             namespace traits
@@ -329,7 +304,7 @@ namespace alpaka
                     ALPAKA_FN_HOST static auto getPtrNative(
                         mem::buf::BufSycl<TElem, TDim, TIdx> & buf)
                     {
-                        return cl::sycl::accessor<TElem, dim::Dim<TDim>::value,
+                        return cl::sycl::accessor<TElem, TDim::value,
                                                   cl::sycl::access::mode::read_write,
                                                   cl::sycl::access::target::global_buffer,
                                                   cl::sycl::access::placeholder::true_t>{buf.m_buf};
@@ -349,7 +324,7 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrDev(
                         mem::buf::BufSycl<TElem, TDim, TIdx> const & buf,
-                        dev::Sycl const & /* dev */)
+                        dev::DevSycl const & /* dev */)
                     {
                         // In SYCL these functions are equivalent to getPtrNative since all memory
                         // is internally copied around if necessary
@@ -412,7 +387,6 @@ namespace alpaka
                     {
                         ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                         std::cout << __func__;
                         // buffer allocation prints the values, keeping this
@@ -420,6 +394,9 @@ namespace alpaka
 #endif
 
                         auto buf = mem::buf::sycl::detail::make_sycl_buf<TElem, TDim, TIdx>(extent);
+
+                        auto const width(extent::getWidth(extent));
+                        auto const widthBytes(width * static_cast<TIdx>(sizeof(TElem)));
 
                         return mem::buf::BufSycl<TElem, dim::DimInt<1u>, TIdx> {
                                 dev,
@@ -668,7 +645,6 @@ namespace alpaka
                         dev::DevSycl const &)
                     -> TElem const *
                     {
-                        static_assert(1 == 0, "SYCL does not expose host pointers to device code");
                         throw std::runtime_error{"SYCL does not expose host pointers to device code"};
                     }
                     //-----------------------------------------------------------------------------
@@ -677,7 +653,6 @@ namespace alpaka
                         dev::DevSycl const &)
                     -> TElem *
                     {
-                        static_assert(1 == 0, "SYCL does not expose host pointers to device code");
                         throw std::runtime_error{"SYCL does not expose host pointers to device code"};
                     }
                 };
