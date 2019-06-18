@@ -42,7 +42,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             WorkDivSyclBuiltIn(
                 vec::Vec<TDim, TIdx> const & threadElemExtent,
-                cl::sycl::nd_item<dim::Dim<TDim>::value> work_item)
+                cl::sycl::nd_item<TDim::value> work_item)
                 : m_threadElemExtent{threadElemExtent}, my_item{work_item}
             {}
             //-----------------------------------------------------------------------------
@@ -58,7 +58,7 @@ namespace alpaka
 
         public:
             vec::Vec<TDim, TIdx> const & m_threadElemExtent;
-            cl::sycl::nd_item<dim::Dim<TDim>::value> my_item;
+            cl::sycl::nd_item<TDim::value> my_item;
 
         };
     }

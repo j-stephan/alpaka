@@ -46,7 +46,7 @@ namespace alpaka
         public:
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST QueueSyclBlocking(
-                dev::DevSycl const & dev)
+                dev::DevSycl & dev)
                 : m_dev{dev}
             {}
             //-----------------------------------------------------------------------------
@@ -58,14 +58,20 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             auto operator=(QueueSyclBlocking &&) -> QueueSyclBlocking & = default;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator==(QueueSyclBlocking const & rhs) const -> bool = default;
+            ALPAKA_FN_HOST auto operator==(QueueSyclBlocking const & rhs) const -> bool
+            {
+                return (m_dev == rhs.m_dev) && (m_event == rhs.m_event);
+            }
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator!=(QueueSyclBlocking const & rhs) const -> bool = default;
+            ALPAKA_FN_HOST auto operator!=(QueueSyclBlocking const & rhs) const -> bool
+            {
+                return !operator==(rhs);
+            }
             //-----------------------------------------------------------------------------
             ~QueueSyclBlocking() = default;
 
         public:
-            dev::DevSycl const & m_dev; //!< The device this queue is bound to.
+            dev::DevSycl & m_dev; //!< The device this queue is bound to.
             cl::sycl::event m_event; //!< The last event in the dependency graph.
         };
     }
@@ -121,7 +127,7 @@ namespace alpaka
             template<
                 typename TTask>
             struct Enqueue<
-                queue::QueueSycl,
+                queue::QueueSyclBlocking,
                 TTask>
             {
                 //-----------------------------------------------------------------------------
@@ -143,7 +149,7 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto empty(
-                    queue::QueueSyclBlocking const & queue)
+                    queue::QueueSyclBlocking & queue)
                 -> bool
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -183,7 +189,7 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto currentThreadWaitFor(
-                    queue::QueueSyclBlocking const & queue)
+                    queue::QueueSyclBlocking & queue)
                 -> void
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;

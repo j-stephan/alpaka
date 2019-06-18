@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Bert Wesarg, Jan Stephan
+/* Copyright 2019 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -50,7 +50,7 @@ namespace alpaka
                 Ty,
                 std::enable_if_t<
                     std::is_floating_point_v<Tx>
-                    && std::is_floating_point_v<Ty>>
+                    && std::is_floating_point_v<Ty>>>
             {
                 static auto remainder(
                     RemainderSyclBuiltIn const & remainder,

@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Bert Wesarg, Valentin Gehrke, Jan Stephan
+/* Copyright 2019 Jan Stephan
  *
  * This file is part of Alpaka.
  *

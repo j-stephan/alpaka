@@ -59,9 +59,15 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             auto operator=(DevSycl &&) -> DevSycl & = default;
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator==(DevSycl const & rhs) const -> bool = default;
+            ALPAKA_FN_HOST auto operator==(DevSycl const & rhs) const -> bool
+            {
+                return (rhs.m_Device == m_Device) && (rhs.m_Queue == m_Queue);
+            }
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator!=(DevSycl const & rhs) const -> bool = default;
+            ALPAKA_FN_HOST auto operator!=(DevSycl const & rhs) const -> bool
+            {
+                return !operator==(rhs);
+            }
             //-----------------------------------------------------------------------------
             ~DevSycl() = default;
 
@@ -205,8 +211,10 @@ namespace alpaka
                 dev::DevSycl>
             {
                 //-----------------------------------------------------------------------------
+                // Note the missing const behind DevSycl. wait_and_throw isn't
+                // const unfortunately.
                 ALPAKA_FN_HOST static auto currentThreadWaitFor(
-                    dev::DevSycl const & dev)
+                    dev::DevSycl & dev)
                 -> void
                 {
                     ALPAKA_DEBUG_FULL_LOG_SCOPE;

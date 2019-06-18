@@ -100,7 +100,7 @@ namespace alpaka
                     if(devIdx >= devices.size())
                     {
                         auto ss_err = std::stringstream{};
-                        ssErr << "Unable to return device handle for device " << devIdx << ". There are only " << dev_count << " SYCL devices!";
+                        ss_err << "Unable to return device handle for device " << devIdx << ". There are only " << devices.size() << " SYCL devices!";
                         throw std::runtime_error(ss_err.str());
                     }
 
@@ -118,7 +118,7 @@ namespace alpaka
                     }
                     else
                     {
-                        auto ss_err = std::stringstream;
+                        auto ss_err = std::stringstream{};
                         ss_err << "Unable to return device handle for device "
                             << devIdx << ". It is not accessible!";
                         throw std::runtime_error(ss_err.str());
@@ -134,14 +134,14 @@ namespace alpaka
                             }
                             catch(const cl::sycl::exception& err)
                             {
-                                auto ss_err = std::stringstream;
+                                auto ss_err = std::stringstream{};
                                 ss_err << "Caught asynchronous SYCL exception: "
                                     << err.what()
                                     << " (" << err.get_cl_code() << ")";
                                 throw std::runtime_error(ss_err.str());
                             }
                         }
-                    }
+                    };
 
                     return dev::DevSycl{sycl_dev,
                                         cl::sycl::queue{sycl_dev,

@@ -9,6 +9,8 @@
 
  #pragma once
 
+#ifdef ALPAKA_ACC_SYCL_ENABLED
+
 #include <alpaka/core/Common.hpp>
 
 #if !BOOST_LANG_SYCL
@@ -50,13 +52,13 @@ namespace alpaka
             // Extract cl::sycl::vec's number of elements which isn't constexpr
             // despite being a template parameter
             template <int N_arg>
-            struct val { static constexpr auto N = arg_N; };
+            struct val { static constexpr auto N = N_arg; };
 
             template <typename T, int N>
             constexpr auto extract_impl(const cl::sycl::vec<T, N>&) -> val<N>;
 
             template <typename T>
-            constexpr auto extract = decltype(extract(std::declval<T>()))::N;
+            constexpr auto extract = decltype(extract_impl(std::declval<T>()))::N;
         }
 
         namespace traits
@@ -71,33 +73,28 @@ namespace alpaka
                 typename T>
             struct IsSyclBuiltInType :
                 detail::is_any<T,
-                    // built-in scalar types
-                    bool,
-                    char, signed char, unsigned char,
-                    short int, unsigned short int,
-                    int, unsigned int,
-                    long int, unsigned long int,
-                    long long int, unsigned long long int,
-                    std::size_t,
-                    float, double, cl::sycl::half,
+                    // built-in scalar types - these are the standard C++
+                    // built-in scalar types, std::size_t and cl::sycl::half
+                    cl::sycl::half,
 
                     // additional scalar types
                     cl::sycl::byte,
 
-                    // OpenCL scalar types
-                    cl::sycl::cl_bool,
+                    // TODO: OpenCL scalar types
+                    /*cl::sycl::cl_bool, 
                     cl::sycl::cl_char, cl::sycl::cl_uchar,
                     cl::sycl::cl_short, cl::sycl::cl_ushort,
                     cl::sycl::cl_int, cl::sycl::cl_uint,
                     cl::sycl::cl_long, cl::sycl::cl_ulong,
-                    cl::sycl::cl_float, cl::sycl::cl_double, cl::sycl::cl_half,
+                    cl::sycl::cl_float, cl::sycl::cl_double,
+                    cl::sycl::cl_half,*/
 
                     // 2 component vector types
                     cl::sycl::char2, cl::sycl::schar2, cl::sycl::uchar2,
                     cl::sycl::short2, cl::sycl::ushort2,
                     cl::sycl::int2, cl::sycl::uint2,
                     cl::sycl::long2, cl::sycl::ulong2,
-                    cl::sycl::longlong2, cl::sycl:ulonglong2,
+                    cl::sycl::longlong2, cl::sycl::ulonglong2,
                     cl::sycl::float2, cl::sycl::double2, cl::sycl::half2,
                     cl::sycl::cl_char2, cl::sycl::cl_uchar2,
                     cl::sycl::cl_short2, cl::sycl::cl_ushort2,
@@ -110,7 +107,7 @@ namespace alpaka
                     cl::sycl::short3, cl::sycl::ushort3,
                     cl::sycl::int3, cl::sycl::uint3,
                     cl::sycl::long3, cl::sycl::ulong3,
-                    cl::sycl::longlong3, cl::sycl:ulonglong3,
+                    cl::sycl::longlong3, cl::sycl::ulonglong3,
                     cl::sycl::float3, cl::sycl::double3, cl::sycl::half3,
                     cl::sycl::cl_char3, cl::sycl::cl_uchar3,
                     cl::sycl::cl_short3, cl::sycl::cl_ushort3,
@@ -123,7 +120,7 @@ namespace alpaka
                     cl::sycl::short4, cl::sycl::ushort4,
                     cl::sycl::int4, cl::sycl::uint4,
                     cl::sycl::long4, cl::sycl::ulong4,
-                    cl::sycl::longlong4, cl::sycl:ulonglong4,
+                    cl::sycl::longlong4, cl::sycl::ulonglong4,
                     cl::sycl::float4, cl::sycl::double4, cl::sycl::half4,
                     cl::sycl::cl_char4, cl::sycl::cl_uchar4,
                     cl::sycl::cl_short4, cl::sycl::cl_ushort4,
@@ -136,7 +133,7 @@ namespace alpaka
                     cl::sycl::short8, cl::sycl::ushort8,
                     cl::sycl::int8, cl::sycl::uint8,
                     cl::sycl::long8, cl::sycl::ulong8,
-                    cl::sycl::longlong8, cl::sycl:ulonglong8,
+                    cl::sycl::longlong8, cl::sycl::ulonglong8,
                     cl::sycl::float8, cl::sycl::double8, cl::sycl::half8,
                     cl::sycl::cl_char8, cl::sycl::cl_uchar8,
                     cl::sycl::cl_short8, cl::sycl::cl_ushort8,
@@ -149,7 +146,7 @@ namespace alpaka
                     cl::sycl::short16, cl::sycl::ushort16,
                     cl::sycl::int16, cl::sycl::uint16,
                     cl::sycl::long16, cl::sycl::ulong16,
-                    cl::sycl::longlong16, cl::sycl:ulonglong16,
+                    cl::sycl::longlong16, cl::sycl::ulonglong16,
                     cl::sycl::float16, cl::sycl::double16, cl::sycl::half16,
                     cl::sycl::cl_char16, cl::sycl::cl_uchar16,
                     cl::sycl::cl_short16, cl::sycl::cl_ushort16,
@@ -172,9 +169,9 @@ namespace alpaka
             struct DimType<
                 T,
                 std::enable_if_t<
-                    sycl::traits::IsSyclBuiltInType<T>::value>
+                    sycl::traits::IsSyclBuiltInType<T>::value>>
             {
-                using type = dim::DimInt<detail::extract<T>>;
+                using type = dim::DimInt<sycl::detail::extract<T>>;
             };
         }
     }
@@ -217,8 +214,10 @@ namespace alpaka
                     if constexpr(std::is_scalar_v<TExtent>)
                         return extent;
                     else
-                        return extent.swizzle<
+                    {
+                        return extent.template swizzle<
                             dim::DimInt<dim::Dim<TExtent>::value>::value>();
+                    }
                 }
             };
 
@@ -241,8 +240,10 @@ namespace alpaka
                     if constexpr(std::is_scalar_v<TExtent>)
                         extent = extentVal;
                     else
-                        extent.swizzle<
+                    {
+                        extent.template swizzle<
                             dim::DimInt<dim::Dim<TExtent>::value>::value>() = extentVal;
+                    }
                 }
             };
         }
@@ -267,7 +268,7 @@ namespace alpaka
                     if constexpr(std::is_scalar_v<TOffsets>)
                         return offsets;
                     else
-                        return offsets.swizzle<
+                        return offsets.template swizzle<
                             dim::DimInt<dim::Dim<TOffsets>::value>::value>();
                 }
             };
@@ -291,7 +292,7 @@ namespace alpaka
                     if constexpr(std::is_scalar_v<TOffsets>)
                         offsets = offset;
                     else
-                        offsets.swizzle<dim::DimInt<dim::Dim<TOffsets>::value>::value>() = offset;
+                        offsets.template swizzle<dim::DimInt<dim::Dim<TOffsets>::value>::value>() = offset;
                 }
             };
         }
