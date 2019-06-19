@@ -133,7 +133,7 @@ namespace alpaka
                     }, m_args);
 
                     // add Accelerator to variadic arguments
-                    auto acc = acc::AccSycl<TDim, TIdx>{work_item};
+                    auto acc = acc::AccSycl<TDim, TIdx>{workdiv::WorkDivMembers<TDim, TIdx>::m_threadElemExtent, work_item};
                     auto kernel_args = std::tuple_cat(std::tie(acc), transformed_args);
 
                     // TODO: Find a way to expand the kernel_args tuple (again...) and

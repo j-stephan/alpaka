@@ -50,6 +50,9 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             DevSycl() = default;
         public:
+            DevSycl(cl::sycl::device device, cl::sycl::queue queue)
+            : m_Device{device}, m_Queue{queue}
+            {}
             //-----------------------------------------------------------------------------
             DevSycl(DevSycl const &) = default;
             //-----------------------------------------------------------------------------

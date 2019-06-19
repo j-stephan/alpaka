@@ -85,8 +85,9 @@ namespace alpaka
         public:
             //-----------------------------------------------------------------------------
             AccSycl(
+                vec::Vec<TDim, TIdx> const & threadElemExtent,
                 cl::sycl::nd_item<TDim::value> work_item) :
-                    workdiv::WorkDivSyclBuiltIn<TDim, TIdx>{work_item},
+                    workdiv::WorkDivSyclBuiltIn<TDim, TIdx>{threadElemExtent, work_item},
                     idx::gb::IdxGbSyclBuiltIn<TDim, TIdx>{work_item},
                     idx::bt::IdxBtSyclBuiltIn<TDim, TIdx>{work_item},
                     /*atomic::AtomicHierarchy<

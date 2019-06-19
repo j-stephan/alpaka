@@ -46,7 +46,7 @@ namespace alpaka
         public:
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST QueueSyclBlocking(
-                dev::DevSycl & dev)
+                dev::DevSycl dev)
                 : m_dev{dev}
             {}
             //-----------------------------------------------------------------------------
@@ -71,7 +71,7 @@ namespace alpaka
             ~QueueSyclBlocking() = default;
 
         public:
-            dev::DevSycl & m_dev; //!< The device this queue is bound to.
+            dev::DevSycl m_dev; //!< The device this queue is bound to.
             cl::sycl::event m_event; //!< The last event in the dependency graph.
         };
     }
