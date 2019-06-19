@@ -72,7 +72,7 @@ namespace alpaka
                             cgh.copy(src_ptr, dst_acc);
                         }
 
-                        TElem * const src_ptr;
+                        const TElem * const src_ptr;
                         cl::sycl::buffer<TElem, TDim::value> dst_buf;
                         cl::sycl::range<TDim::value> range;
                     };
@@ -143,23 +143,26 @@ namespace alpaka
                             "The destination view can not be const!");
 
                         static_assert(
-                            dim::Dim<TViewDst>::value == dim::Dim<TViewSrc>::value,
+                            dim::Dim<TViewDst>::value == dim::Dim<std::remove_const_t<TViewSrc>>::value,
                             "The source and the destination view are required to have the same dimensionality!");
+
                         static_assert(
                             dim::Dim<TViewDst>::value == dim::Dim<TExtent>::value,
                             "The views and the extent are required to have the same dimensionality!");
 
                         static_assert(
-                            std::is_same<elem::Elem<TViewDst>, typename std::remove_const<elem::Elem<TViewSrc>>::type>::value,
+                            std::is_same_v<elem::Elem<TViewDst>, elem::Elem<std::remove_const_t<TViewSrc>>>,
                             "The source and the destination view are required to have the same element type!");
 
                         ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
                         return mem::view::sycl::detail::TaskCopySycl<
-                            elem::Elem<TViewSrc>,
+                            elem::Elem<std::remove_const_t<TViewSrc>>,
                             TDim,
                             mem::view::sycl::detail::copy_type::device_to_host>{
-                                viewSrc.m_buf,
+                                // This is really dumb - buffers can never be const in SYCL, even when
+                                // in read-only mode
+                                *(const_cast<std::remove_const_t<decltype(viewSrc.m_buf)>*>(&viewSrc.m_buf)),
                                 mem::view::getPtrNative(viewDst),
                                 mem::view::sycl::detail::get_sycl_range<dim::Dim<TExtent>::value>(extent)
                             };
@@ -189,21 +192,22 @@ namespace alpaka
                             !std::is_const<TViewDst>::value,
                             "The destination view can not be const!");
 
-                        /*static_assert(
-                            dim::Dim<TViewDst>::value == dim::Dim<TViewSrc>::value,
-                            "The source and the destination view are required to have the same dimensionality!");*/
+                        static_assert(
+                            dim::Dim<TViewDst>::value == dim::Dim<std::remove_const_t<TViewSrc>>::value,
+                            "The source and the destination view are required to have the same dimensionality!");
+
                         static_assert(
                             dim::Dim<TViewDst>::value == dim::Dim<TExtent>::value,
                             "The views and the extent are required to have the same dimensionality!");
 
                         static_assert(
-                            std::is_same<elem::Elem<TViewDst>, typename std::remove_const<elem::Elem<TViewSrc>>::type>::value,
+                            std::is_same_v<elem::Elem<TViewDst>, elem::Elem<std::remove_const_t<TViewSrc>>>,
                             "The source and the destination view are required to have the same element type!");
 
                         ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
                         return mem::view::sycl::detail::TaskCopySycl<
-                            elem::Elem<TViewSrc>,
+                            elem::Elem<std::remove_const_t<TViewSrc>>,
                             TDim,
                             mem::view::sycl::detail::copy_type::host_to_device>{
                                 mem::view::getPtrNative(viewSrc),

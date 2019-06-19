@@ -71,7 +71,7 @@ namespace alpaka
             ~QueueSyclNonBlocking() = default;
 
         public:
-            dev::DevSycl & m_dev; //!< The device this queue is bound to.
+            dev::DevSycl m_dev; //!< The device this queue is bound to.
             cl::sycl::event m_event; //!< The last event in the dependency graph.
         };
     }
