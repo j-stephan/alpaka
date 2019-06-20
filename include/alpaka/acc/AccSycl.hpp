@@ -101,13 +101,22 @@ namespace alpaka
                     block::sync::BlockSyncSyclBuiltIn(),
                     rand::RandCuRand(),
                     time::TimeSyclBuiltIn()*/
+                    m_threadElemExtent{threadElemExtent},
                     my_item{work_item}
 
             {}
 
         public:
             //-----------------------------------------------------------------------------
-            AccSycl(AccSycl const &) = delete;
+            AccSycl(AccSycl const & rhs)
+            : workdiv::WorkDivSyclBuiltIn<TDim, TIdx>{rhs.m_threadElemExtent, rhs.my_item}
+            , idx::gb::IdxGbSyclBuiltIn<TDim, TIdx>{rhs.my_item}
+            , idx::bt::IdxBtSyclBuiltIn<TDim, TIdx>{rhs.my_item}
+            , math::MathSyclBuiltIn{}
+            , m_threadElemExtent{rhs.m_threadElemExtent}
+            , my_item{rhs.my_item}
+            {
+            }
             //-----------------------------------------------------------------------------
             AccSycl(AccSycl &&) = delete;
             //-----------------------------------------------------------------------------
@@ -118,6 +127,7 @@ namespace alpaka
             ~AccSycl() = default;
 
         public:
+            vec::Vec<TDim, TIdx> const & m_threadElemExtent;
             cl::sycl::nd_item<TDim::value> my_item;
         };
     }

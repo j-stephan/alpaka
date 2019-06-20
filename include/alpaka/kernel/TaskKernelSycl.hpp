@@ -52,12 +52,59 @@
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
     #include <iostream>
 #endif
-#include <experimental/type_traits>
+
+#include <boost/hana/ap.hpp>
+#include <boost/hana/prepend.hpp>
+#include <boost/hana/transform.hpp>
+#include <boost/hana/tuple.hpp>
+#include <boost/hana/ext/std/tuple.hpp>
+#include <boost/hana/fwd/for_each.hpp>
 
 namespace alpaka
 {
     namespace kernel
     {
+        namespace sycl
+        {
+            namespace detail
+            {
+                struct kernel {}; // make ComputeCpp happy
+
+                struct general {};
+                struct special : general {};
+                template <typename> struct acc_t { using type = int; };
+
+                template <typename Val,
+                          typename acc_t<decltype(std::declval<Val>().is_placeholder())>::type = 0>
+                auto require_acc(cl::sycl::handler& cgh, Val&& val, special)
+                {
+                    cgh.require(val);
+                }
+
+                template <typename Val>
+                auto require_acc(cl::sycl::handler& cgh, Val&& val, general)
+                {
+                    // do nothing
+                }
+
+                template <typename Val,
+                          typename acc_t<decltype(std::declval<Val>().get_pointer())>::type = 0>
+                auto get_pointer(Val&& val, special)
+                {
+                    auto ptr = val.get_pointer();
+                    return static_cast<typename decltype(ptr)::element_type*>(ptr);
+                    // return static_cast<typename std::remove_reference_t<Val>::pointer_t>(val.get_pointer());
+                    // return static_cast<typename std::remove_reference_t<Val>::value_type*>(val.get_pointer());
+                }
+
+                template <typename Val>
+                auto get_pointer(Val&& val, general)
+                {
+                    return std::forward<Val>(val);
+                }
+
+            } // namespace detail
+        } // namespace sycl
         //#############################################################################
         //! The SYCL accelerator execution task.
         template<
@@ -106,41 +153,48 @@ namespace alpaka
 
             TKernelFnObj m_kernelFnObj;
             std::tuple<TArgs...> m_args;
-            
+
             auto operator()(cl::sycl::handler& cgh)
             { 
                 // bind all buffers to their accessors
-                tuple_require(m_args, cgh);
-                /*std::apply([&, this](auto&&... args)
+                boost::hana::for_each(m_args, [&](auto&& val)
                 {
-                    (require_acc(cgh, std::forward<decltype(args)>(args), special{}), ...);
-                }, m_args);*/
+                    sycl::detail::require_acc(cgh, std::forward<decltype(val)>(val), sycl::detail::special{});
+                });
 
                 const auto work_groups = workdiv::WorkDivMembers<TDim, TIdx>::m_gridBlockExtent;
                 const auto group_items = workdiv::WorkDivMembers<TDim, TIdx>::m_blockThreadExtent;
+                const auto item_elements = workdiv::WorkDivMembers<TDim, TIdx>::m_threadElemExtent;
 
                 const auto global_size = get_global_size(work_groups, group_items);
                 const auto local_size = get_local_size(group_items);
 
-                cgh.parallel_for<class sycl_kernel>(
+                // copy-by-value so we don't access 'this' on the device
+                auto k_func = m_kernelFnObj;
+                // create Hana tuple from std tuple
+                auto k_args = boost::hana::unpack(m_args, [](auto&&... args)
+                { 
+                    return boost::hana::make_tuple(args...); 
+                });                
+
+                cgh.parallel_for<sycl::detail::kernel>(
                         cl::sycl::nd_range<TDim::value> {
                             global_size, local_size
                         },
                 [=](cl::sycl::nd_item<TDim::value> work_item)
                 {
-                    /*auto transformed_args = std::apply([this](auto&... args)
+                    auto transformed_args = boost::hana::transform(k_args,
+                    [](auto&& val)
                     {
-                        auto ret = std::tuple((get_pointer(std::forward<decltype(args)>(args),  special{}), ...));
-
-                        // static_assert(std::tuple_size_v<decltype(ret)> > 1, "Too small");
-                        return ret;
-                    }, m_args);*/
-                    auto transformed_args = tuple_get_pointer(m_args);
-
+                        return sycl::detail::get_pointer(
+                                std::forward<decltype(val)>(val), 
+                                sycl::detail::special{});
+                    });
 
                     // add Accelerator to variadic arguments
-                    auto acc = acc::AccSycl<TDim, TIdx>{workdiv::WorkDivMembers<TDim, TIdx>::m_threadElemExtent, work_item};
-                    auto kernel_args = std::tuple_cat(std::tie(acc), transformed_args);
+                    auto kernel_args = boost::hana::prepend(
+                            transformed_args, 
+                            acc::AccSycl<TDim, TIdx>{item_elements, work_item});
 
                     // TODO: Find a way to expand the kernel_args tuple (again...) and
                     // do the static_assert
@@ -149,79 +203,12 @@ namespace alpaka
                             TKernelFnObj(acc::AccSycl<TDim, TIdx> const &, TArgs const & ...)>, void>,
                         "The TKernelFnObj is required to return void!");*/
 
-                    std::apply(m_kernelFnObj, kernel_args);
+                    // std::apply(k_obj, kernel_args);
+                    boost::hana::unpack(kernel_args, k_func);
                 });
             }
 
         private:
-            struct general {};
-            struct special : general {};
-            template <typename> struct acc_t { using type = int; };
-
-            template <std::size_t... Idx>
-            auto make_index_dispatcher_noreturn(std::index_sequence<Idx...>)
-            {
-                return [](auto&& f) { (f(std::integral_constant<std::size_t, Idx>{}), ...); };
-            }
-
-            template <std::size_t N>
-            auto make_index_dispatcher_noreturn()
-            {
-                return make_index_dispatcher_noreturn(std::make_index_sequence<N>());
-            }
-
-            template <std::size_t... Idx>
-            auto make_index_dispatcher(std::index_sequence<Idx...>)
-            {
-                return [](auto&& f) { return std::make_tuple(((f(std::integral_constant<std::size_t, Idx>{})), ...)); };
-            }
-
-            template <std::size_t N>
-            auto make_index_dispatcher()
-            {
-                return make_index_dispatcher(std::make_index_sequence<N>());
-            }
-
-            template <typename Val,
-                      typename acc_t<decltype(std::declval<Val>().is_placeholder())>::type = 0>
-            auto require_acc(cl::sycl::handler& cgh, Val&& val, special)
-            {
-                cgh.require(val);
-            }
-
-            template <typename Val>
-            auto require_acc(cl::sycl::handler& cgh, Val&& val, general)
-            {
-                // do nothing
-            }
-
-            template <typename... Args>
-            auto tuple_require(std::tuple<Args...>& t, cl::sycl::handler& cgh)
-            {
-                auto dispatcher = make_index_dispatcher_noreturn<sizeof...(Args)>();
-                dispatcher([&](auto idx) { require_acc(cgh, std::get<idx>(t), special{}); });
-            }
-
-            template <typename Val,
-                      typename acc_t<decltype(std::declval<Val>().get_pointer())>::type = 0>
-            auto get_pointer(Val&& val, special) const
-            {
-                return static_cast<typename std::remove_reference_t<Val>::value_type*>(val.get_pointer());
-            }
-
-            template <typename Val>
-            auto get_pointer(Val&& val, general) const
-            {
-                return std::forward<Val>(val);
-            }
-
-            template <typename... Args>
-            auto tuple_get_pointer(std::tuple<Args...>& t)
-            {
-                auto dispatcher = make_index_dispatcher<sizeof...(Args)>();
-                return dispatcher([&](auto idx) { return get_pointer(std::get<idx>(t), special{}); });
-            }
-
             auto get_global_size(const vec::Vec<TDim, TIdx>& work_groups,
                                  const vec::Vec<TDim, TIdx>& group_items)
             {
