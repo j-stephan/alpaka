@@ -101,7 +101,21 @@ namespace alpaka
                     TWorkDiv const &)
                 -> vec::Vec<TDim, TIdx>
                 {
-                    return vec::cast<TIdx>(idx.my_item.get_group(TDim::value));
+                    if constexpr(TDim::value == 1)
+                    {
+                        return vec::Vec<TDim, TIdx>(idx.my_item.get_group(0));
+                    }
+                    else if constexpr(TDim::Value == 2)
+                    {
+                        return vec::Vec<TDim, TIdx>(idx.my_item.get_group(0),
+                                                    idx.my_item.get_group(1));
+                    }
+                    else
+                    {
+                        return vec::Vec<TDim, TIdx>(idx.my_item.get_group(0),
+                                                    idx.my_item.get_group(1),
+                                                    idx.my_item.get_group(2));
+                    }
                 }
             };
         }
