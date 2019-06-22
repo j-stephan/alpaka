@@ -53,12 +53,13 @@
     #include <iostream>
 #endif
 
-#include <boost/hana/ap.hpp>
 #include <boost/hana/prepend.hpp>
 #include <boost/hana/transform.hpp>
 #include <boost/hana/tuple.hpp>
 #include <boost/hana/ext/std/tuple.hpp>
 #include <boost/hana/fwd/for_each.hpp>
+
+#include <stl-tuple/STLTuple.hpp> // computecpp-sdk
 
 namespace alpaka
 {
@@ -89,7 +90,7 @@ namespace alpaka
 
                 template <typename Val,
                           typename acc_t<decltype(std::declval<Val>().get_pointer())>::type = 0>
-                auto get_pointer(Val&& val, special)
+                inline auto get_pointer(Val&& val, special)
                 {
                     auto ptr = val.get_pointer();
                     return static_cast<typename decltype(ptr)::element_type*>(ptr);
@@ -98,11 +99,25 @@ namespace alpaka
                 }
 
                 template <typename Val>
-                auto get_pointer(Val&& val, general)
+                inline auto get_pointer(Val&& val, general)
                 {
                     return std::forward<Val>(val);
                 }
 
+                template <typename... TArgs, std::size_t... Is>
+                constexpr auto make_hana_args(utility::tuple::Tuple<TArgs...> args,
+                                              std::index_sequence<Is...>)
+                {
+                    // return boost::hana::make_tuple(utility::tuple::get<Is>(args)...);
+                    return std::make_tuple(utility::tuple::get<Is>(args)...);
+                };
+
+                template <typename TKernelFnObj, typename... TArgs>
+                constexpr auto kernel_returns_void(TKernelFnObj, std::tuple<TArgs...> const &)
+                {
+                    return std::is_same_v<std::result_of_t<
+                            TKernelFnObj(TArgs const & ...)>, void>;
+                }
             } // namespace detail
         } // namespace sycl
         //#############################################################################
@@ -116,12 +131,13 @@ namespace alpaka
             public workdiv::WorkDivMembers<TDim, TIdx>
         {
         public:
-            static_assert(
+            // apparently kernels are no longer trivially copyable during the second phase of SYCL compilation
+            /*static_assert(
                 meta::Conjunction<
                     std::is_trivially_copyable<TKernelFnObj>,
                     std::is_trivially_copyable<TArgs>...
                     >::value,
-                "The given kernel function object and its arguments have to fulfill is_trivially_copyable!");
+                "The given kernel function object and its arguments have to fulfill is_trivially_copyable!");*/
 
             static_assert(TDim::value > 0 && TDim::value <= 3,
                           "Invalid kernel dimensionality");
@@ -152,7 +168,8 @@ namespace alpaka
             ~TaskKernelSycl() = default;
 
             TKernelFnObj m_kernelFnObj;
-            std::tuple<TArgs...> m_args;
+            // std::tuple<TArgs...> m_args;
+            utility::tuple::Tuple<TArgs...> m_args;
 
             auto operator()(cl::sycl::handler& cgh)
             { 
@@ -171,11 +188,7 @@ namespace alpaka
 
                 // copy-by-value so we don't access 'this' on the device
                 auto k_func = m_kernelFnObj;
-                // create Hana tuple from std tuple
-                auto k_args = boost::hana::unpack(m_args, [](auto&&... args)
-                { 
-                    return boost::hana::make_tuple(args...); 
-                });                
+                auto k_args = m_args;
 
                 cgh.parallel_for<sycl::detail::kernel>(
                         cl::sycl::nd_range<TDim::value> {
@@ -183,7 +196,13 @@ namespace alpaka
                         },
                 [=](cl::sycl::nd_item<TDim::value> work_item)
                 {
-                    auto transformed_args = boost::hana::transform(k_args,
+                    // now that we've imported the tuple into device code we
+                    // can use Hana again
+                    auto hana_args = sycl::detail::make_hana_args(
+                                        k_args,
+                                        std::make_index_sequence<sizeof...(TArgs)>{});
+
+                    auto transformed_args = boost::hana::transform(hana_args,
                     [](auto&& val)
                     {
                         return sycl::detail::get_pointer(
@@ -196,14 +215,9 @@ namespace alpaka
                             transformed_args, 
                             acc::AccSycl<TDim, TIdx>{item_elements, work_item});
 
-                    // TODO: Find a way to expand the kernel_args tuple (again...) and
-                    // do the static_assert
-                    /*static_assert(
-                        std::is_same_v<std::result_of_t<
-                            TKernelFnObj(acc::AccSycl<TDim, TIdx> const &, TArgs const & ...)>, void>,
-                        "The TKernelFnObj is required to return void!");*/
+                    static_assert(sycl::detail::kernel_returns_void(k_func, kernel_args),
+                                  "The TKernelFnObj is required to return void!");
 
-                    // std::apply(k_obj, kernel_args);
                     boost::hana::unpack(kernel_args, k_func);
                 });
             }
