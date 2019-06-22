@@ -53,11 +53,11 @@
     #include <iostream>
 #endif
 
+#include <boost/hana/for_each.hpp>
 #include <boost/hana/prepend.hpp>
 #include <boost/hana/transform.hpp>
 #include <boost/hana/tuple.hpp>
 #include <boost/hana/ext/std/tuple.hpp>
-#include <boost/hana/fwd/for_each.hpp>
 
 #include <stl-tuple/STLTuple.hpp> // computecpp-sdk
 
@@ -77,13 +77,13 @@ namespace alpaka
 
                 template <typename Val,
                           typename acc_t<decltype(std::declval<Val>().is_placeholder())>::type = 0>
-                auto require_acc(cl::sycl::handler& cgh, Val&& val, special)
+                inline auto require(cl::sycl::handler& cgh, Val&& val, special)
                 {
                     cgh.require(val);
                 }
 
                 template <typename Val>
-                auto require_acc(cl::sycl::handler& cgh, Val&& val, general)
+                inline auto require(cl::sycl::handler& cgh, Val&& val, general)
                 {
                     // do nothing
                 }
@@ -92,10 +92,7 @@ namespace alpaka
                           typename acc_t<decltype(std::declval<Val>().get_pointer())>::type = 0>
                 inline auto get_pointer(Val&& val, special)
                 {
-                    auto ptr = val.get_pointer();
-                    return static_cast<typename decltype(ptr)::element_type*>(ptr);
-                    // return static_cast<typename std::remove_reference_t<Val>::pointer_t>(val.get_pointer());
-                    // return static_cast<typename std::remove_reference_t<Val>::value_type*>(val.get_pointer());
+                    return static_cast<typename std::remove_reference_t<Val>::value_type*>(val.get_pointer());
                 }
 
                 template <typename Val>
@@ -104,12 +101,19 @@ namespace alpaka
                     return std::forward<Val>(val);
                 }
 
+                // Calling this inside the kernel as Hana is a bit tricky
+                template <typename... TArgs, std::size_t... Is>
+                constexpr auto make_std_args(utility::tuple::Tuple<TArgs...> args,
+                                              std::index_sequence<Is...>)
+                {
+                    return std::make_tuple(utility::tuple::get<Is>(args)...);
+                };
+
                 template <typename... TArgs, std::size_t... Is>
                 constexpr auto make_hana_args(utility::tuple::Tuple<TArgs...> args,
                                               std::index_sequence<Is...>)
                 {
-                    // return boost::hana::make_tuple(utility::tuple::get<Is>(args)...);
-                    return std::make_tuple(utility::tuple::get<Is>(args)...);
+                    return boost::hana::make_tuple(utility::tuple::get<Is>(args)...);
                 };
 
                 template <typename TKernelFnObj, typename... TArgs>
@@ -131,7 +135,8 @@ namespace alpaka
             public workdiv::WorkDivMembers<TDim, TIdx>
         {
         public:
-            // apparently kernels are no longer trivially copyable during the second phase of SYCL compilation
+            // apparently kernels are no longer trivially copyable during the
+            // second phase of ComputeCpp's SYCL compilation
             /*static_assert(
                 meta::Conjunction<
                     std::is_trivially_copyable<TKernelFnObj>,
@@ -168,15 +173,21 @@ namespace alpaka
             ~TaskKernelSycl() = default;
 
             TKernelFnObj m_kernelFnObj;
-            // std::tuple<TArgs...> m_args;
             utility::tuple::Tuple<TArgs...> m_args;
 
-            auto operator()(cl::sycl::handler& cgh)
+            inline auto operator()(cl::sycl::handler& cgh)
             { 
                 // bind all buffers to their accessors
-                boost::hana::for_each(m_args, [&](auto&& val)
+                // use boost::hana::tuple since apply() is explicitly deleted
+                // for utility::tuple::Tuple
+                boost::hana::for_each(sycl::detail::make_hana_args(
+                                        m_args,
+                                        std::make_index_sequence<sizeof...(TArgs)>{}),
+                [&](auto&& val)
                 {
-                    sycl::detail::require_acc(cgh, std::forward<decltype(val)>(val), sycl::detail::special{});
+                    sycl::detail::require(cgh,
+                                          std::forward<decltype(val)>(val),
+                                          sycl::detail::special{});
                 });
 
                 const auto work_groups = workdiv::WorkDivMembers<TDim, TIdx>::m_gridBlockExtent;
@@ -197,8 +208,8 @@ namespace alpaka
                 [=](cl::sycl::nd_item<TDim::value> work_item)
                 {
                     // now that we've imported the tuple into device code we
-                    // can use Hana again
-                    auto hana_args = sycl::detail::make_hana_args(
+                    // can use std::tuple and Hana
+                    auto hana_args = sycl::detail::make_std_args(
                                         k_args,
                                         std::make_index_sequence<sizeof...(TArgs)>{});
 
