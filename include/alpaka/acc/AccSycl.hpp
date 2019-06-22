@@ -66,7 +66,7 @@ namespace alpaka
         template<
             typename TDim,
             typename TIdx>
-        class AccSycl final :
+        class AccSycl : // this should be final but we need inheritance for Boost::Hana
             public workdiv::WorkDivSyclBuiltIn<TDim, TIdx>,
             public idx::gb::IdxGbSyclBuiltIn<TDim, TIdx>,
             public idx::bt::IdxBtSyclBuiltIn<TDim, TIdx>,
