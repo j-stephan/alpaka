@@ -60,9 +60,9 @@ namespace alpaka
                             cgh.fill(acc, value);
                         }
 
-                        cl::sycl::buffer<TElem, dim::Dim<TDim>::value>& buf;
+                        cl::sycl::buffer<TElem, TDim::value>& buf;
                         TElem value;
-                        cl::sycl::range<dim::Dim<TDim>::value> range;
+                        cl::sycl::range<TDim::value> range;
                     };
                 }
             }

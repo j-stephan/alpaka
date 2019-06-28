@@ -69,6 +69,7 @@ namespace alpaka
         {
             namespace detail
             {
+                template <typename Name>
                 struct kernel {}; // make ComputeCpp happy
 
                 struct general {};
@@ -201,7 +202,8 @@ namespace alpaka
                 auto k_func = m_kernelFnObj;
                 auto k_args = m_args;
 
-                cgh.parallel_for<sycl::detail::kernel>(
+                using kernel_type = sycl::detail::kernel<TKernelFnObj>;
+                cgh.parallel_for<kernel_type>(
                         cl::sycl::nd_range<TDim::value> {
                             global_size, local_size
                         },
