@@ -56,11 +56,12 @@ namespace alpaka
                         //-----------------------------------------------------------------------------
                         auto operator()(cl::sycl::handler& cgh) -> void
                         {
-                            auto acc = buf.get_access<cl::sycl::access::mode::write>(cgh, range);
+                            auto acc = buf->template get_access<
+                                cl::sycl::access::mode::write>(cgh, range);
                             cgh.fill(acc, value);
                         }
 
-                        cl::sycl::buffer<TElem, TDim::value>& buf;
+                        cl::sycl::buffer<TElem, TDim::value>* buf;
                         TElem value;
                         cl::sycl::range<TDim::value> range;
                     };
@@ -118,7 +119,7 @@ namespace alpaka
                         auto task = mem::view::sycl::detail::TaskSetSycl<
                                         value_type, 
                                         TDim>{
-                                            view.m_buf,
+                                            &view.m_buf,
                                             element,
                                             mem::view::sycl::detail::get_sycl_range<dim::Dim<TExtent>::value>(extent)
                                         };

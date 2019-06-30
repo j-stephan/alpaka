@@ -43,8 +43,8 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST EventSycl(
                 dev::DevSycl const & dev,
-                bool bBusyWait = true) :
-            : m_Device{dev.m_Device}
+                bool bBusyWait = true)
+            : m_Device{dev}
             , m_Event{}
             , m_bBusyWait{bBusyWait}
             {
@@ -143,31 +143,24 @@ namespace alpaka
                 -> void
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                    event.
-                    ALPAKA_CUDA_RT_CHECK(cudaEventRecord(
-                        event.m_spEventImpl->m_CudaEvent,
-                        queue.m_spQueueImpl->m_CudaQueue));
+                    event.m_Event = queue.m_event;
                 }
             };
             //#############################################################################
-            //! The CUDA RT queue enqueue trait specialization.
+            //! The SYCL queue enqueue trait specialization.
             template<>
             struct Enqueue<
-                queue::QueueCudaRtBlocking,
-                event::EventCudaRt>
+                queue::QueueSyclBlocking,
+                event::EventSycl>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueCudaRtBlocking & queue,
-                    event::EventCudaRt & event)
+                    queue::QueueSyclBlocking & queue,
+                    event::EventSycl & event)
                 -> void
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                    ALPAKA_CUDA_RT_CHECK(cudaEventRecord(
-                        event.m_spEventImpl->m_CudaEvent,
-                        queue.m_spQueueImpl->m_CudaQueue));
+                    event.m_Event = queue.m_event;
                 }
             };
         }
@@ -177,94 +170,94 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The CUDA RT device event thread wait trait specialization.
+            //! The SYCL device event thread wait trait specialization.
             //!
             //! Waits until the event itself and therefore all tasks preceding it in the queue it is enqueued to have been completed.
             //! If the event is not enqueued to a queue the method returns immediately.
             template<>
             struct CurrentThreadWaitFor<
-                event::EventCudaRt>
+                event::EventSycl>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto currentThreadWaitFor(
-                    event::EventCudaRt const & event)
+                    event::EventSycl & event)
                 -> void
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                    // Sync is allowed even for events on non current device.
-                    ALPAKA_CUDA_RT_CHECK(cudaEventSynchronize(
-                        event.m_spEventImpl->m_CudaEvent));
+                    event.m_Event.wait_and_throw();
                 }
             };
             //#############################################################################
-            //! The CUDA RT queue event wait trait specialization.
+            //! The SYCL queue event wait trait specialization.
             template<>
             struct WaiterWaitFor<
-                queue::QueueCudaRtNonBlocking,
-                event::EventCudaRt>
+                queue::QueueSyclNonBlocking,
+                event::EventSycl>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto waiterWaitFor(
-                    queue::QueueCudaRtNonBlocking & queue,
-                    event::EventCudaRt const & event)
+                    queue::QueueSyclNonBlocking & queue,
+                    event::EventSycl const & event)
                 -> void
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                    ALPAKA_CUDA_RT_CHECK(cudaStreamWaitEvent(
-                        queue.m_spQueueImpl->m_CudaQueue,
-                        event.m_spEventImpl->m_CudaEvent,
-                        0));
+                    // FIXME: This function makes no sense in SYCL. Dependency 
+                    // synchronization works via buffer availability (done by
+                    // the SYCL runtime), not the completion of events. We could
+                    // emulate the behaviour using SYCL events but this would
+                    // require a lot of work with regard to thread-safety.
+                    // Additionally, we still wouldn't have the guarantee that
+                    // the desired memory is actually available.
                 }
             };
             //#############################################################################
-            //! The CUDA RT queue event wait trait specialization.
+            //! The SYCL queue event wait trait specialization.
             template<>
             struct WaiterWaitFor<
-                queue::QueueCudaRtBlocking,
-                event::EventCudaRt>
+                queue::QueueSyclBlocking,
+                event::EventSycl>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto waiterWaitFor(
-                    queue::QueueCudaRtBlocking & queue,
-                    event::EventCudaRt const & event)
+                    queue::QueueSyclBlocking & queue,
+                    event::EventSycl const & event)
                 -> void
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                    ALPAKA_CUDA_RT_CHECK(cudaStreamWaitEvent(
-                        queue.m_spQueueImpl->m_CudaQueue,
-                        event.m_spEventImpl->m_CudaEvent,
-                        0));
+                    // FIXME: This function makes no sense in SYCL. Dependency 
+                    // synchronization works via buffer availability (done by
+                    // the SYCL runtime), not the completion of events. We could
+                    // emulate the behaviour using SYCL events but this would
+                    // require a lot of work with regard to thread-safety.
+                    // Additionally, we still wouldn't have the guarantee that
+                    // the desired memory is actually available.
                 }
             };
             //#############################################################################
-            //! The CUDA RT device event wait trait specialization.
+            //! The SYCL device event wait trait specialization.
             //!
             //! Any future work submitted in any queue of this device will wait for event to complete before beginning execution.
             template<>
             struct WaiterWaitFor<
-                dev::DevCudaRt,
-                event::EventCudaRt>
+                dev::DevSycl,
+                event::EventSycl>
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto waiterWaitFor(
-                    dev::DevCudaRt & dev,
-                    event::EventCudaRt const & event)
+                    dev::DevSycl & dev,
+                    event::EventSycl const & event)
                 -> void
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-
-                    // Set the current device.
-                    ALPAKA_CUDA_RT_CHECK(
-                        cudaSetDevice(
-                            dev.m_iDevice));
-
-                    ALPAKA_CUDA_RT_CHECK(cudaStreamWaitEvent(
-                        nullptr,
-                        event.m_spEventImpl->m_CudaEvent,
-                        0));
+                    // FIXME: This function makes no sense in SYCL. Dependency 
+                    // synchronization works via buffer availability (done by
+                    // the SYCL runtime), not the completion of events. We could
+                    // emulate the behaviour using SYCL events but this would
+                    // require a lot of work with regard to thread-safety.
+                    // Additionally, we still wouldn't have the guarantee that
+                    // the desired memory is actually available.
                 }
             };
         }
