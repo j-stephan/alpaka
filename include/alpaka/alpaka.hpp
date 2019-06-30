@@ -108,11 +108,8 @@
 #include <alpaka/event/EventUniformCudaHipRt.hpp>
 #include <alpaka/event/EventCpu.hpp>
 #include <alpaka/event/EventOmp5.hpp>
-<<<<<<< HEAD
 #include <alpaka/event/EventOacc.hpp>
-=======
-//#include <alpaka/event/EventSycl.hpp>
->>>>>>> [WIP] Fix compile-time issues
+#include <alpaka/event/EventSycl.hpp>
 #include <alpaka/event/Traits.hpp>
 //-----------------------------------------------------------------------------
 // extent
@@ -158,11 +155,8 @@
 #include <alpaka/mem/buf/BufCpu.hpp>
 #include <alpaka/mem/buf/BufUniformCudaHipRt.hpp>
 #include <alpaka/mem/buf/BufOmp5.hpp>
-<<<<<<< HEAD
 #include <alpaka/mem/buf/BufOacc.hpp>
-=======
 #include <alpaka/mem/buf/BufSycl.hpp>
->>>>>>> [WIP] Fix compile-time issues
 #include <alpaka/mem/buf/Traits.hpp>
 
 #include <alpaka/mem/view/ViewCompileTimeArray.hpp>
@@ -197,11 +191,8 @@
 #include <alpaka/pltf/PltfCpu.hpp>
 #include <alpaka/pltf/PltfUniformCudaHipRt.hpp>
 #include <alpaka/pltf/PltfOmp5.hpp>
-<<<<<<< HEAD
 #include <alpaka/pltf/PltfOacc.hpp>
-=======
 #include <alpaka/pltf/PltfSycl.hpp>
->>>>>>> [WIP] Fix compile-time issues
 #include <alpaka/pltf/Traits.hpp>
 //-----------------------------------------------------------------------------
 // rand

@@ -136,6 +136,8 @@ namespace alpaka
                     TTask const & task)
                 -> void
                 {
+                    // FIXME: This is not thread-safe.
+                    
                     // task must be a SYCL command group function object
                     queue.m_event = queue.m_dev.m_Queue.submit(task);
                 }
@@ -149,14 +151,16 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto empty(
-                    queue::QueueSyclNonBlocking & queue)
+                    queue::QueueSyclNonBlocking const & queue)
                 -> bool
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+                    auto non_const_queue = const_cast<queue::QueueSyclNonBlocking*>(&queue);
                     // check for previous events
-                    if(auto prev = queue.m_event.get_wait_list(); prev.empty())
+                    if(auto prev = non_const_queue->m_event.get_wait_list();
+                            prev.empty())
                     {
-                        switch(queue.m_event.get_info<
+                        switch(non_const_queue->m_event.get_info<
                                 cl::sycl::info::event::command_execution_status>())
                         {
                             // Last event is completed
@@ -190,11 +194,12 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto currentThreadWaitFor(
-                    queue::QueueSyclNonBlocking & queue)
+                    queue::QueueSyclNonBlocking const & queue)
                 -> void
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-                    queue.m_dev.m_Queue.wait_and_throw();
+                    auto non_const_queue = const_cast<queue::QueueSyclNonBlocking*>(&queue);
+                    non_const_queue->m_dev.m_Queue.wait_and_throw();
                 }
             };
         }

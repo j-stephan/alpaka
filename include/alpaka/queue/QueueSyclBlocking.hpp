@@ -12,6 +12,8 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
+#include <mutex>
+
 #include <alpaka/core/Common.hpp>
 
 #if !BOOST_LANG_SYCL
@@ -136,7 +138,10 @@ namespace alpaka
                     TTask const & task)
                 -> void
                 {
-                    // task has to be a SYCL command group object
+                    // FIXME: This is not thread-safe. But who uses the same
+                    //  blocking queue in multiple threads anyway?
+
+                    // task has to be a SYCL command group object 
                     queue.m_event = queue.m_dev.m_Queue.submit(task);
                     queue.m_dev.m_Queue.wait_and_throw();
                 }
@@ -149,14 +154,16 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto empty(
-                    queue::QueueSyclBlocking & queue)
+                    queue::QueueSyclBlocking const & queue)
                 -> bool
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+                    auto non_const_queue = const_cast<queue::QueueSyclBlocking*>(&queue);
                     // check for previous events
-                    if(auto prev = queue.m_event.get_wait_list(); prev.empty())
+                    if(auto prev = non_const_queue->m_event.get_wait_list();
+                            prev.empty())
                     {
-                        switch(queue.m_event.get_info<
+                        switch(non_const_queue->m_event.get_info<
                                 cl::sycl::info::event::command_execution_status>())
                         {
                             // Last event is completed
@@ -189,11 +196,12 @@ namespace alpaka
             {
                 //-----------------------------------------------------------------------------
                 ALPAKA_FN_HOST static auto currentThreadWaitFor(
-                    queue::QueueSyclBlocking & queue)
+                    queue::QueueSyclBlocking const & queue)
                 -> void
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-                    queue.m_dev.m_Queue.wait_and_throw();
+                    auto non_const_queue = const_cast<queue::QueueSyclBlocking*>(&queue);
+                    non_const_queue->m_dev.m_Queue.wait_and_throw();
                 }
             };
         }

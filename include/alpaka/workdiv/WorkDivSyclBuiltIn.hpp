@@ -115,7 +115,21 @@ namespace alpaka
                     WorkDivSyclBuiltIn<TDim, TIdx> const & workDiv)
                 -> vec::Vec<TDim, TIdx>
                 {
-                    return vec::cast<TIdx>(workDiv.my_item.get_group_range());
+                    if constexpr(TDim::value == 1)
+                    {
+                        return vec::Vec<TDim, TIdx>{workDiv.my_item.get_group_range(0)};
+                    }
+                    else if constexpr(TDim::value == 2)
+                    {
+                        return vec::Vec<TDim, TIdx>{workDiv.my_item.get_group_range(0),
+                                                    workDiv.my_item.get_group_range(1)};
+                    }
+                    else
+                    {
+                        return vec::Vec<TDim, TIdx>{workDiv.my_item.get_group_range(0),
+                                                    workDiv.my_item.get_group_range(1),
+                                                    workDiv.my_item.get_group_range(2)};
+                    }
                 }
             };
 
