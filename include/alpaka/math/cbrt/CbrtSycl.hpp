@@ -19,41 +19,40 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/atan/Traits.hpp>
+#include <alpaka/math/cbrt/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
-
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library atan.
-        class AtanSyclBuiltIn
+        //! The standard library cbrt.
+        class CbrtSycl
         {
         public:
-            using AtanBase = AtanSyclBuiltIn;
+            using CbrtBase = CbrtSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library atan trait specialization.
+            //! The standard library cbrt trait specialization.
             template<
                 typename TArg>
-            struct Atan<
-                AtanSyclBuiltIn,
+            struct Cbrt<
+                CbrtSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto atan(
-                    AtanSyclBuiltIn const & atan,
+                static auto cbrt(
+                    CbrtSycl const & cbrt,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(atan);
-                    return cl::sycl::atan(arg);
+                    alpaka::ignore_unused(cbrt);
+                    return cl::sycl::cbrt(arg);
                 }
             };
         }

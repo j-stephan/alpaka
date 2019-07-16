@@ -24,17 +24,16 @@
 #include <CL/sycl.hpp>
 #include <type_traits>
 
-
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
         //! The standard library fmod.
-        class FmodSyclBuiltIn
+        class FmodSycl
         {
         public:
-            using FmodBase = FmodSyclBuiltIn;
+            using FmodBase = FmodSycl;
         };
 
         namespace traits
@@ -45,7 +44,7 @@ namespace alpaka
                 typename Tx,
                 typename Ty>
             struct Fmod<
-                FmodSyclBuiltIn,
+                FmodSycl,
                 Tx,
                 Ty,
                 std::enable_if_t<
@@ -53,7 +52,7 @@ namespace alpaka
                     && std::is_floating_point_v<Ty>>>
             {
                 static auto fmod(
-                    FmodSyclBuiltIn const & fmod,
+                    FmodSycl const & fmod,
                     Tx const & x,
                     Ty const & y)
                 {

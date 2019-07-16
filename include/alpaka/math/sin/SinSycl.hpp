@@ -19,46 +19,40 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/pow/Traits.hpp>
+#include <alpaka/math/sin/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
-
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library pow.
-        class PowSyclBuiltIn
+        //! The standard library sin.
+        class SinSycl
         {
         public:
-            using PowBase = PowSyclBuiltIn;
+            using SinBase = SinSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library pow trait specialization.
+            //! The standard library sin trait specialization.
             template<
-                typename TBase,
-                typename TExp>
-            struct Pow<
-                PowSyclBuiltIn,
-                TBase,
-                TExp,
-                std::enable_if_t<
-                    std::is_floating_point_v<TBase>
-                    && std::is_floating_point_v<TExp>>>
+                typename TArg>
+            struct Sin<
+                SinSycl,
+                TArg,
+                std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto pow(
-                    PowSyclBuiltIn const & pow,
-                    TBase const & base,
-                    TExp const & exp)
+                static auto sin(
+                    SinSycl const & sin,
+                    TArg const & arg)
                 {
-                    alpaka::ignore_unused(pow);
-                    return cl::sycl::pow(base, exp);
+                    alpaka::ignore_unused(sin);
+                    return cl::sycl::sin(arg);
                 }
             };
         }

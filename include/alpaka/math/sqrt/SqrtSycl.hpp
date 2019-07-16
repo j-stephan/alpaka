@@ -19,41 +19,40 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/tan/Traits.hpp>
+#include <alpaka/math/sqrt/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
-
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library tan.
-        class TanSyclBuiltIn
+        //! The standard library sqrt.
+        class SqrtSycl
         {
         public:
-            using TanBase = TanSyclBuiltIn;
+            using SqrtBase = SqrtSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library tan trait specialization.
+            //! The standard library sqrt trait specialization.
             template<
                 typename TArg>
-            struct Tan<
-                TanSyclBuiltIn,
+            struct Sqrt<
+                SqrtSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto tan(
-                    TanSyclBuiltIn const & tan,
+                static auto sqrt(
+                    SqrtSycl const & sqrt,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(tan);
-                    return cl::sycl::tan(arg);
+                    alpaka::ignore_unused(sqrt);
+                    return cl::sycl::sqrt(arg);
                 }
             };
         }

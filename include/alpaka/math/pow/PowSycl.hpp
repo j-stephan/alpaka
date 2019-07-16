@@ -19,46 +19,45 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/remainder/Traits.hpp>
+#include <alpaka/math/pow/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
-
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library remainder.
-        class RemainderSyclBuiltIn
+        //! The standard library pow.
+        class PowSycl
         {
         public:
-            using RemainderBase = RemainderSyclBuiltIn;
+            using PowBase = PowSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library remainder trait specialization.
+            //! The standard library pow trait specialization.
             template<
-                typename Tx,
-                typename Ty>
-            struct Remainder<
-                RemainderSyclBuiltIn,
-                Tx,
-                Ty,
+                typename TBase,
+                typename TExp>
+            struct Pow<
+                PowSycl,
+                TBase,
+                TExp,
                 std::enable_if_t<
-                    std::is_floating_point_v<Tx>
-                    && std::is_floating_point_v<Ty>>>
+                    std::is_floating_point_v<TBase>
+                    && std::is_floating_point_v<TExp>>>
             {
-                static auto remainder(
-                    RemainderSyclBuiltIn const & remainder,
-                    Tx const & x,
-                    Ty const & y)
+                static auto pow(
+                    PowSycl const & pow,
+                    TBase const & base,
+                    TExp const & exp)
                 {
-                    alpaka::ignore_unused(remainder);
-                    return cl::sycl::remainder(x, y);
+                    alpaka::ignore_unused(pow);
+                    return cl::sycl::pow(base, exp);
                 }
             };
         }

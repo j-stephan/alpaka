@@ -34,27 +34,27 @@ namespace alpaka
         template<
             typename TDim,
             typename TIdx>
-        class WorkDivSyclBuiltIn
+        class WorkDivSycl
         {
         public:
-            using WorkDivBase = WorkDivSyclBuiltIn;
+            using WorkDivBase = WorkDivSycl;
 
             //-----------------------------------------------------------------------------
-            WorkDivSyclBuiltIn(
+            WorkDivSycl(
                 vec::Vec<TDim, TIdx> const & threadElemExtent,
                 cl::sycl::nd_item<TDim::value> work_item)
                 : m_threadElemExtent{threadElemExtent}, my_item{work_item}
             {}
             //-----------------------------------------------------------------------------
-            WorkDivSyclBuiltIn(WorkDivSyclBuiltIn const &) = delete;
+            WorkDivSycl(WorkDivSycl const &) = delete;
             //-----------------------------------------------------------------------------
-            WorkDivSyclBuiltIn(WorkDivSyclBuiltIn &&) = delete;
+            WorkDivSycl(WorkDivSycl &&) = delete;
             //-----------------------------------------------------------------------------
-            auto operator=(WorkDivSyclBuiltIn const &) -> WorkDivSyclBuiltIn & = delete;
+            auto operator=(WorkDivSycl const &) -> WorkDivSycl & = delete;
             //-----------------------------------------------------------------------------
-            auto operator=(WorkDivSyclBuiltIn &&) -> WorkDivSyclBuiltIn & = delete;
+            auto operator=(WorkDivSycl &&) -> WorkDivSycl & = delete;
             //-----------------------------------------------------------------------------
-            /*virtual*/ ~WorkDivSyclBuiltIn() = default;
+            /*virtual*/ ~WorkDivSycl() = default;
 
         public:
             vec::Vec<TDim, TIdx> const & m_threadElemExtent;
@@ -73,7 +73,7 @@ namespace alpaka
                 typename TDim,
                 typename TIdx>
             struct DimType<
-                workdiv::WorkDivSyclBuiltIn<TDim, TIdx>>
+                workdiv::WorkDivSycl<TDim, TIdx>>
             {
                 using type = TDim;
             };
@@ -89,7 +89,7 @@ namespace alpaka
                 typename TDim,
                 typename TIdx>
             struct IdxType<
-                workdiv::WorkDivSyclBuiltIn<TDim, TIdx>>
+                workdiv::WorkDivSycl<TDim, TIdx>>
             {
                 using type = TIdx;
             };
@@ -105,14 +105,14 @@ namespace alpaka
                 typename TDim,
                 typename TIdx>
             struct GetWorkDiv<
-                WorkDivSyclBuiltIn<TDim, TIdx>,
+                WorkDivSycl<TDim, TIdx>,
                 origin::Grid,
                 unit::Blocks>
             {
                 //-----------------------------------------------------------------------------
                 //! \return The number of blocks in each dimension of the grid.
                 static auto getWorkDiv(
-                    WorkDivSyclBuiltIn<TDim, TIdx> const & workDiv)
+                    WorkDivSycl<TDim, TIdx> const & workDiv)
                 -> vec::Vec<TDim, TIdx>
                 {
                     if constexpr(TDim::value == 1)
@@ -139,14 +139,14 @@ namespace alpaka
                 typename TDim,
                 typename TIdx>
             struct GetWorkDiv<
-                WorkDivSyclBuiltIn<TDim, TIdx>,
+                WorkDivSycl<TDim, TIdx>,
                 origin::Block,
                 unit::Threads>
             {
                 //-----------------------------------------------------------------------------
                 //! \return The number of threads in each dimension of a block.
                 static auto getWorkDiv(
-                    WorkDivSyclBuiltIn<TDim, TIdx> const & workDiv)
+                    WorkDivSycl<TDim, TIdx> const & workDiv)
                 -> vec::Vec<TDim, TIdx>
                 {
                     if constexpr(TDim::value == 1)
@@ -173,14 +173,14 @@ namespace alpaka
                 typename TDim,
                 typename TIdx>
             struct GetWorkDiv<
-                WorkDivSyclBuiltIn<TDim, TIdx>,
+                WorkDivSycl<TDim, TIdx>,
                 origin::Thread,
                 unit::Elems>
             {
                 //-----------------------------------------------------------------------------
                 //! \return The number of blocks in each dimension of the grid.
                 static auto getWorkDiv(
-                    WorkDivSyclBuiltIn<TDim, TIdx> const & workDiv)
+                    WorkDivSycl<TDim, TIdx> const & workDiv)
                 -> vec::Vec<TDim, TIdx>
                 {
                     return workDiv.m_threadElemExtent;

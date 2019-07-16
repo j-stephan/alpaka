@@ -19,41 +19,40 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/ceil/Traits.hpp>
+#include <alpaka/math/erf/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
-
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library ceil.
-        class CeilSyclBuiltIn
+        //! The standard library erf.
+        class ErfSycl
         {
         public:
-            using CeilBase = CeilSyclBuiltIn;
+            using ErfBase = ErfSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library ceil trait specialization.
+            //! The standard library erf trait specialization.
             template<
                 typename TArg>
-            struct Ceil<
-                CeilSyclBuiltIn,
+            struct Erf<
+                ErfSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto ceil(
-                    CeilSyclBuiltIn const & ceil,
+                static auto erf(
+                    ErfSycl const & erf,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(ceil);
-                    return cl::sycl::ceil(arg);
+                    alpaka::ignore_unused(erf);
+                    return cl::sycl::erf(arg);
                 }
             };
         }

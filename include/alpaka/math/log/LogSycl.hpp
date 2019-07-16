@@ -19,41 +19,40 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/cos/Traits.hpp>
+#include <alpaka/math/log/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
-
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library cos.
-        class CosSyclBuiltIn
+        //! The standard library log.
+        class LogSycl
         {
         public:
-            using CosBase = CosSyclBuiltIn;
+            using LogBase = LogSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library cos trait specialization.
+            //! The standard library log trait specialization.
             template<
                 typename TArg>
-            struct Cos<
-                CosSyclBuiltIn,
+            struct Log<
+                LogSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto cos(
-                    CosSyclBuiltIn const & cos,
+                static auto log(
+                    LogSycl const & log,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(cos);
-                    return cl::sycl::cos(arg);
+                    alpaka::ignore_unused(log);
+                    return cl::sycl::log(arg);
                 }
             };
         }

@@ -32,10 +32,10 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library min.
-        class MinSyclBuiltIn
+        class MinSycl
         {
         public:
-            using MinBase = MinSyclBuiltIn;
+            using MinBase = MinSycl;
         };
 
         namespace traits
@@ -46,7 +46,7 @@ namespace alpaka
                 typename Tx,
                 typename Ty>
             struct Min<
-                MinSyclBuiltIn,
+                MinSycl,
                 Tx,
                 Ty,
                 std::enable_if_t<
@@ -54,7 +54,7 @@ namespace alpaka
                     && std::is_integral_v<Ty>>>
             {
                 static auto min(
-                    MinSyclBuiltIn const & min,
+                    MinSycl const & min,
                     Tx const & x,
                     Ty const & y)
                 {
@@ -68,7 +68,7 @@ namespace alpaka
                 typename Tx,
                 typename Ty>
             struct Min<
-                MinSyclBuiltIn,
+                MinSycl,
                 Tx,
                 Ty,
                 std::enable_if_t<
@@ -76,7 +76,7 @@ namespace alpaka
                     && std::is_floating_point_v<Ty>>>
             {
                 static auto min(
-                    MinSyclBuiltIn const & min,
+                    MinSycl const & min,
                     Tx const & x,
                     Ty const & y)
                 {

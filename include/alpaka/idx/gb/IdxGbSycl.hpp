@@ -29,33 +29,33 @@ namespace alpaka
 {
     namespace idx
     {
-        namespace bt
+        namespace gb
         {
             //#############################################################################
             //! The SYCL accelerator ND index provider.
             template<
                 typename TDim,
                 typename TIdx>
-            class IdxBtSyclBuiltIn
+            class IdxGbSycl
             {
             public:
-                using IdxBtBase = IdxBtSyclBuiltIn;
-
+                using IdxGbBase = IdxGbSycl;
                 //-----------------------------------------------------------------------------
-                IdxBtSyclBuiltIn() = default;
+                IdxGbSycl() = default;
                 //-----------------------------------------------------------------------------
-                explicit IdxBtSyclBuiltIn(cl::sycl::nd_item<TDim::value> work_item)
-                : my_item{work_item} {}
+                explicit IdxGbSycl(cl::sycl::nd_item<TDim::value> work_item)
+                : my_item{work_item}
+                {}
                 //-----------------------------------------------------------------------------
-                IdxBtSyclBuiltIn(IdxBtSyclBuiltIn const &) = delete;
+                IdxGbSycl(IdxGbSycl const &) = delete;
                 //-----------------------------------------------------------------------------
-                IdxBtSyclBuiltIn(IdxBtSyclBuiltIn &&) = delete;
+                IdxGbSycl(IdxGbSycl &&) = delete;
                 //-----------------------------------------------------------------------------
-                auto operator=(IdxBtSyclBuiltIn const & ) -> IdxBtSyclBuiltIn & = delete;
+                auto operator=(IdxGbSycl const & ) -> IdxGbSycl & = delete;
                 //-----------------------------------------------------------------------------
-                auto operator=(IdxBtSyclBuiltIn &&) -> IdxBtSyclBuiltIn & = delete;
+                auto operator=(IdxGbSycl &&) -> IdxGbSycl & = delete;
                 //-----------------------------------------------------------------------------
-                /*virtual*/ ~IdxBtSyclBuiltIn() = default;
+                /*virtual*/ ~IdxGbSycl() = default;
 
                 cl::sycl::nd_item<TDim::value> my_item;
             };
@@ -72,7 +72,7 @@ namespace alpaka
                 typename TDim,
                 typename TIdx>
             struct DimType<
-                idx::bt::IdxBtSyclBuiltIn<TDim, TIdx>>
+                idx::gb::IdxGbSycl<TDim, TIdx>>
             {
                 using type = TDim;
             };
@@ -83,38 +83,38 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The SYCL accelerator block thread index get trait specialization.
+            //! The SYCL accelerator grid block index get trait specialization.
             template<
                 typename TDim,
                 typename TIdx>
             struct GetIdx<
-                idx::bt::IdxBtSyclBuiltIn<TDim, TIdx>,
-                origin::Block,
-                unit::Threads>
+                idx::gb::IdxGbSycl<TDim, TIdx>,
+                origin::Grid,
+                unit::Blocks>
             {
                 //-----------------------------------------------------------------------------
-                //! \return The index of the current thread in the block.
+                //! \return The index of the current block in the grid.
                 template<
                     typename TWorkDiv>
                 static auto getIdx(
-                    idx::bt::IdxBtSyclBuiltIn<TDim, TIdx> const & idx,
+                    idx::gb::IdxGbSycl<TDim, TIdx> const & idx,
                     TWorkDiv const &)
                 -> vec::Vec<TDim, TIdx>
                 {
                     if constexpr(TDim::value == 1)
                     {
-                        return vec::Vec<TDim, TIdx>{idx.my_item.get_local_id(0)};
+                        return vec::Vec<TDim, TIdx>(idx.my_item.get_group(0));
                     }
-                    else if constexpr(TDim::value == 2)
+                    else if constexpr(TDim::Value == 2)
                     {
-                        return vec::Vec<TDim, TIdx>{idx.my_item.get_local_id(0),
-                                                    idx.my_item.get_local_id(1)};
+                        return vec::Vec<TDim, TIdx>(idx.my_item.get_group(0),
+                                                    idx.my_item.get_group(1));
                     }
                     else
                     {
-                        return vec::Vec<TDim, TIdx>{idx.my_item.get_local_id(0),
-                                                    idx.my_item.get_local_id(1),
-                                                    idx.my_item.get_local_id(2)};
+                        return vec::Vec<TDim, TIdx>(idx.my_item.get_group(0),
+                                                    idx.my_item.get_group(1),
+                                                    idx.my_item.get_group(2));
                     }
                 }
             };
@@ -125,12 +125,12 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The SYCL accelerator block thread index idx type trait specialization.
+            //! The SYCL accelerator grid block index idx type trait specialization.
             template<
                 typename TDim,
                 typename TIdx>
             struct IdxType<
-                idx::bt::IdxBtSyclBuiltIn<TDim, TIdx>>
+                idx::gb::IdxGbSycl<TDim, TIdx>>
             {
                 using type = TIdx;
             };

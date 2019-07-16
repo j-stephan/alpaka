@@ -39,7 +39,7 @@
 #include <alpaka/atomic/AtomicNoOp.hpp>
 #include <alpaka/atomic/AtomicOmpBuiltIn.hpp>
 #include <alpaka/atomic/AtomicStdLibLock.hpp>
-//#include <alpaka/atomic/AtomicSyclBuiltIn.hpp>
+//#include <alpaka/atomic/AtomicSycl.hpp>
 #include <alpaka/atomic/Op.hpp>
 #include <alpaka/atomic/Traits.hpp>
 //-----------------------------------------------------------------------------
@@ -51,7 +51,7 @@
         #include <alpaka/block/shared/dyn/BlockSharedMemDynUniformCudaHipBuiltIn.hpp>
         #include <alpaka/block/shared/dyn/BlockSharedMemDynAlignedAlloc.hpp>
         #include <alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp>
-        //#include <alpaka/block/shared/dyn/BlockSharedMemDynSyclBuiltIn.hpp>
+        //#include <alpaka/block/shared/dyn/BlockSharedMemDynSycl.hpp>
         #include <alpaka/block/shared/dyn/Traits.hpp>
         //-----------------------------------------------------------------------------
         // static
@@ -59,7 +59,7 @@
         #include <alpaka/block/shared/st/BlockSharedMemStMasterSync.hpp>
         #include <alpaka/block/shared/st/BlockSharedMemStNoSync.hpp>
         #include <alpaka/block/shared/st/BlockSharedMemStMember.hpp>
-        //#include <alpaka/block/shared/st/BlockSharedMemStSyclBuiltIn.hpp>
+        //#include <alpaka/block/shared/st/BlockSharedMemStSycl.hpp>
         #include <alpaka/block/shared/st/Traits.hpp>
     //-----------------------------------------------------------------------------
     // sync
@@ -68,7 +68,7 @@
     #include <alpaka/block/sync/BlockSyncBarrierThread.hpp>
     #include <alpaka/block/sync/BlockSyncUniformCudaHipBuiltIn.hpp>
     #include <alpaka/block/sync/BlockSyncNoOp.hpp>
-    //#include <alpaka/block/sync/BlockSyncSyclBuiltIn.hpp>
+    #include <alpaka/block/sync/BlockSyncSycl.hpp>
     #include <alpaka/block/sync/Traits.hpp>
 //-----------------------------------------------------------------------------
 // core
@@ -121,10 +121,10 @@
 #include <alpaka/idx/bt/IdxBtRefFiberIdMap.hpp>
 #include <alpaka/idx/bt/IdxBtRefThreadIdMap.hpp>
 #include <alpaka/idx/bt/IdxBtZero.hpp>
-#include <alpaka/idx/bt/IdxBtSyclBuiltIn.hpp>
+#include <alpaka/idx/bt/IdxBtSycl.hpp>
 #include <alpaka/idx/gb/IdxGbUniformCudaHipBuiltIn.hpp>
 #include <alpaka/idx/gb/IdxGbRef.hpp>
-#include <alpaka/idx/gb/IdxGbSyclBuiltIn.hpp>
+#include <alpaka/idx/gb/IdxGbSycl.hpp>
 #include <alpaka/idx/Accessors.hpp>
 #include <alpaka/idx/Traits.hpp>
 #include <alpaka/idx/MapIdx.hpp>
@@ -145,7 +145,7 @@
 // math
 #include <alpaka/math/MathUniformCudaHipBuiltIn.hpp>
 #include <alpaka/math/MathStdLib.hpp>
-#include <alpaka/math/MathSyclBuiltIn.hpp>
+#include <alpaka/math/MathSycl.hpp>
 //-----------------------------------------------------------------------------
 // mem
 #include <alpaka/mem/alloc/AllocCpuAligned.hpp>
