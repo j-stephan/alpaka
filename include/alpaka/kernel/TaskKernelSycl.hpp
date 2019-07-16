@@ -76,30 +76,44 @@ namespace alpaka
                 struct special : general {};
                 template <typename> struct acc_t { using type = int; };
 
-                template <typename Val,
-                          typename acc_t<decltype(std::declval<Val>().is_placeholder())>::type = 0>
-                inline auto require(cl::sycl::handler& cgh, Val&& val, special)
+                template <typename TDim,
+                          typename TBuf,
+                          typename acc_t<decltype(std::declval<TBuf>().i_am_a_sycl_buffer_wrapper())>::type = 0>
+                inline auto get_access(cl::sycl::handler& cgh, TBuf buf, special)
                 {
-                    cgh.require(val);
+                    using buf_type = typename TBuf::buf_type;
+                    using value_type = typename buf_type::value_type;
+                    if constexpr(std::is_const_v<buf_type>)
+                    {
+                        return cl::sycl::accessor<value_type, TDim::value,
+                                                  cl::sycl::access::mode::read,
+                                                  cl::sycl::access::target::global_buffer>{*(buf.buf), cgh};
+                    }
+                    else
+                    {
+                        return cl::sycl::accessor<value_type, TDim::value,
+                                                  cl::sycl::access::mode::read_write,
+                                                  cl::sycl::access::target::global_buffer>{*(buf.buf), cgh};
+                    }
                 }
 
-                template <typename Val>
-                inline auto require(cl::sycl::handler& cgh, Val&& val, general)
+                template <typename TDim, typename TBuf>
+                inline auto get_access(cl::sycl::handler& cgh, TBuf buf, general)
                 {
-                    // do nothing
+                    return buf;
                 }
 
-                template <typename Val,
-                          typename acc_t<decltype(std::declval<Val>().get_pointer())>::type = 0>
-                inline auto get_pointer(Val&& val, special)
+                template <typename TAccessor,
+                          typename acc_t<decltype(std::declval<TAccessor>().get_pointer())>::type = 0>
+                inline auto get_pointer(TAccessor accessor, special)
                 {
-                    return static_cast<typename std::remove_reference_t<Val>::value_type*>(val.get_pointer());
+                    return static_cast<typename TAccessor::value_type*>(accessor.get_pointer());
                 }
 
-                template <typename Val>
-                inline auto get_pointer(Val&& val, general)
+                template <typename TAccessor>
+                inline auto get_pointer(TAccessor accessor, general)
                 {
-                    return std::forward<Val>(val);
+                    return accessor;
                 }
 
                 // Calling this inside the kernel as Hana is a bit tricky
@@ -108,14 +122,14 @@ namespace alpaka
                                               std::index_sequence<Is...>)
                 {
                     return std::make_tuple(utility::tuple::get<Is>(args)...);
-                };
+                }
 
                 template <typename... TArgs, std::size_t... Is>
-                constexpr auto make_hana_args(utility::tuple::Tuple<TArgs...> args,
-                                              std::index_sequence<Is...>)
+                constexpr auto make_device_args(std::tuple<TArgs...> args,
+                                                std::index_sequence<Is...>)
                 {
-                    return boost::hana::make_tuple(utility::tuple::get<Is>(args)...);
-                };
+                    return utility::tuple::make_tuple(std::get<Is>(args)...);
+                }
 
                 template <typename TKernelFnObj, typename... TArgs>
                 constexpr auto kernel_returns_void(TKernelFnObj, std::tuple<TArgs...> const &)
@@ -174,7 +188,7 @@ namespace alpaka
             ~TaskKernelSycl() = default;
 
             TKernelFnObj m_kernelFnObj;
-            utility::tuple::Tuple<TArgs...> m_args;
+            std::tuple<TArgs...> m_args;
 
             inline auto operator()(cl::sycl::handler& cgh)
             { 
@@ -187,15 +201,15 @@ namespace alpaka
                 // bind all buffers to their accessors
                 // use boost::hana::tuple since apply() is explicitly deleted
                 // for utility::tuple::Tuple
-                boost::hana::for_each(sycl::detail::make_hana_args(
-                                        m_args,
-                                        std::make_index_sequence<sizeof...(TArgs)>{}),
+                auto std_accessor_args = boost::hana::transform(m_args,
                 [&](auto&& val)
                 {
-                    sycl::detail::require(cgh,
-                                          std::forward<decltype(val)>(val),
-                                          sycl::detail::special{});
+                    return sycl::detail::get_access<TDim>(
+                                          cgh, val, sycl::detail::special{});
                 });
+                auto accessor_args = sycl::detail::make_device_args(
+                                        std_accessor_args,
+                                        std::make_index_sequence<sizeof...(TArgs)>{});
 
                 const auto work_groups = workdiv::WorkDivMembers<TDim, TIdx>::m_gridBlockExtent;
                 const auto group_items = workdiv::WorkDivMembers<TDim, TIdx>::m_blockThreadExtent;
@@ -206,7 +220,6 @@ namespace alpaka
 
                 // copy-by-value so we don't access 'this' on the device
                 auto k_func = m_kernelFnObj;
-                auto k_args = m_args;
 
                 using kernel_type = sycl::detail::kernel<TKernelFnObj>;
                 cgh.parallel_for<kernel_type>(
@@ -217,16 +230,16 @@ namespace alpaka
                 {
                     // now that we've imported the tuple into device code we
                     // can use std::tuple and Hana
-                    auto hana_args = sycl::detail::make_std_args(
-                                        k_args,
+                    auto std_args = sycl::detail::make_std_args(
+                                        accessor_args,
                                         std::make_index_sequence<sizeof...(TArgs)>{});
 
-                    auto transformed_args = boost::hana::transform(hana_args,
+                    // transform accessors to pointers
+                    auto transformed_args = boost::hana::transform(std_args,
                     [](auto&& val)
                     {
                         return sycl::detail::get_pointer(
-                                std::forward<decltype(val)>(val), 
-                                sycl::detail::special{});
+                                val, sycl::detail::special{});
                     });
 
                     // add Accelerator to variadic arguments
@@ -235,8 +248,8 @@ namespace alpaka
                             acc::AccSycl<TDim, TIdx>{item_elements, work_item,
                                                      pred_counter});
 
-                    static_assert(sycl::detail::kernel_returns_void(k_func, kernel_args),
-                                  "The TKernelFnObj is required to return void!");
+                    //static_assert(sycl::detail::kernel_returns_void(k_func, kernel_args),
+                    //              "The TKernelFnObj is required to return void!");
 
                     boost::hana::unpack(kernel_args, k_func);
                 });

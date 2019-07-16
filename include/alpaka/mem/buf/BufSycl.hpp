@@ -273,6 +273,55 @@ namespace alpaka
             };
         }
     }
+
+    namespace mem
+    {
+        namespace buf
+        {
+            namespace sycl
+            {
+                namespace detail
+                {
+                    // behaves like a pointer in order to stay consistent with
+                    // Alpaka's API
+                    template <typename TBuf>
+                    struct buffer_wrapper
+                    {
+                        using buf_type = TBuf;
+                        using value_type = typename buf_type::value_type;
+
+                        buffer_wrapper(TBuf* buf_ptr) noexcept
+                        : buf{buf_ptr}
+                        {
+                        }
+
+                        // be implicitly convertible to pointer types
+                        operator value_type*() noexcept
+                        {
+                            return reinterpret_cast<value_type*>(&dummy);
+                        }
+
+                        operator const value_type*() const noexcept
+                        {
+                            return reinterpret_cast<const value_type*>(&dummy);
+                        }
+
+                        // use a name which isn't used elsewhere for easy
+                        // identification in TaskKernelSycl
+                        auto i_am_a_sycl_buffer_wrapper() const noexcept
+                        {
+                            return 42;
+                        }
+
+                        TBuf* buf;
+                        // construct a dummy element in case someone wants to
+                        // do nullptr checks or something on the native pointer
+                        std::aligned_storage_t<sizeof(value_type), alignof(value_type)> dummy;
+                    };
+                }
+            }
+        }
+    }
     namespace mem
     {
         namespace view
@@ -290,24 +339,16 @@ namespace alpaka
                     mem::buf::BufSycl<TElem, TDim, TIdx>>
                 {
                     //-----------------------------------------------------------------------------
-                    // FIXME: Implement a pointer bookkeeping option instead of
-                    // accessors
                     ALPAKA_FN_HOST static auto getPtrNative(
                         mem::buf::BufSycl<TElem, TDim, TIdx> const & buf)
                     {
-                        return cl::sycl::accessor<TElem, dim::Dim<TDim>::value,
-                                                  cl::sycl::access::mode::read, // buf is const
-                                                  cl::sycl::access::target::global_buffer,
-                                                  cl::sycl::access::placeholder::true_t>{buf.m_buf};
+                        return mem::buf::sycl::detail::buffer_wrapper{&(buf.m_buf)};
                     }
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrNative(
                         mem::buf::BufSycl<TElem, TDim, TIdx> & buf)
                     {
-                        return cl::sycl::accessor<TElem, TDim::value,
-                                                  cl::sycl::access::mode::read_write,
-                                                  cl::sycl::access::target::global_buffer,
-                                                  cl::sycl::access::placeholder::true_t>{buf.m_buf};
+                        return mem::buf::sycl::detail::buffer_wrapper{&(buf.m_buf)};
                     }
                 };
 
@@ -356,6 +397,7 @@ namespace alpaka
                         mem::buf::BufSycl<TElem, TDim, TIdx> const & buf)
                     -> TIdx
                     {
+                        // FIXME: We don't really need this with SYCL
                         return buf.m_pitchBytes;
                     }
                 };
@@ -505,7 +547,8 @@ namespace alpaka
                     {
                         ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                        // There is no pinning in SYCL but we will lie to the user.
+                        // There is no pinning in SYCL but we will pretend to do
+                        // so anyway.
                         return true;
                     }
                 };
