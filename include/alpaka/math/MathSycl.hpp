@@ -39,6 +39,7 @@
 #include <alpaka/math/round/RoundSycl.hpp>
 #include <alpaka/math/rsqrt/RsqrtSycl.hpp>
 #include <alpaka/math/sin/SinSycl.hpp>
+#include <alpaka/math/sincos/SinCosSycl.hpp>
 #include <alpaka/math/sqrt/SqrtSycl.hpp>
 #include <alpaka/math/tan/TanSycl.hpp>
 #include <alpaka/math/trunc/TruncSycl.hpp>
