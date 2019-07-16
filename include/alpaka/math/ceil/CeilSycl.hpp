@@ -19,46 +19,40 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/atan2/Traits.hpp>
+#include <alpaka/math/ceil/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
-
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library atan2.
-        class Atan2SyclBuiltIn
+        //! The standard library ceil.
+        class CeilSycl
         {
         public:
-            using Atan2Base = Atan2SyclBuiltIn;
+            using CeilBase = CeilSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library atan2 trait specialization.
+            //! The standard library ceil trait specialization.
             template<
-                typename Ty,
-                typename Tx>
-            struct Atan2<
-                Atan2SyclBuiltIn,
-                Ty,
-                Tx,
-                std::enable_if_t<
-                    std::is_floating_point_v<Ty>
-                    && std::is_floating_point_v<Tx>>>
+                typename TArg>
+            struct Ceil<
+                CeilSycl,
+                TArg,
+                std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto atan2(
-                    Atan2SyclBuiltIn const & atan2,
-                    Ty const & y,
-                    Tx const & x)
+                static auto ceil(
+                    CeilSycl const & ceil,
+                    TArg const & arg)
                 {
-                    alpaka::ignore_unused(atan2);
-                    return cl::sycl::atan2(y, x);
+                    alpaka::ignore_unused(ceil);
+                    return cl::sycl::ceil(arg);
                 }
             };
         }

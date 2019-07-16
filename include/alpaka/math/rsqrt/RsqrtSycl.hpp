@@ -19,41 +19,40 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/abs/Traits.hpp>
+#include <alpaka/math/rsqrt/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
-
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library abs.
-        class AbsSyclBuiltIn
+        //! The standard library rsqrt.
+        class RsqrtSycl
         {
         public:
-            using AbsBase = AbsSyclBuiltIn;
+            using RsqrtBase = RsqrtSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The SYCL built in abs trait specialization.
+            //! The standard library rsqrt trait specialization.
             template<
                 typename TArg>
-            struct Abs<
-                AbsSyclBuiltIn,
+            struct Rsqrt<
+                RsqrtSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto abs(
-                    AbsSyclBuiltIn const & abs,
+                static auto rsqrt(
+                    RsqrtSycl const & rsqrt,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(abs);
-                    return cl::sycl::fabs(arg);
+                    alpaka::ignore_unused(rsqrt);
+                    return cl::sycl::rsqrt(arg);
                 }
             };
         }

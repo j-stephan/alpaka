@@ -19,41 +19,40 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/acos/Traits.hpp>
+#include <alpaka/math/atan/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
-
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library acos.
-        class AcosSyclBuiltIn
+        //! The standard library atan.
+        class AtanSycl
         {
         public:
-            using AcosBase = AcosSyclBuiltIn;
+            using AtanBase = AtanSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library acos trait specialization.
+            //! The standard library atan trait specialization.
             template<
                 typename TArg>
-            struct Acos<
-                AcosSyclBuiltIn,
+            struct Atan<
+                AtanSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto acos(
-                    AcosSyclBuiltIn const & acos,
+                static auto atan(
+                    AtanSycl const & atan,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(acos);
-                    return cl::sycl::acos(arg);
+                    alpaka::ignore_unused(atan);
+                    return cl::sycl::atan(arg);
                 }
             };
         }

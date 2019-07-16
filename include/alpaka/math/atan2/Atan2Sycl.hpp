@@ -19,41 +19,45 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/sin/Traits.hpp>
+#include <alpaka/math/atan2/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
-
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library sin.
-        class SinSyclBuiltIn
+        //! The standard library atan2.
+        class Atan2Sycl
         {
         public:
-            using SinBase = SinSyclBuiltIn;
+            using Atan2Base = Atan2Sycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library sin trait specialization.
+            //! The standard library atan2 trait specialization.
             template<
-                typename TArg>
-            struct Sin<
-                SinSyclBuiltIn,
-                TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                typename Ty,
+                typename Tx>
+            struct Atan2<
+                Atan2Sycl,
+                Ty,
+                Tx,
+                std::enable_if_t<
+                    std::is_floating_point_v<Ty>
+                    && std::is_floating_point_v<Tx>>>
             {
-                static auto sin(
-                    SinSyclBuiltIn const & sin,
-                    TArg const & arg)
+                static auto atan2(
+                    Atan2Sycl const & atan2,
+                    Ty const & y,
+                    Tx const & x)
                 {
-                    alpaka::ignore_unused(sin);
-                    return cl::sycl::sin(arg);
+                    alpaka::ignore_unused(atan2);
+                    return cl::sycl::atan2(y, x);
                 }
             };
         }

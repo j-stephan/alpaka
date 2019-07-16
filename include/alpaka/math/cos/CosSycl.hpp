@@ -19,41 +19,40 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/exp/Traits.hpp>
+#include <alpaka/math/cos/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
-
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library exp.
-        class ExpSyclBuiltIn
+        //! The standard library cos.
+        class CosSycl
         {
         public:
-            using ExpBase = ExpSyclBuiltIn;
+            using CosBase = CosSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library exp trait specialization.
+            //! The standard library cos trait specialization.
             template<
                 typename TArg>
-            struct Exp<
-                ExpSyclBuiltIn,
+            struct Cos<
+                CosSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto exp(
-                    ExpSyclBuiltIn const & exp,
+                static auto cos(
+                    CosSycl const & cos,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(exp);
-                    return cl::sycl::exp(arg);
+                    alpaka::ignore_unused(cos);
+                    return cl::sycl::cos(arg);
                 }
             };
         }

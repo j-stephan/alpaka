@@ -19,41 +19,40 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/floor/Traits.hpp>
+#include <alpaka/math/asin/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
-
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library floor.
-        class FloorSyclBuiltIn
+        //! The standard library asin.
+        class AsinSycl
         {
         public:
-            using FloorBase = FloorSyclBuiltIn;
+            using AsinBase = AsinSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library floor trait specialization.
+            //! The standard library asin trait specialization.
             template<
                 typename TArg>
-            struct Floor<
-                FloorSyclBuiltIn,
+            struct Asin<
+                AsinSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto floor(
-                    FloorSyclBuiltIn const & floor,
+                static auto asin(
+                    AsinSycl const & asin,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(floor);
-                    return cl::sycl::floor(arg);
+                    alpaka::ignore_unused(asin);
+                    return cl::sycl::asin(arg);
                 }
             };
         }

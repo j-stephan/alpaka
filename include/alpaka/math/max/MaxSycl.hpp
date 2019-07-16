@@ -24,17 +24,16 @@
 #include <CL/sycl.hpp>
 #include <type_traits>
 
-
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
         //! The standard library max.
-        class MaxSyclBuiltIn
+        class MaxSycl
         {
         public:
-            using MaxBase = MaxSyclBuiltIn;
+            using MaxBase = MaxSycl;
         };
 
         namespace traits
@@ -45,7 +44,7 @@ namespace alpaka
                 typename Tx,
                 typename Ty>
             struct Max<
-                MaxSyclBuiltIn,
+                MaxSycl,
                 Tx,
                 Ty,
                 std::enable_if_t<
@@ -53,7 +52,7 @@ namespace alpaka
                     && std::is_integral_v<Ty>>>
             {
                 static auto max(
-                    MaxSyclBuiltIn const & max,
+                    MaxSycl const & max,
                     Tx const & x,
                     Ty const & y)
                 {
@@ -67,7 +66,7 @@ namespace alpaka
                 typename Tx,
                 typename Ty>
             struct Max<
-                MaxSyclBuiltIn,
+                MaxSycl,
                 Tx,
                 Ty,
                 std::enable_if_t<
@@ -75,7 +74,7 @@ namespace alpaka
                     && std::is_floating_point_v<Ty>>>
             {
                 static auto max(
-                    MaxSyclBuiltIn const & max,
+                    MaxSycl const & max,
                     Tx const & x,
                     Ty const & y)
                 {

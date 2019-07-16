@@ -19,41 +19,40 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/sqrt/Traits.hpp>
+#include <alpaka/math/trunc/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
-
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library sqrt.
-        class SqrtSyclBuiltIn
+        //! The standard library trunc.
+        class TruncSycl
         {
         public:
-            using SqrtBase = SqrtSyclBuiltIn;
+            using TruncBase = TruncSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library sqrt trait specialization.
+            //! The standard library trunc trait specialization.
             template<
                 typename TArg>
-            struct Sqrt<
-                SqrtSyclBuiltIn,
+            struct Trunc<
+                TruncSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto sqrt(
-                    SqrtSyclBuiltIn const & sqrt,
+                static auto trunc(
+                    TruncSycl const & trunc,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(sqrt);
-                    return cl::sycl::sqrt(arg);
+                    alpaka::ignore_unused(trunc);
+                    return cl::sycl::trunc(arg);
                 }
             };
         }

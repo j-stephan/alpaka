@@ -24,17 +24,16 @@
 #include <CL/sycl.hpp>
 #include <type_traits>
 
-
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
         //! The standard library round.
-        class RoundSyclBuiltIn
+        class RoundSycl
         {
         public:
-            using RoundBase = RoundSyclBuiltIn;
+            using RoundBase = RoundSycl;
         };
 
         namespace traits
@@ -44,12 +43,12 @@ namespace alpaka
             template<
                 typename TArg>
             struct Round<
-                RoundSyclBuiltIn,
+                RoundSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
                 static auto round(
-                    RoundSyclBuiltIn const & round,
+                    RoundSycl const & round,
                     TArg const & arg)
                 {
                     alpaka::ignore_unused(round);
@@ -61,12 +60,12 @@ namespace alpaka
             template<
                 typename TArg>
             struct Lround<
-                RoundSyclBuiltIn,
+                RoundSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
                 static auto lround(
-                    RoundSyclBuiltIn const & lround,
+                    RoundSycl const & lround,
                     TArg const & arg)
                 {
                     alpaka::ignore_unused(lround);
@@ -78,12 +77,12 @@ namespace alpaka
             template<
                 typename TArg>
             struct Llround<
-                RoundSyclBuiltIn,
+                RoundSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
                 static auto llround(
-                    RoundSyclBuiltIn const & llround,
+                    RoundSycl const & llround,
                     TArg const & arg)
                 {
                     alpaka::ignore_unused(llround);

@@ -19,41 +19,40 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/log/Traits.hpp>
+#include <alpaka/math/tan/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
-
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library log.
-        class LogSyclBuiltIn
+        //! The standard library tan.
+        class TanSycl
         {
         public:
-            using LogBase = LogSyclBuiltIn;
+            using TanBase = TanSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library log trait specialization.
+            //! The standard library tan trait specialization.
             template<
                 typename TArg>
-            struct Log<
-                LogSyclBuiltIn,
+            struct Tan<
+                TanSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto log(
-                    LogSyclBuiltIn const & log,
+                static auto tan(
+                    TanSycl const & tan,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(log);
-                    return cl::sycl::log(arg);
+                    alpaka::ignore_unused(tan);
+                    return cl::sycl::tan(arg);
                 }
             };
         }

@@ -19,41 +19,40 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/erf/Traits.hpp>
+#include <alpaka/math/floor/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
-
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library erf.
-        class ErfSyclBuiltIn
+        //! The standard library floor.
+        class FloorSycl
         {
         public:
-            using ErfBase = ErfSyclBuiltIn;
+            using FloorBase = FloorSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library erf trait specialization.
+            //! The standard library floor trait specialization.
             template<
                 typename TArg>
-            struct Erf<
-                ErfSyclBuiltIn,
+            struct Floor<
+                FloorSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto erf(
-                    ErfSyclBuiltIn const & erf,
+                static auto floor(
+                    FloorSycl const & floor,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(erf);
-                    return cl::sycl::erf(arg);
+                    alpaka::ignore_unused(floor);
+                    return cl::sycl::floor(arg);
                 }
             };
         }

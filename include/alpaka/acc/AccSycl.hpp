@@ -19,17 +19,17 @@
 #endif
 
 // Base classes.
-#include <alpaka/workdiv/WorkDivSyclBuiltIn.hpp>
-#include <alpaka/idx/gb/IdxGbSyclBuiltIn.hpp>
-#include <alpaka/idx/bt/IdxBtSyclBuiltIn.hpp>
-//#include <alpaka/atomic/AtomicSyclBuiltIn.hpp>
+#include <alpaka/workdiv/WorkDivSycl.hpp>
+#include <alpaka/idx/gb/IdxGbSycl.hpp>
+#include <alpaka/idx/bt/IdxBtSycl.hpp>
+//#include <alpaka/atomic/AtomicSycl.hpp>
 //#include <alpaka/atomic/AtomicHierarchy.hpp>
-#include <alpaka/math/MathSyclBuiltIn.hpp>
-//#include <alpaka/block/shared/dyn/BlockSharedMemDynSyclBuiltIn.hpp>
-//#include <alpaka/block/shared/st/BlockSharedMemStSyclBuiltIn.hpp>
+#include <alpaka/math/MathSycl.hpp>
+//#include <alpaka/block/shared/dyn/BlockSharedMemDynSycl.hpp>
+//#include <alpaka/block/shared/st/BlockSharedMemStSycl.hpp>
 #include <alpaka/block/sync/BlockSyncSycl.hpp>
-//#include <alpaka/rand/RandCuRand.hpp>
-//#include <alpaka/time/TimeSyclBuiltIn.hpp>
+//#include <alpaka/rand/RandSycl.hpp>
+//#include <alpaka/time/TimeSycl.hpp>
 
 // Specialized traits.
 #include <alpaka/acc/Traits.hpp>
@@ -67,19 +67,19 @@ namespace alpaka
             typename TDim,
             typename TIdx>
         class AccSycl : // this should be final but we need inheritance for Boost::Hana
-            public workdiv::WorkDivSyclBuiltIn<TDim, TIdx>,
-            public idx::gb::IdxGbSyclBuiltIn<TDim, TIdx>,
-            public idx::bt::IdxBtSyclBuiltIn<TDim, TIdx>,
+            public workdiv::WorkDivSycl<TDim, TIdx>,
+            public idx::gb::IdxGbSycl<TDim, TIdx>,
+            public idx::bt::IdxBtSycl<TDim, TIdx>,
             /*public atomic::AtomicHierarchy<
-                atomic::AtomicSyclBuiltIn, // grid atomics
-                atomic::AtomicSyclBuiltIn, // block atomics
-                atomic::AtomicSyclBuiltIn  // thread atomics
+                atomic::AtomicSycl, // grid atomics
+                atomic::AtomicSycl, // block atomics
+                atomic::AtomicSycl  // thread atomics
             >,*/
-            public math::MathSyclBuiltIn,
+            public math::MathSycl,
             //public block::shared::dyn::BlockSharedMemDynSycl,
             //public block::shared::st::BlockSharedMemStSycl,
             public block::sync::BlockSyncSycl<TDim>
-            //public rand::RandCuRand,
+            //public rand::RandSycl,
             //public time::TimeSycl
         {
         public:
@@ -89,20 +89,20 @@ namespace alpaka
                 cl::sycl::nd_item<TDim::value> work_item,
                 cl::sycl::accessor<int, 0, cl::sycl::access::mode::atomic,
                                    cl::sycl::access::target::local> pred_counter) :
-                    workdiv::WorkDivSyclBuiltIn<TDim, TIdx>{threadElemExtent, work_item},
-                    idx::gb::IdxGbSyclBuiltIn<TDim, TIdx>{work_item},
-                    idx::bt::IdxBtSyclBuiltIn<TDim, TIdx>{work_item},
+                    workdiv::WorkDivSycl<TDim, TIdx>{threadElemExtent, work_item},
+                    idx::gb::IdxGbSycl<TDim, TIdx>{work_item},
+                    idx::bt::IdxBtSycl<TDim, TIdx>{work_item},
                     /*atomic::AtomicHierarchy<
                         atomic::AtomicSycl, // atomics between grids
                         atomic::AtomicSycl, // atomics between blocks
                         atomic::AtomicSycl  // atomics between threads
                     >(),*/
-                    math::MathSyclBuiltIn(),
-                    /*block::shared::dyn::BlockSharedMemDynSyclBuiltIn(),
-                    block::shared::st::BlockSharedMemStSyclBuiltIn(),*/
+                    math::MathSycl(),
+                    /*block::shared::dyn::BlockSharedMemDynSycl(),
+                    block::shared::st::BlockSharedMemStSycl(),*/
                     block::sync::BlockSyncSycl<TDim>{work_item, pred_counter},
-                    /*rand::RandCuRand(),
-                    time::TimeSyclBuiltIn()*/
+                    /*rand::RandSycl(),
+                    time::TimeSycl()*/
                     m_threadElemExtent{threadElemExtent},
                     my_item{work_item},
                     counter{pred_counter}
@@ -111,10 +111,10 @@ namespace alpaka
         public:
             //-----------------------------------------------------------------------------
             AccSycl(AccSycl const & rhs)
-            : workdiv::WorkDivSyclBuiltIn<TDim, TIdx>{rhs.m_threadElemExtent, rhs.my_item}
-            , idx::gb::IdxGbSyclBuiltIn<TDim, TIdx>{rhs.my_item}
-            , idx::bt::IdxBtSyclBuiltIn<TDim, TIdx>{rhs.my_item}
-            , math::MathSyclBuiltIn{}
+            : workdiv::WorkDivSycl<TDim, TIdx>{rhs.m_threadElemExtent, rhs.my_item}
+            , idx::gb::IdxGbSycl<TDim, TIdx>{rhs.my_item}
+            , idx::bt::IdxBtSycl<TDim, TIdx>{rhs.my_item}
+            , math::MathSycl{}
             , block::sync::BlockSyncSycl<TDim>{rhs.my_item, rhs.counter}
             , m_threadElemExtent{rhs.m_threadElemExtent}
             , my_item{rhs.my_item}

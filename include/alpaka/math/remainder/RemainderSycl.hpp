@@ -19,41 +19,45 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/rsqrt/Traits.hpp>
+#include <alpaka/math/remainder/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
-
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library rsqrt.
-        class RsqrtSyclBuiltIn
+        //! The standard library remainder.
+        class RemainderSycl
         {
         public:
-            using RsqrtBase = RsqrtSyclBuiltIn;
+            using RemainderBase = RemainderSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library rsqrt trait specialization.
+            //! The standard library remainder trait specialization.
             template<
-                typename TArg>
-            struct Rsqrt<
-                RsqrtSyclBuiltIn,
-                TArg,
-                std::enable_if_t<std::is_arithmetic_v<TArg>>>
+                typename Tx,
+                typename Ty>
+            struct Remainder<
+                RemainderSycl,
+                Tx,
+                Ty,
+                std::enable_if_t<
+                    std::is_floating_point_v<Tx>
+                    && std::is_floating_point_v<Ty>>>
             {
-                static auto rsqrt(
-                    RsqrtSyclBuiltIn const & rsqrt,
-                    TArg const & arg)
+                static auto remainder(
+                    RemainderSycl const & remainder,
+                    Tx const & x,
+                    Ty const & y)
                 {
-                    alpaka::ignore_unused(rsqrt);
-                    return cl::sycl::rsqrt(arg);
+                    alpaka::ignore_unused(remainder);
+                    return cl::sycl::remainder(x, y);
                 }
             };
         }
