@@ -27,7 +27,7 @@
 #include <alpaka/math/MathSyclBuiltIn.hpp>
 //#include <alpaka/block/shared/dyn/BlockSharedMemDynSyclBuiltIn.hpp>
 //#include <alpaka/block/shared/st/BlockSharedMemStSyclBuiltIn.hpp>
-//#include <alpaka/block/sync/BlockSyncSyclBuiltIn.hpp>
+#include <alpaka/block/sync/BlockSyncSycl.hpp>
 //#include <alpaka/rand/RandCuRand.hpp>
 //#include <alpaka/time/TimeSyclBuiltIn.hpp>
 
@@ -75,35 +75,37 @@ namespace alpaka
                 atomic::AtomicSyclBuiltIn, // block atomics
                 atomic::AtomicSyclBuiltIn  // thread atomics
             >,*/
-            public math::MathSyclBuiltIn
-            //public block::shared::dyn::BlockSharedMemDynSyclBuiltIn,
-            //public block::shared::st::BlockSharedMemStSyclBuiltIn,
-            //public block::sync::BlockSyncSyclBuiltIn,
+            public math::MathSyclBuiltIn,
+            //public block::shared::dyn::BlockSharedMemDynSycl,
+            //public block::shared::st::BlockSharedMemStSycl,
+            public block::sync::BlockSyncSycl<TDim>
             //public rand::RandCuRand,
-            //public time::TimeSyclBuiltIn
+            //public time::TimeSycl
         {
         public:
             //-----------------------------------------------------------------------------
             AccSycl(
                 vec::Vec<TDim, TIdx> const & threadElemExtent,
-                cl::sycl::nd_item<TDim::value> work_item) :
+                cl::sycl::nd_item<TDim::value> work_item,
+                cl::sycl::accessor<int, 0, cl::sycl::access::mode::atomic,
+                                   cl::sycl::access::target::local> pred_counter) :
                     workdiv::WorkDivSyclBuiltIn<TDim, TIdx>{threadElemExtent, work_item},
                     idx::gb::IdxGbSyclBuiltIn<TDim, TIdx>{work_item},
                     idx::bt::IdxBtSyclBuiltIn<TDim, TIdx>{work_item},
                     /*atomic::AtomicHierarchy<
-                        atomic::AtomicSyclBuiltIn, // atomics between grids
-                        atomic::AtomicSyclBuiltIn, // atomics between blocks
-                        atomic::AtomicSyclBuiltIn  // atomics between threads
+                        atomic::AtomicSycl, // atomics between grids
+                        atomic::AtomicSycl, // atomics between blocks
+                        atomic::AtomicSycl  // atomics between threads
                     >(),*/
                     math::MathSyclBuiltIn(),
                     /*block::shared::dyn::BlockSharedMemDynSyclBuiltIn(),
-                    block::shared::st::BlockSharedMemStSyclBuiltIn(),
-                    block::sync::BlockSyncSyclBuiltIn(),
-                    rand::RandCuRand(),
+                    block::shared::st::BlockSharedMemStSyclBuiltIn(),*/
+                    block::sync::BlockSyncSycl<TDim>{work_item, pred_counter},
+                    /*rand::RandCuRand(),
                     time::TimeSyclBuiltIn()*/
                     m_threadElemExtent{threadElemExtent},
-                    my_item{work_item}
-
+                    my_item{work_item},
+                    counter{pred_counter}
             {}
 
         public:
@@ -113,8 +115,10 @@ namespace alpaka
             , idx::gb::IdxGbSyclBuiltIn<TDim, TIdx>{rhs.my_item}
             , idx::bt::IdxBtSyclBuiltIn<TDim, TIdx>{rhs.my_item}
             , math::MathSyclBuiltIn{}
+            , block::sync::BlockSyncSycl<TDim>{rhs.my_item, rhs.counter}
             , m_threadElemExtent{rhs.m_threadElemExtent}
             , my_item{rhs.my_item}
+            , counter{rhs.counter}
             {
             }
             //-----------------------------------------------------------------------------
@@ -129,6 +133,9 @@ namespace alpaka
         public:
             vec::Vec<TDim, TIdx> const & m_threadElemExtent;
             cl::sycl::nd_item<TDim::value> my_item;
+            cl::sycl::accessor<int, 0,
+                               cl::sycl::access::mode::atomic,
+                               cl::sycl::access::target::local> counter;
         };
     }
 

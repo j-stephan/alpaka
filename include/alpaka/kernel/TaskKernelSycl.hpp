@@ -178,6 +178,12 @@ namespace alpaka
 
             inline auto operator()(cl::sycl::handler& cgh)
             { 
+                // create shared predicate counter -- needed for block
+                // synchronization with predicates
+                auto pred_counter = cl::sycl::accessor<int, 0,
+                                                       cl::sycl::access::mode::atomic,
+                                                       cl::sycl::access::target::local>{cgh};
+                
                 // bind all buffers to their accessors
                 // use boost::hana::tuple since apply() is explicitly deleted
                 // for utility::tuple::Tuple
@@ -226,7 +232,8 @@ namespace alpaka
                     // add Accelerator to variadic arguments
                     auto kernel_args = boost::hana::prepend(
                             transformed_args, 
-                            acc::AccSycl<TDim, TIdx>{item_elements, work_item});
+                            acc::AccSycl<TDim, TIdx>{item_elements, work_item,
+                                                     pred_counter});
 
                     static_assert(sycl::detail::kernel_returns_void(k_func, kernel_args),
                                   "The TKernelFnObj is required to return void!");
