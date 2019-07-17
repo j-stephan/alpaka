@@ -96,7 +96,7 @@ namespace alpaka
                         atomic::AtomicSycl, // atomics between grids
                         atomic::AtomicSycl, // atomics between blocks
                         atomic::AtomicSycl  // atomics between threads
-                    >(),
+                    >{},
                     math::MathSycl(),
                     /*block::shared::dyn::BlockSharedMemDynSycl(),
                     block::shared::st::BlockSharedMemStSycl(),*/
