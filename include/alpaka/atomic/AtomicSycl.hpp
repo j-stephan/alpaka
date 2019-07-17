@@ -33,7 +33,7 @@ namespace alpaka
         //! The SYCL accelerator atomic ops.
         //
         //  Atomics can used in the hierarchy level grids, blocks and threads.
-        //  Atomics are not guaranteed to be save between devices
+        //  Atomics are not guaranteed to be safe between devices
         class AtomicSycl
         {
         public:
@@ -54,6 +54,25 @@ namespace alpaka
 
         namespace traits
         {
+            /*
+             * FIXME: The following ops are specialized for each possible type
+             * permitted in SYCL. Since the API call is the same for all types
+             * this could easily be abstracted away by a template parameter.
+             * Unfortunately, some SYCL implementations mess this up as they add
+             * the memory space to the type information, in which case the type
+             * T becomes something like __global int. Ironically, this annotated
+             * type breaks the SYCL API, because we can't use it for the type
+             * parameter of cl::sycl::atomic. The value operand will also turn
+             * have this type which makes no sense at all.
+             *
+             * There is also no way to extract the __global, __local etc. from
+             * the type, so we can't overload for global_ptr, local_ptr and so
+             * on. Tests have shown that cl::sycl::global_ptr will happily
+             * swallow a __local int at compile time (and probably break at
+             * runtime). OTOH, this wouldn't be a good idea anyway, since the
+             * type annotations are implementation-defined.
+             */
+
             //#############################################################################
             //! The specializations to execute the requested atomic ops of the SYCL accelerator.
 
@@ -63,29 +82,158 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             //! The SYCL accelerator atomic operation.
             template<
-                typename T,
                 typename THierarchy>
             struct AtomicOp<
                 op::Add,
                 atomic::AtomicSycl,
-                T,
+                int,
                 THierarchy>
             {
                 //-----------------------------------------------------------------------------
                 static auto atomicOp(
                     atomic::AtomicSycl const &, 
-                    T * const addr,
-                    T const & value)
-                -> T
+                    int * const addr,
+                    int const & value)
+                -> int
                 {
-                    // TODO
-                    auto sycl_addr = cl::sycl::global_ptr<T>{addr};
-                    auto atomic_addr = cl::sycl::atomic<T>{sycl_addr};
+                    // TODO: solve shared memory case
+                    auto addr_ptr = cl::sycl::global_ptr<int>{addr};
+                    auto atomic_addr = cl::sycl::atomic<int>{addr_ptr};
 
                     return cl::sycl::atomic_fetch_add(atomic_addr, value);
                 }
             };
+            //-----------------------------------------------------------------------------
+            //! The SYCL accelerator atomic operation.
+            template<
+                typename THierarchy>
+            struct AtomicOp<
+                op::Add,
+                atomic::AtomicSycl,
+                unsigned int,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                static auto atomicOp(
+                    atomic::AtomicSycl const &, 
+                    unsigned int * const addr,
+                    unsigned int const & value)
+                -> unsigned int
+                {
+                    // TODO: solve shared memory case
+                    auto addr_ptr = cl::sycl::global_ptr<unsigned int>{addr};
+                    auto atomic_addr = cl::sycl::atomic<unsigned int>{addr_ptr};
 
+                    return cl::sycl::atomic_fetch_add(atomic_addr, value);
+                }
+            };
+            //-----------------------------------------------------------------------------
+            //! The SYCL accelerator atomic operation.
+            template<
+                typename THierarchy>
+            struct AtomicOp<
+                op::Add,
+                atomic::AtomicSycl,
+                long,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                static auto atomicOp(
+                    atomic::AtomicSycl const &, 
+                    long * const addr,
+                    long const & value)
+                -> long
+                {
+                    // TODO: solve shared memory case
+                    auto addr_ptr = cl::sycl::global_ptr<long>{addr};
+                    auto atomic_addr = cl::sycl::atomic<long>{addr_ptr};
+
+                    return cl::sycl::atomic_fetch_add(atomic_addr, value);
+                }
+            };
+            //-----------------------------------------------------------------------------
+            //! The SYCL accelerator atomic operation.
+            template<
+                typename THierarchy>
+            struct AtomicOp<
+                op::Add,
+                atomic::AtomicSycl,
+                unsigned long,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                static auto atomicOp(
+                    atomic::AtomicSycl const &, 
+                    unsigned long * const addr,
+                    unsigned long const & value)
+                -> unsigned long
+                {
+                    // TODO: Check for __global
+                    // TODO: solve shared memory case
+                    auto addr_ptr = cl::sycl::global_ptr<unsigned long>{addr};
+                    auto atomic_addr = cl::sycl::atomic<unsigned long>{addr_ptr};
+
+                    return cl::sycl::atomic_fetch_add(atomic_addr, value);
+                }
+            };
+            //-----------------------------------------------------------------------------
+            //! The SYCL accelerator atomic operation.
+            template<
+                typename THierarchy>
+            struct AtomicOp<
+                op::Add,
+                atomic::AtomicSycl,
+                long long,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                static auto atomicOp(
+                    atomic::AtomicSycl const &, 
+                    long long * const addr,
+                    long long const & value)
+                -> long long
+                {
+                    // TODO: solve shared memory case
+                    auto addr_ptr = cl::sycl::global_ptr<long long>{addr};
+                    auto atomic_addr = cl::sycl::atomic<long long>{addr_ptr};
+
+                    return cl::sycl::atomic_fetch_add(atomic_addr, value);
+                }
+            };
+            //-----------------------------------------------------------------------------
+            //! The SYCL accelerator atomic operation.
+            template<
+                typename THierarchy>
+            struct AtomicOp<
+                op::Add,
+                atomic::AtomicSycl,
+                unsigned long long,
+                THierarchy>
+            {
+                //-----------------------------------------------------------------------------
+                static auto atomicOp(
+                    atomic::AtomicSycl const &, 
+                    unsigned long long * const addr,
+                    unsigned long long const & value)
+                -> unsigned long long
+                {
+                    // TODO: solve shared memory case
+                    auto addr_ptr = cl::sycl::global_ptr<unsigned long long>{addr};
+                    auto atomic_addr = cl::sycl::atomic<unsigned long long>{addr_ptr};
+
+                    return cl::sycl::atomic_fetch_add(atomic_addr, value);
+                }
+
+                static auto atomicOp(
+                    atomic::AtomicSycl const &,
+                    cl::sycl::global_ptr<unsigned long long> addr,
+                    unsigned long long const & value)
+                -> unsigned long long
+                {
+                    auto atomic_addr = cl::sycl::atomic<unsigned long long>{addr};
+                    return cl::sycl::atomic_fetch_add(atomic_addr, value);
+                }
+            };
             //-----------------------------------------------------------------------------
             // Sub.
 
@@ -107,6 +255,7 @@ namespace alpaka
                     T const & value)
                 -> T
                 {
+                    // TODO: solve shared memory case
                     // TODO
                     // return cl::sycl::atomic_fetch_sub(atomic<T, addressSpace> object, T operand)
                 }
