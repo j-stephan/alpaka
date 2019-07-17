@@ -22,8 +22,8 @@
 #include <alpaka/workdiv/WorkDivSycl.hpp>
 #include <alpaka/idx/gb/IdxGbSycl.hpp>
 #include <alpaka/idx/bt/IdxBtSycl.hpp>
-//#include <alpaka/atomic/AtomicSycl.hpp>
-//#include <alpaka/atomic/AtomicHierarchy.hpp>
+#include <alpaka/atomic/AtomicSycl.hpp>
+#include <alpaka/atomic/AtomicHierarchy.hpp>
 #include <alpaka/math/MathSycl.hpp>
 //#include <alpaka/block/shared/dyn/BlockSharedMemDynSycl.hpp>
 //#include <alpaka/block/shared/st/BlockSharedMemStSycl.hpp>
@@ -70,11 +70,11 @@ namespace alpaka
             public workdiv::WorkDivSycl<TDim, TIdx>,
             public idx::gb::IdxGbSycl<TDim, TIdx>,
             public idx::bt::IdxBtSycl<TDim, TIdx>,
-            /*public atomic::AtomicHierarchy<
+            public atomic::AtomicHierarchy<
                 atomic::AtomicSycl, // grid atomics
                 atomic::AtomicSycl, // block atomics
                 atomic::AtomicSycl  // thread atomics
-            >,*/
+            >,
             public math::MathSycl,
             //public block::shared::dyn::BlockSharedMemDynSycl,
             //public block::shared::st::BlockSharedMemStSycl,
@@ -92,11 +92,11 @@ namespace alpaka
                     workdiv::WorkDivSycl<TDim, TIdx>{threadElemExtent, work_item},
                     idx::gb::IdxGbSycl<TDim, TIdx>{work_item},
                     idx::bt::IdxBtSycl<TDim, TIdx>{work_item},
-                    /*atomic::AtomicHierarchy<
+                    atomic::AtomicHierarchy<
                         atomic::AtomicSycl, // atomics between grids
                         atomic::AtomicSycl, // atomics between blocks
                         atomic::AtomicSycl  // atomics between threads
-                    >(),*/
+                    >(),
                     math::MathSycl(),
                     /*block::shared::dyn::BlockSharedMemDynSycl(),
                     block::shared::st::BlockSharedMemStSycl(),*/
@@ -114,6 +114,10 @@ namespace alpaka
             : workdiv::WorkDivSycl<TDim, TIdx>{rhs.m_threadElemExtent, rhs.my_item}
             , idx::gb::IdxGbSycl<TDim, TIdx>{rhs.my_item}
             , idx::bt::IdxBtSycl<TDim, TIdx>{rhs.my_item}
+            , atomic::AtomicHierarchy<
+                atomic::AtomicSycl,     // atomics between grids
+                atomic::AtomicSycl,     // atomics between blocks
+                atomic::AtomicSycl>{}   // atomics between threads
             , math::MathSycl{}
             , block::sync::BlockSyncSycl<TDim>{rhs.my_item, rhs.counter}
             , m_threadElemExtent{rhs.m_threadElemExtent}
