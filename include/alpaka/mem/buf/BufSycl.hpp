@@ -289,6 +289,7 @@ namespace alpaka
                     {
                         using buf_type = TBuf;
                         using value_type = typename buf_type::value_type;
+                        using is_alpaka_sycl_buffer_wrapper = bool;
 
                         buffer_wrapper(TBuf* buf_ptr) noexcept
                         : buf{buf_ptr}
@@ -304,13 +305,6 @@ namespace alpaka
                         operator const value_type*() const noexcept
                         {
                             return reinterpret_cast<const value_type*>(&dummy);
-                        }
-
-                        // use a name which isn't used elsewhere for easy
-                        // identification in TaskKernelSycl
-                        auto i_am_a_sycl_buffer_wrapper() const noexcept
-                        {
-                            return 42;
                         }
 
                         TBuf* buf;
