@@ -53,12 +53,6 @@
     #include <iostream>
 #endif
 
-#include <boost/hana/for_each.hpp>
-#include <boost/hana/prepend.hpp>
-#include <boost/hana/transform.hpp>
-#include <boost/hana/tuple.hpp>
-#include <boost/hana/ext/std/tuple.hpp>
-
 #include <stl-tuple/STLTuple.hpp> // computecpp-sdk
 
 namespace alpaka
@@ -70,7 +64,8 @@ namespace alpaka
             namespace detail
             {
                 template <typename Name>
-                struct kernel {}; // make ComputeCpp happy
+                struct kernel {}; // make ComputeCpp happy by declaring the
+                                  // kernel name in a globally visible namespace
 
                 struct general {};
                 struct special : general {};
@@ -78,7 +73,7 @@ namespace alpaka
 
                 template <typename TDim,
                           typename TBuf,
-                          typename acc_t<decltype(std::declval<TBuf>().i_am_a_sycl_buffer_wrapper())>::type = 0>
+                          typename acc_t<typename TBuf::is_alpaka_sycl_buffer_wrapper>::type = 0>
                 inline auto get_access(cl::sycl::handler& cgh, TBuf buf, special)
                 {
                     using buf_type = typename TBuf::buf_type;
@@ -116,10 +111,11 @@ namespace alpaka
                     return accessor;
                 }
 
-                // Calling this inside the kernel as Hana is a bit tricky
+                // we only need the device tuple for copying the arguments into
+                // device code. Once we are done we can use a std::tuple again.
                 template <typename... TArgs, std::size_t... Is>
                 constexpr auto make_std_args(utility::tuple::Tuple<TArgs...> args,
-                                              std::index_sequence<Is...>)
+                                             std::index_sequence<Is...>)
                 {
                     return std::make_tuple(utility::tuple::get<Is>(args)...);
                 }
@@ -132,10 +128,38 @@ namespace alpaka
                 }
 
                 template <typename TKernelFnObj, typename... TArgs>
-                constexpr auto kernel_returns_void(TKernelFnObj, std::tuple<TArgs...> const &)
+                constexpr auto kernel_returns_void(TKernelFnObj,
+                                                   std::tuple<TArgs...> const &)
                 {
                     return std::is_same_v<std::result_of_t<
                             TKernelFnObj(TArgs const & ...)>, void>;
+                }
+
+                template <typename TKernelFnObj, typename... TArgs>
+                constexpr auto kernel_is_trivial(TKernelFnObj,
+                                                 std::tuple<TArgs...> const &)
+                {
+                    return std::conjunction_v<
+                            std::is_trivially_copyable<TKernelFnObj>,
+                            std::is_trivially_copyable<TArgs>...>;
+                }
+
+                template <typename... TArgs, std::size_t... Is>
+                constexpr auto transform(std::tuple<TArgs...> args,
+                                         std::index_sequence<Is...>)
+                {
+                    return std::make_tuple(get_pointer(std::get<Is>(args),
+                                                       special{})...);
+                }
+
+                template <typename TDim, typename... TArgs, std::size_t... Is>
+                constexpr auto bind_buffers(cl::sycl::handler& cgh,
+                                            std::tuple<TArgs...> args,
+                                            std::index_sequence<Is...>)
+                {
+                    return std::make_tuple(get_access<TDim>(cgh,
+                                                            std::get<Is>(args),
+                                                            special{})...);
                 }
             } // namespace detail
         } // namespace sycl
@@ -150,14 +174,6 @@ namespace alpaka
             public workdiv::WorkDivMembers<TDim, TIdx>
         {
         public:
-            // apparently kernels are no longer trivially copyable during the
-            // second phase of ComputeCpp's SYCL compilation
-            /*static_assert(
-                meta::Conjunction<
-                    std::is_trivially_copyable<TKernelFnObj>,
-                    std::is_trivially_copyable<TArgs>...
-                    >::value,
-                "The given kernel function object and its arguments have to fulfill is_trivially_copyable!");*/
 
             static_assert(TDim::value > 0 && TDim::value <= 3,
                           "Invalid kernel dimensionality");
@@ -199,14 +215,15 @@ namespace alpaka
                                                        cl::sycl::access::target::local>{cgh};
                 
                 // bind all buffers to their accessors
-                // use boost::hana::tuple since apply() is explicitly deleted
-                // for utility::tuple::Tuple
-                auto std_accessor_args = boost::hana::transform(m_args,
-                [&](auto&& val)
-                {
-                    return sycl::detail::get_access<TDim>(
-                                          cgh, val, sycl::detail::special{});
-                });
+                auto std_accessor_args = sycl::detail::bind_buffers<TDim>(
+                                            cgh,
+                                            m_args,
+                                            std::make_index_sequence<sizeof...(TArgs)>{});
+
+                // transform to device tuple so we can copy the arguments into
+                // device code. We can't use std::tuple for this step because
+                // it isn't standard layout and thus prohibited to be copied
+                // into SYCL device code.
                 auto accessor_args = sycl::detail::make_device_args(
                                         std_accessor_args,
                                         std::make_index_sequence<sizeof...(TArgs)>{});
@@ -229,29 +246,34 @@ namespace alpaka
                 [=](cl::sycl::nd_item<TDim::value> work_item)
                 {
                     // now that we've imported the tuple into device code we
-                    // can use std::tuple and Hana
+                    // can use std::tuple again
                     auto std_args = sycl::detail::make_std_args(
                                         accessor_args,
                                         std::make_index_sequence<sizeof...(TArgs)>{});
 
                     // transform accessors to pointers
-                    auto transformed_args = boost::hana::transform(std_args,
-                    [](auto&& val)
-                    {
-                        return sycl::detail::get_pointer(
-                                val, sycl::detail::special{});
-                    });
+                    auto transformed_args = sycl::detail::transform(
+                                        std_args,
+                                        std::make_index_sequence<sizeof...(TArgs)>{});
 
-                    // add Accelerator to variadic arguments
-                    auto kernel_args = boost::hana::prepend(
-                            transformed_args, 
-                            acc::AccSycl<TDim, TIdx>{item_elements, work_item,
-                                                     pred_counter});
+                    // add alpaka accelerator to variadic arguments
+                    using acc_type = acc::AccSycl<TDim, TIdx>;
+                    auto kernel_args = std::tuple_cat(std::make_tuple(
+                                        acc::AccSycl<TDim, TIdx>{item_elements,
+                                                                 work_item,
+                                                                 pred_counter}),
+                                        transformed_args);
 
-                    //static_assert(sycl::detail::kernel_returns_void(k_func, kernel_args),
-                    //              "The TKernelFnObj is required to return void!");
+                    // Now we can check for correctness.
+                    static_assert(sycl::detail::kernel_returns_void(k_func, kernel_args),
+                                  "The TKernelFnObj is required to return void!");
 
-                    boost::hana::unpack(kernel_args, k_func);
+                    // FIXME: Kernels are not trivial in SYCL. Do we need this
+                    // check at all in the SYCL backend?
+                    /*static_assert(sycl::detail::kernel_is_trivial(k_func, kernel_args),
+                                  "The given kernel function object and its arguments have to fulfill is_trivially_copyable!");*/
+
+                    std::apply(k_func, kernel_args);
                 });
             }
 
