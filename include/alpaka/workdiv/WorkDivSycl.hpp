@@ -46,7 +46,7 @@ namespace alpaka
                 : m_threadElemExtent{threadElemExtent}, my_item{work_item}
             {}
             //-----------------------------------------------------------------------------
-            WorkDivSycl(WorkDivSycl const &) = delete;
+            WorkDivSycl(WorkDivSycl const &) = default;
             //-----------------------------------------------------------------------------
             WorkDivSycl(WorkDivSycl &&) = delete;
             //-----------------------------------------------------------------------------

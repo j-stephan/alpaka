@@ -25,7 +25,7 @@
 #include <alpaka/atomic/AtomicSycl.hpp>
 #include <alpaka/atomic/AtomicHierarchy.hpp>
 #include <alpaka/math/MathSycl.hpp>
-//#include <alpaka/block/shared/dyn/BlockSharedMemDynSycl.hpp>
+#include <alpaka/block/shared/dyn/BlockSharedMemDynSycl.hpp>
 //#include <alpaka/block/shared/st/BlockSharedMemStSycl.hpp>
 #include <alpaka/block/sync/BlockSyncSycl.hpp>
 //#include <alpaka/rand/RandSycl.hpp>
@@ -76,7 +76,7 @@ namespace alpaka
                 atomic::AtomicSycl  // thread atomics
             >,
             public math::MathSycl,
-            //public block::shared::dyn::BlockSharedMemDynSycl,
+            public block::shared::dyn::BlockSharedMemDynSycl,
             //public block::shared::st::BlockSharedMemStSycl,
             public block::sync::BlockSyncSycl<TDim>
             //public rand::RandSycl,
@@ -87,7 +87,11 @@ namespace alpaka
             AccSycl(
                 vec::Vec<TDim, TIdx> const & threadElemExtent,
                 cl::sycl::nd_item<TDim::value> work_item,
-                cl::sycl::accessor<int, 0, cl::sycl::access::mode::atomic,
+                cl::sycl::accessor<unsigned char, 1,
+                                   cl::sycl::access::mode::read_write,
+                                   cl::sycl::access::target::local> shared_acc,
+                cl::sycl::accessor<int, 0,
+                                   cl::sycl::access::mode::atomic,
                                    cl::sycl::access::target::local> pred_counter) :
                     workdiv::WorkDivSycl<TDim, TIdx>{threadElemExtent, work_item},
                     idx::gb::IdxGbSycl<TDim, TIdx>{work_item},
@@ -98,31 +102,26 @@ namespace alpaka
                         atomic::AtomicSycl  // atomics between threads
                     >{},
                     math::MathSycl(),
-                    /*block::shared::dyn::BlockSharedMemDynSycl(),
-                    block::shared::st::BlockSharedMemStSycl(),*/
-                    block::sync::BlockSyncSycl<TDim>{work_item, pred_counter},
+                    block::shared::dyn::BlockSharedMemDynSycl{shared_acc},
+                    // block::shared::st::BlockSharedMemStSycl(),
+                    block::sync::BlockSyncSycl<TDim>{work_item, pred_counter}
                     /*rand::RandSycl(),
                     time::TimeSycl()*/
-                    m_threadElemExtent{threadElemExtent},
-                    my_item{work_item},
-                    counter{pred_counter}
             {}
 
         public:
             //-----------------------------------------------------------------------------
             AccSycl(AccSycl const & rhs)
-            : workdiv::WorkDivSycl<TDim, TIdx>{rhs.m_threadElemExtent, rhs.my_item}
-            , idx::gb::IdxGbSycl<TDim, TIdx>{rhs.my_item}
-            , idx::bt::IdxBtSycl<TDim, TIdx>{rhs.my_item}
+            : workdiv::WorkDivSycl<TDim, TIdx>{rhs}
+            , idx::gb::IdxGbSycl<TDim, TIdx>{rhs}
+            , idx::bt::IdxBtSycl<TDim, TIdx>{rhs}
             , atomic::AtomicHierarchy<
                 atomic::AtomicSycl,     // atomics between grids
                 atomic::AtomicSycl,     // atomics between blocks
-                atomic::AtomicSycl>{}   // atomics between threads
-            , math::MathSycl{}
-            , block::sync::BlockSyncSycl<TDim>{rhs.my_item, rhs.counter}
-            , m_threadElemExtent{rhs.m_threadElemExtent}
-            , my_item{rhs.my_item}
-            , counter{rhs.counter}
+                atomic::AtomicSycl>{rhs}   // atomics between threads
+            , math::MathSycl{rhs}
+            , block::shared::dyn::BlockSharedMemDynSycl{rhs}
+            , block::sync::BlockSyncSycl<TDim>{rhs}
             {
             }
             //-----------------------------------------------------------------------------
@@ -133,13 +132,6 @@ namespace alpaka
             auto operator=(AccSycl &&) -> AccSycl & = delete;
             //-----------------------------------------------------------------------------
             ~AccSycl() = default;
-
-        public:
-            vec::Vec<TDim, TIdx> const & m_threadElemExtent;
-            cl::sycl::nd_item<TDim::value> my_item;
-            cl::sycl::accessor<int, 0,
-                               cl::sycl::access::mode::atomic,
-                               cl::sycl::access::target::local> counter;
         };
     }
 

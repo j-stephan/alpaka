@@ -111,6 +111,19 @@ namespace alpaka
                     return accessor;
                 }
 
+                template <typename TAccessor,
+                          typename acc_t<decltype(std::declval<TAccessor>().get_pointer())>::type = 0>
+                inline auto get_dummy_pointer(TAccessor accessor, special)
+                {
+                    return static_cast<typename TAccessor::value_type*>(nullptr);
+                }
+
+                template <typename TAccessor>
+                inline auto get_dummy_pointer(TAccessor accessor, general)
+                {
+                    return accessor;
+                }
+
                 // we only need the device tuple for copying the arguments into
                 // device code. Once we are done we can use a std::tuple again.
                 template <typename... TArgs, std::size_t... Is>
@@ -150,6 +163,14 @@ namespace alpaka
                 {
                     return std::make_tuple(get_pointer(std::get<Is>(args),
                                                        special{})...);
+                }
+
+                template <typename... TArgs, std::size_t... Is>
+                constexpr auto make_dummies(std::tuple<TArgs...> args,
+                                            std::index_sequence<Is...>)
+                {
+                    return std::make_tuple(get_dummy_pointer(std::get<Is>(args),
+                                                             special{})...);
                 }
 
                 template <typename TDim, typename... TArgs, std::size_t... Is>
@@ -213,7 +234,8 @@ namespace alpaka
                 auto pred_counter = cl::sycl::accessor<int, 0,
                                                        cl::sycl::access::mode::atomic,
                                                        cl::sycl::access::target::local>{cgh};
-                
+
+
                 // bind all buffers to their accessors
                 auto std_accessor_args = sycl::detail::bind_buffers<TDim>(
                                             cgh,
@@ -234,6 +256,29 @@ namespace alpaka
 
                 const auto global_size = get_global_size(work_groups, group_items);
                 const auto local_size = get_local_size(group_items);
+
+                // transform accessors to dummy pointers
+                auto dummy_args = sycl::detail::make_dummies(
+                                        std_accessor_args,
+                                        std::make_index_sequence<sizeof...(TArgs)>{});
+                
+                // allocate shared memory
+                const auto shared_mem_bytes = std::apply(
+                [&](const auto & ... args)
+                {
+                    return kernel::getBlockSharedMemDynSizeBytes<
+                                        acc::AccSycl<TDim, TIdx>>(
+                                            m_kernelFnObj,
+                                            group_items,
+                                            item_elements,
+                                            args...);
+                }, dummy_args);
+
+                auto shared_accessor = cl::sycl::accessor<unsigned char, 1,
+                                                          cl::sycl::access::mode::read_write,
+                                                          cl::sycl::access::target::local>{
+                                                              cl::sycl::range<1>{shared_mem_bytes},
+                                                              cgh};
 
                 // copy-by-value so we don't access 'this' on the device
                 auto k_func = m_kernelFnObj;
@@ -261,6 +306,7 @@ namespace alpaka
                     auto kernel_args = std::tuple_cat(std::make_tuple(
                                         acc::AccSycl<TDim, TIdx>{item_elements,
                                                                  work_item,
+                                                                 shared_accessor,
                                                                  pred_counter}),
                                         transformed_args);
 

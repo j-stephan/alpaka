@@ -47,7 +47,7 @@ namespace alpaka
                 explicit IdxBtSycl(cl::sycl::nd_item<TDim::value> work_item)
                 : my_item{work_item} {}
                 //-----------------------------------------------------------------------------
-                IdxBtSycl(IdxBtSycl const &) = delete;
+                IdxBtSycl(IdxBtSycl const &) = default;
                 //-----------------------------------------------------------------------------
                 IdxBtSycl(IdxBtSycl &&) = delete;
                 //-----------------------------------------------------------------------------

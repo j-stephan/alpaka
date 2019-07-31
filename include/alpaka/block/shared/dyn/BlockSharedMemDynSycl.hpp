@@ -32,16 +32,21 @@ namespace alpaka
             {
                 //#############################################################################
                 //! The SYCL block shared memory allocator.
-                template <typename T>
                 class BlockSharedMemDynSycl
                 {
                 public:
                     using BlockSharedMemDynBase = BlockSharedMemDynSycl;
 
                     //-----------------------------------------------------------------------------
-                    BlockSharedMemDynSycl() = default;
+                    BlockSharedMemDynSycl(cl::sycl::accessor<unsigned char, 1,
+                                            cl::sycl::access::mode::read_write,
+                                            cl::sycl::access::target::local>
+                                            shared_acc)
+                    : acc{shared_acc}
+                    {}
+
                     //-----------------------------------------------------------------------------
-                    BlockSharedMemDynSycl(BlockSharedMemDynSycl const &) = delete;
+                    BlockSharedMemDynSycl(BlockSharedMemDynSycl const &) = default;
                     //-----------------------------------------------------------------------------
                     BlockSharedMemDynSycl(BlockSharedMemDynSycl &&) = delete;
                     //-----------------------------------------------------------------------------
@@ -51,8 +56,9 @@ namespace alpaka
                     //-----------------------------------------------------------------------------
                     /*virtual*/ ~BlockSharedMemDynSycl() = default;
 
-                    cl::sycl::accessor<T, 1, cl::sycl::access::mode::read_write,
-                                             cl::sycl::access::target::local> acc;
+                    cl::sycl::accessor<unsigned char, 1,
+                                       cl::sycl::access::mode::read_write,
+                                       cl::sycl::access::target::local> acc;
                 };
 
                 namespace traits
@@ -62,15 +68,15 @@ namespace alpaka
                         typename T>
                     struct GetMem<
                         T,
-                        BlockSharedMemDynSycl<T>>
+                        BlockSharedMemDynSycl>
                     {
                         //-----------------------------------------------------------------------------
                         static auto getMem(
                             block::shared::dyn::BlockSharedMemDynSycl const & shared)
                         -> T *
                         {
-                            auto ptr = shared.acc.get_pointer();
-                            return static_cast<T*>(ptr);
+                            auto ptr = static_cast<unsigned char*>(shared.acc.get_pointer());
+                            return reinterpret_cast<T*>(ptr);
                         }
                     };
                 }
