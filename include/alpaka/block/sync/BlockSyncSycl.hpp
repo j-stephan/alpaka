@@ -46,7 +46,7 @@ namespace alpaka
                 {
                 }
                 //-----------------------------------------------------------------------------
-                BlockSyncSycl(BlockSyncSycl const &) = delete;
+                BlockSyncSycl(BlockSyncSycl const &) = default;
                 //-----------------------------------------------------------------------------
                 BlockSyncSycl(BlockSyncSycl &&) = delete;
                 //-----------------------------------------------------------------------------
