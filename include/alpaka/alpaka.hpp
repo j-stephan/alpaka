@@ -51,7 +51,7 @@
         #include <alpaka/block/shared/dyn/BlockSharedMemDynUniformCudaHipBuiltIn.hpp>
         #include <alpaka/block/shared/dyn/BlockSharedMemDynAlignedAlloc.hpp>
         #include <alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp>
-        //#include <alpaka/block/shared/dyn/BlockSharedMemDynSycl.hpp>
+        #include <alpaka/block/shared/dyn/BlockSharedMemDynSycl.hpp>
         #include <alpaka/block/shared/dyn/Traits.hpp>
         //-----------------------------------------------------------------------------
         // static
