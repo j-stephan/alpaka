@@ -26,3 +26,6 @@ cmake-build-*/
 *.kdev?
 spack-build*
 build/
+
+# Visual Studio Code
+.vscode
