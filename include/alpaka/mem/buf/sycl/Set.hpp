@@ -49,20 +49,19 @@ namespace alpaka
                     //#############################################################################
                     //! The SYCL memory set trait.
                     template<
-                        typename TElem,
                         typename TDim>
                     struct TaskSetSycl
                     {
                         //-----------------------------------------------------------------------------
                         auto operator()(cl::sycl::handler& cgh) -> void
                         {
-                            auto acc = buf->template get_access<
+                            auto acc = buf.template get_access<
                                 cl::sycl::access::mode::write>(cgh, range);
-                            cgh.fill(acc, value);
+                            cgh.fill(acc, byte);
                         }
 
-                        cl::sycl::buffer<TElem, TDim::value>* buf;
-                        TElem value;
+                        cl::sycl::buffer<std::uint8_t, TDim::value> buf;
+                        std::uint8_t byte;
                         cl::sycl::range<TDim::value> range;
                     };
                 }
@@ -87,49 +86,20 @@ namespace alpaka
                         std::uint8_t const & byte,
                         TExtent const & extent)
                     {
-                        // SYCL doesn't support byte-wise filling. So we create
-                        // a corresponding element of our actual type which
-                        // is a concatenation of the correct number of bytes.
-                        using value_type = elem::Elem<TView>;
+                        using elem_type = elem::Elem<TView>;
+                        constexpr auto elem_size = sizeof(elem_type);
 
-                        // First step: Create data type of same size and
-                        // alignment as the actual data type. If our data type
-                        // is not be trivially constructible we have to
-                        // do this the hard way.
-                        using data_type = std::conditional_t<
-                            std::is_trivially_constructible_v<value_type>,
-                            value_type,
-                            std::aligned_storage_t<sizeof(value_type), alignof(value_type)>>;
+                        // multiply original range with sizeof(elem_type)
+                        const auto old_range = mem::view::sycl::detail::get_sycl_range<dim::Dim<TExtent>::value>(extent);
+                        const auto new_range = old_range * elem_size;
 
-                        // Second step: Create single element and initialize
-                        // to our byte value.
-                        auto data_value = data_type{};
-                        std::memset(&data_value, byte, sizeof(data_type));
+                        // reinterpret the original buffer as a byte buffer
+                        auto new_buf = view.m_buf.template reinterpret<std::uint8_t>(new_range);
 
-                        // Third step: Reinterpret element as actual data
-                        // type.
-                        auto element = *reinterpret_cast<value_type*>(&data_value);
-                        
-                        // Fourth step: Create task. We pass the element by
-                        // value so it gets copied. This is required because the
-                        // uninitialized storage for non-trivially constructible
-                        // elements is allocated with placement new and we have
-                        // to call the destructor by hand to prevent memory
-                        // leaks.
-                        auto task = mem::view::sycl::detail::TaskSetSycl<
-                                        value_type, 
-                                        TDim>{
-                                            &view.m_buf,
-                                            element,
-                                            mem::view::sycl::detail::get_sycl_range<dim::Dim<TExtent>::value>(extent)
-                                        };
+                        return mem::view::sycl::detail::TaskSetSycl<TDim>{
+                            new_buf, byte, new_range
+                        };
 
-                        // Destroy dummy object
-                        if constexpr(!std::is_trivially_constructible_v<value_type>)
-                            reinterpret_cast<value_type*>(&data_value)->~value_type();
-
-                        // Return task
-                        return task;
                     }
                 };
             }
