@@ -115,11 +115,11 @@ namespace alpaka
                 T,
                 THierarchy>
             {
-                /*static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
-                              "SYCL atomics do not support this type");*/
+                static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
+                              "SYCL atomics do not support this type");
                 //-----------------------------------------------------------------------------
                 //#ifdef __OPENCL_C_VERSION__
-                static auto atomicOp(
+                /*static auto atomicOp(
                     atomic::AtomicSycl const &,
                     __global unsigned long long * const addr,
                     unsigned long long const & value
@@ -133,7 +133,7 @@ namespace alpaka
                                             cl::sycl::access::address_space::global_space>{addr_ptr};
 
                     return cl::sycl::atomic_fetch_add(atomic_addr, value);
-                }
+                }*/
                 //#endif
 
                 static auto atomicOp(
