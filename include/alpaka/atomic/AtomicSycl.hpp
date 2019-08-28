@@ -126,7 +126,6 @@ namespace alpaka
                     )
                 -> unsigned long long
                 {
-                    static_assert(1 == 0, "Hallo");
                     auto addr_ptr = cl::sycl::global_ptr<unsigned long long>{addr};
                     auto atomic_addr = cl::sycl::atomic<
                                             unsigned long long,
