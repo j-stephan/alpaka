@@ -165,34 +165,34 @@ namespace alpaka
                     std::cout << "Device type: ";
                     switch(device.get_info<cl::sycl::info::device::device_type>())
                     {
-                        case cl::sycl::info::device::device_type::cpu:
+                        case cl::sycl::info::device_type::cpu:
                             std::cout << "CPU";
                             break;
 
-                        case cl::sycl::info::device::device_type::gpu:
+                        case cl::sycl::info::device_type::gpu:
                             std::cout << "GPU";
                             break;
 
-                        case cl::sycl::info::device::device_type::accelerator:
+                        case cl::sycl::info::device_type::accelerator:
                             std::cout << "Accelerator";
                             break;
 
-                        case cl::sycl::info::device::device_type::custom:
+                        case cl::sycl::info::device_type::custom:
                             std::cout << "Custom";
                             break;
 
-                        case cl::sycl::info::device::device_type::automatic:
+                        case cl::sycl::info::device_type::automatic:
                             std::cout << "Automatic";
                             break;
 
-                        case cl::sycl::info::device::device_type::host:
+                        case cl::sycl::info::device_type::host:
                             std::cout << "Host";
                             break;
 
                         // The SYCL spec forbids the return of device_type::all
-                        // Including this here to prevent any warnings because
-                        // of missing cases
-                        case cl::sycl::info::device::device_type::all:
+                        // Including this here to prevent warnings because of
+                        // missing cases
+                        case cl::sycl::info::device_type::all:
                             std::cout << "All";
                             break;
                     }
@@ -236,7 +236,7 @@ namespace alpaka
                         << std::endl;
 
                     std::cout << "Maximum work item dimensions: ";
-                    auto dims = device.get_info<cl::sycl::info::device::max_work_item_dimensions>()
+                    auto dims = device.get_info<cl::sycl::info::device::max_work_item_dimensions>();
                     std::cout << dims << std::endl;
 
                     std::cout << "Maximum number of work items per dimension: ";
@@ -414,7 +414,7 @@ namespace alpaka
                         device.get_info<cl::sycl::info::device::single_fp_config>();
                     print_fp_config("FP32", fp32_conf);
 
-                    if(device.has_extension("cl_khr_fp64")
+                    if(device.has_extension("cl_khr_fp64"))
                     {
                         const auto fp64_conf =
                             device.get_info<cl::sycl::info::device::double_fp_config>();
@@ -434,8 +434,8 @@ namespace alpaka
                             has_global_mem_cache = true;
                             break;
 
-                        case cl::sycl::info::global_mem_cache_type::write_only:
-                            std::cout << "write-only";
+                        case cl::sycl::info::global_mem_cache_type::read_write:
+                            std::cout << "read-write";
                             has_global_mem_cache = true;
                             break;
                     }
@@ -531,7 +531,7 @@ namespace alpaka
                         std::cout << "\t" << b << std::endl;
 
                     std::cout << "printf() buffer size: "
-                        << device.get_info<cl::sycl::info::device::printf_buffer_size>() \ MiB
+                        << device.get_info<cl::sycl::info::device::printf_buffer_size>() / MiB
                         << " MiB" << std::endl;
 
                     std::cout << "Maximum number of subdevices: "
