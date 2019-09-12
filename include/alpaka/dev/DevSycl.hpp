@@ -160,7 +160,7 @@ namespace alpaka
                         // query free memory. If you find a way be sure to update the
                         // documentation above.
                         std::cerr <<
-                            "WARNING: Querying free device memory unsupported."
+                            "[SYCL] Warning: Querying free device memory unsupported."
                             << std::endl;
                         return getMemBytes(dev);
                     }
