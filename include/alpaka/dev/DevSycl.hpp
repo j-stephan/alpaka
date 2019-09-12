@@ -120,8 +120,11 @@ namespace alpaka
 
             //#############################################################################
             //! The SYCL device free memory get trait specialization. Note that
-            //! this function will always throw a runtime error as there is no way in SYCL
-            //! or OpenCL to query free memory.
+            //! this function will usually return the size of the device memory
+            //! as there is no standard way in SYCL or OpenCL to query free
+            //! memory. Accelerators supporting the
+            //! 'cl_amd_device_attribute_query' extension will return the amount
+            //! of free memory.
             template<>
             struct GetFreeMemBytes<
                 dev::DevSycl>
@@ -131,10 +134,36 @@ namespace alpaka
                     dev::DevSycl const & dev)
                 -> std::size_t
                 {
-                    // FIXME: There is no way in either SYCL or OpenCL to
-                    // query free memory. If you find a way be sure to update the
-                    // documentation above.
-                    throw std::runtime_error{"Querying free device memory not supported on SYCL platforms"};
+                    if(dev.m_Device.has_extension("cl_amd_device_attribute_query"))
+                    {
+                        auto kiB = cl_ulong{};
+                        if(auto err = clGetDeviceInfo(dev.m_Device.get(),
+                                                      CL_DEVICE_GLOBAL_FREE_MEMORY_AMD,
+                                                      sizeof(cl_ulong), &kiB,
+                                                      nullptr);
+                           err != CL_SUCCESS)
+                        {
+                            switch(err)
+                            {
+                                case CL_INVALID_DEVICE:
+                                    throw std::runtime_error{"getFreeMemBytes: invalid device"};
+
+                                case CL_INVALID_VALUE:
+                                    throw std::runtime_error{"getFreeMemBytes: invalid value"};
+                            }
+                        }
+                        return kiB * 1024ul;
+                    }
+                    else
+                    {
+                        // FIXME: There is no way in either SYCL or OpenCL to
+                        // query free memory. If you find a way be sure to update the
+                        // documentation above.
+                        std::cerr <<
+                            "WARNING: Querying free device memory unsupported."
+                            << std::endl;
+                        return getMemBytes(dev);
+                    }
                 }
             };
 

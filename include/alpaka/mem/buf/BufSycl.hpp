@@ -293,6 +293,7 @@ namespace alpaka
 
                         buffer_wrapper(TBuf* buf_ptr) noexcept
                         : buf{buf_ptr}
+                        , dummy{std::aligned_alloc(alignof(value_type), sizeof(int))}
                         {
                         }
 
@@ -310,7 +311,7 @@ namespace alpaka
                         TBuf* buf;
                         // construct a dummy element in case someone wants to
                         // do nullptr checks or something on the native pointer
-                        std::aligned_storage_t<sizeof(value_type), alignof(value_type)> dummy;
+                        void* dummy;
                     };
                 }
             }

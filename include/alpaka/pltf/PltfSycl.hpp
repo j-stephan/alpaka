@@ -71,7 +71,8 @@ namespace alpaka
                 {
                     ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
-                    auto platform = cl::sycl::platform{};
+                    // FIXME: make this agnostic
+                    auto platform = cl::sycl::platform{cl::sycl::gpu_selector{}};
 
                     // TODO: This returns all SYCL devices, we should probably
                     // allow for users to select GPUs, FPGAs etc.
@@ -94,7 +95,7 @@ namespace alpaka
                     ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
                     // FIXME: duplicate code here
-                    auto platform = cl::sycl::platform{};
+                    auto platform = cl::sycl::platform{cl::sycl::gpu_selector{}};
                     auto devices = platform.get_devices();
                     
                     if(devIdx >= devices.size())
