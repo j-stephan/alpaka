@@ -155,12 +155,13 @@ namespace alpaka
                 -> bool
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-                    auto non_const_queue = const_cast<queue::QueueSyclNonBlocking*>(&queue);
+                    // SYCL objects are reference counted, so we can just copy the queue here
+                    auto non_const_queue = queue;
                     // check for previous events
-                    if(auto prev = non_const_queue->m_event.get_wait_list();
+                    if(auto prev = non_const_queue.m_event.get_wait_list();
                             prev.empty())
                     {
-                        switch(non_const_queue->m_event.get_info<
+                        switch(non_const_queue.m_event.get_info<
                                 cl::sycl::info::event::command_execution_status>())
                         {
                             // Last event is completed
@@ -198,8 +199,9 @@ namespace alpaka
                 -> void
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-                    auto non_const_queue = const_cast<queue::QueueSyclNonBlocking*>(&queue);
-                    non_const_queue->m_dev.m_Queue.wait_and_throw();
+                    // SYCL objects are reference counted, so we can just copy the queue here
+                    auto non_const_queue = queue;
+                    non_const_queue.m_dev.m_Queue.wait_and_throw();
                 }
             };
         }

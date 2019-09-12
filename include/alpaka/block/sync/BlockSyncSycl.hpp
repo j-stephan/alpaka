@@ -74,7 +74,6 @@ namespace alpaka
                         block::sync::BlockSyncSycl<TDim> const & blockSync)
                     -> void
                     {
-                        // since barrier() is const we don't need const_cast here
                         blockSync.my_item.barrier();
                     }
                 };
@@ -91,20 +90,19 @@ namespace alpaka
                         int predicate)
                     -> int
                     {
-                        auto block_sync = *(const_cast<block::sync::BlockSyncSycl<TDim>*>(&blockSync));
-                        block_sync.my_item.barrier();
-
-                        if(block_sync.my_item.get_local_linear_id(0) == 0)
-                            cl::sycl::atomic_store(block_sync.pred_counter, 0);
-
-                        block_sync.my_item.barrier(cl::sycl::access::fence_space::local_space);
+                        // just copy the accessor, will refer to the same memory address
+                        auto counter = blockSync.pred_counter;
+                        blockSync.my_item.barrier();
+                        
+                        if(blockSync.my_item.get_local_linear_id(0) == 0)
+                            cl::sycl::atomic_store(counter, 0);
+                        blockSync.my_item.barrier(cl::sycl::access::fence_space::local_space);
 
                         if(predicate)
-                            cl::sycl::atomic_fetch_add(block_sync.pred_counter, 1);
+                            cl::sycl::atomic_fetch_add(counter, 1);
+                        blockSync.my_item.barrier(cl::sycl::access::fence_space::local_space);
 
-                        block_sync.my_item.barrier(cl::sycl::access::fence_space::local_space);
-
-                        return cl::sycl::atomic_load(block_sync.pred_counter);
+                        return cl::sycl::atomic_load(counter);
                     }
                 };
 
@@ -120,18 +118,19 @@ namespace alpaka
                         int predicate)
                     -> int
                     {
-                        auto block_sync = *(const_cast<block::sync::BlockSyncSycl<TDim>*>(&blockSync));
-                        block_sync.my_item.barrier();
+                        // just copy the accessor, will refer to the same memory address
+                        auto counter = blockSync.pred_counter;
+                        blockSync.my_item.barrier();
 
-                        if(block_sync.my_item.get_local_linear_id(0) == 0)
-                            cl::sycl::atomic_store(block_sync.pred_counter, 1);
-                        block_sync.my_item.barrier(cl::sycl::access::fence_space::local_space);
+                        if(blockSync.my_item.get_local_linear_id(0) == 0)
+                            cl::sycl::atomic_store(counter, 1);
+                        blockSync.my_item.barrier(cl::sycl::access::fence_space::local_space);
                         
                         if(!predicate)
-                            cl::sycl::atomic_fetch_and(block_sync.pred_counter, 0);
-                        block_sync.my_item.barrier(cl::sycl::access::fence_space::local_space);
+                            cl::sycl::atomic_fetch_and(counter, 0);
+                        blockSync.my_item.barrier(cl::sycl::access::fence_space::local_space);
 
-                        return cl::sycl::atomic_load(block_sync.pred_counter);
+                        return cl::sycl::atomic_load(counter);
                     }
                 };
 
@@ -147,18 +146,19 @@ namespace alpaka
                         int predicate)
                     -> int
                     {
-                        auto block_sync = *(const_cast<block::sync::BlockSyncSycl<TDim>*>(&blockSync));
-                        block_sync.my_item.barrier();
+                        // just copy the accessor, will refer to the same memory address
+                        auto counter = blockSync.pred_counter;
+                        blockSync.my_item.barrier();
 
-                        if(block_sync.my_item.get_local_linear_id(0) == 0)
-                            cl::sycl::atomic_store(block_sync.pred_counter, 0);
-                        block_sync.my_item.barrier(cl::sycl::access::fence_space::local_space);
+                        if(blockSync.my_item.get_local_linear_id(0) == 0)
+                            cl::sycl::atomic_store(counter, 0);
+                        blockSync.my_item.barrier(cl::sycl::access::fence_space::local_space);
 
                         if(predicate)
-                            cl::sycl::atomic_fetch_or(block_sync.pred_counter, 1);
-                        block_sync.my_item.barrier(cl::sycl::access::fence_space::local_space);
+                            cl::sycl::atomic_fetch_or(counter, 1);
+                        blockSync.my_item.barrier(cl::sycl::access::fence_space::local_space);
 
-                        return cl::sycl::atomic_load(block_sync.pred_counter);
+                        return cl::sycl::atomic_load(counter);
                     }
                 };
             }
