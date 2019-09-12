@@ -124,15 +124,6 @@ namespace alpaka
                     return accessor;
                 }
 
-                // we only need the device tuple for copying the arguments into
-                // device code. Once we are done we can use a std::tuple again.
-                template <typename... TArgs, std::size_t... Is>
-                constexpr auto make_std_args(utility::tuple::Tuple<TArgs...> args,
-                                             std::index_sequence<Is...>)
-                {
-                    return std::make_tuple(utility::tuple::get<Is>(args)...);
-                }
-
                 template <typename... TArgs, std::size_t... Is>
                 constexpr auto make_device_args(std::tuple<TArgs...> args,
                                                 std::index_sequence<Is...>)
@@ -142,27 +133,18 @@ namespace alpaka
 
                 template <typename TKernelFnObj, typename... TArgs>
                 constexpr auto kernel_returns_void(TKernelFnObj,
-                                                   std::tuple<TArgs...> const &)
+                                                   utility::tuple::Tuple<TArgs...> const &)
                 {
                     return std::is_same_v<std::result_of_t<
                             TKernelFnObj(TArgs const & ...)>, void>;
                 }
 
-                template <typename TKernelFnObj, typename... TArgs>
-                constexpr auto kernel_is_trivial(TKernelFnObj,
-                                                 std::tuple<TArgs...> const &)
-                {
-                    return std::conjunction_v<
-                            std::is_trivially_copyable<TKernelFnObj>,
-                            std::is_trivially_copyable<TArgs>...>;
-                }
-
                 template <typename... TArgs, std::size_t... Is>
-                constexpr auto transform(std::tuple<TArgs...> args,
+                constexpr auto transform(utility::tuple::Tuple<TArgs...> args,
                                          std::index_sequence<Is...>)
                 {
-                    return std::make_tuple(get_pointer(std::get<Is>(args),
-                                                       special{})...);
+                    return utility::tuple::make_tuple(get_pointer(utility::tuple::get<Is>(args),
+                                                      special{})...);
                 }
 
                 template <typename... TArgs, std::size_t... Is>
@@ -181,6 +163,22 @@ namespace alpaka
                     return std::make_tuple(get_access<TDim>(cgh,
                                                             std::get<Is>(args),
                                                             special{})...);
+                }
+
+                template <typename TFunc, typename... TArgs, std::size_t... Is>
+                constexpr auto apply_impl(TFunc&& f,
+                                          utility::tuple::Tuple<TArgs...> t,
+                                          std::index_sequence<Is...>)
+                {
+                    f(utility::tuple::get<Is>(t)...);
+                }
+
+                template <typename TFunc, typename... TArgs>
+                constexpr auto apply(TFunc&& f, utility::tuple::Tuple<TArgs...> t)
+                {
+                    apply_impl(std::forward<TFunc>(f),
+                               t,
+                               std::make_index_sequence<sizeof...(TArgs)>{});
                 }
             } // namespace detail
         } // namespace sycl
@@ -259,7 +257,7 @@ namespace alpaka
 
                 // transform accessors to dummy pointers
                 auto dummy_args = sycl::detail::make_dummies(
-                                        std_accessor_args,
+                                        std_accessor_args, // intentional, only for shared mem allocation
                                         std::make_index_sequence<sizeof...(TArgs)>{});
                 
                 // allocate shared memory
@@ -290,20 +288,14 @@ namespace alpaka
                         },
                 [=](cl::sycl::nd_item<TDim::value> work_item)
                 {
-                    // now that we've imported the tuple into device code we
-                    // can use std::tuple again
-                    auto std_args = sycl::detail::make_std_args(
-                                        accessor_args,
-                                        std::make_index_sequence<sizeof...(TArgs)>{});
-
                     // transform accessors to pointers
                     auto transformed_args = sycl::detail::transform(
-                                        std_args,
+                                        accessor_args,
                                         std::make_index_sequence<sizeof...(TArgs)>{});
 
                     // add alpaka accelerator to variadic arguments
                     using acc_type = acc::AccSycl<TDim, TIdx>;
-                    auto kernel_args = std::tuple_cat(std::make_tuple(
+                    auto kernel_args = utility::tuple::append(utility::tuple::make_tuple(
                                         acc::AccSycl<TDim, TIdx>{item_elements,
                                                                  work_item,
                                                                  shared_accessor,
@@ -314,12 +306,7 @@ namespace alpaka
                     static_assert(sycl::detail::kernel_returns_void(k_func, kernel_args),
                                   "The TKernelFnObj is required to return void!");
 
-                    // FIXME: Kernels are not trivial in SYCL. Do we need this
-                    // check at all in the SYCL backend?
-                    /*static_assert(sycl::detail::kernel_is_trivial(k_func, kernel_args),
-                                  "The given kernel function object and its arguments have to fulfill is_trivially_copyable!");*/
-
-                    std::apply(k_func, kernel_args);
+                    sycl::detail::apply(k_func, kernel_args);
                 });
             }
 

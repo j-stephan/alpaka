@@ -90,14 +90,17 @@ namespace alpaka
                         constexpr auto elem_size = sizeof(elem_type);
 
                         // multiply original range with sizeof(elem_type)
-                        const auto old_range = mem::view::sycl::detail::get_sycl_range<dim::Dim<TExtent>::value>(extent);
-                        const auto new_range = old_range * elem_size;
+                        const auto old_buf_range = view.m_buf.get_range();
+                        const auto new_buf_range = old_buf_range * elem_size;
+
+                        const auto sycl_range = mem::view::sycl::detail::get_sycl_range<dim::Dim<TExtent>::value>(extent);
+                        const auto byte_range = sycl_range * elem_size;
 
                         // reinterpret the original buffer as a byte buffer
-                        auto new_buf = view.m_buf.template reinterpret<std::uint8_t>(new_range);
+                        auto new_buf = view.m_buf.template reinterpret<std::uint8_t>(new_buf_range);
 
                         return mem::view::sycl::detail::TaskSetSycl<TDim>{
-                            new_buf, byte, new_range
+                            new_buf, byte, byte_range
                         };
 
                     }
