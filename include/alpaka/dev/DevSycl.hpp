@@ -181,7 +181,9 @@ namespace alpaka
                 -> void
                 {
                     ALPAKA_DEBUG_FULL_LOG_SCOPE;
-                    throw std::runtime_error{"Explicit device reset not supported on SYCL platforms"};
+                    std::cerr
+                        << "[SYCL] Warning: Explicit device reset not supported on SYCL platforms"
+                        << std::endl;
                 }
             };
         }
