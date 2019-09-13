@@ -210,7 +210,7 @@ namespace alpaka
                     // Additionally, we still wouldn't have the guarantee that
                     // the desired memory is actually available.
                     std::cerr
-                        << "[SYCL] Warning: queues can't wait for events. Blocking thread."
+                        << "[SYCL] Warning: queues cannot wait for events. Blocking thread."
                         << std::endl;
                     auto non_const_event = event;
                     non_const_event.m_Event.wait_and_throw();
@@ -239,7 +239,7 @@ namespace alpaka
                     // Additionally, we still wouldn't have the guarantee that
                     // the desired memory is actually available.
                     std::cerr
-                        << "[SYCL] Warning: queues can't wait for events. Blocking thread."
+                        << "[SYCL] Warning: queues cannot wait for events. Blocking thread."
                         << std::endl;
                     auto non_const_event = event;
                     non_const_event.m_Event.wait_and_throw();
@@ -269,7 +269,7 @@ namespace alpaka
                     // Additionally, we still wouldn't have the guarantee that
                     // the desired memory is actually available.
                     std::cerr
-                        << "[SYCL] Warning: devices can't wait for events. Blocking thread."
+                        << "[SYCL] Warning: devices cannot wait for events. Blocking thread."
                         << std::endl;
                     auto non_const_event = event;
                     non_const_event.m_Event.wait_and_throw();
