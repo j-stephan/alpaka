@@ -31,6 +31,19 @@ namespace alpaka
 {
     namespace pltf
     {
+        namespace sycl
+        {
+            struct xilinx_selector : cl::sycl::device_selector
+            {
+                auto operator()(const cl::sycl::device& dev) const -> int override
+                {
+                    const auto vendor = dev.get_info<cl::sycl::info::device::vendor>();
+                    const auto is_xilinx = (vendor.find("Xilinx") != std::string::npos);
+
+                    return is_xilinx ? 1 : -1;
+                }
+            };
+        }
         //#############################################################################
         //! The SYCL device manager.
         class PltfSycl
@@ -101,12 +114,17 @@ namespace alpaka
                     if(devIdx >= devices.size())
                     {
                         auto ss_err = std::stringstream{};
-                        ss_err << "Unable to return device handle for device " << devIdx << ". There are only " << devices.size() << " SYCL devices!";
+                        ss_err << "Unable to return device handle for device "
+                               << devIdx << ". There are only "
+                               << devices.size() << " SYCL devices!";
                         throw std::runtime_error(ss_err.str());
                     }
 
                     auto sycl_dev = devices.at(devIdx);
 
+                    // FIXME: Xilinx' sw_emu and hw_emu don't report their
+                    // "devices" as available if there is no FPGA installed on
+                    // the local system
                     if(sycl_dev.get_info<cl::sycl::info::device::is_available>())
                     {
                         // Log this device.
