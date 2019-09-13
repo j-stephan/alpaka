@@ -151,13 +151,13 @@ namespace alpaka
                     typename TExtent>
                 ALPAKA_FN_HOST BufSycl(
                     dev::DevSycl const & dev,
-                    cl::sycl::buffer<TElem, TDim::value>&& buf,
+                    cl::sycl::buffer<TElem, TDim::value> buf,
                     TIdx const & pitchBytes,
                     TExtent const & extent) :
-                        m_dev(dev),
-                        m_extentElements(extent::getExtentVecEnd<TDim>(extent)),
-                        m_buf(std::move(buf)),
-                        m_pitchBytes(pitchBytes)
+                        m_dev{dev},
+                        m_extentElements{extent::getExtentVecEnd<TDim>(extent)},
+                        m_buf{buf},
+                        m_pitchBytes{pitchBytes}
                 {
                     ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -291,27 +291,28 @@ namespace alpaka
                         using value_type = typename buf_type::value_type;
                         using is_alpaka_sycl_buffer_wrapper = bool;
 
-                        buffer_wrapper(TBuf* buf_ptr) noexcept
-                        : buf{buf_ptr}
-                        , dummy{std::aligned_alloc(alignof(value_type), sizeof(int))}
+                        buffer_wrapper(TBuf wrapped_buf) noexcept
+                        : buf{wrapped_buf}
+                        , dummy{std::aligned_alloc(alignof(value_type), sizeof(std::size_t)),
+                                [](void* ptr) { std::free(ptr); }}
                         {
                         }
 
                         // be implicitly convertible to pointer types
                         operator value_type*() noexcept
                         {
-                            return reinterpret_cast<value_type*>(&dummy);
+                            return reinterpret_cast<value_type*>(dummy.get());
                         }
 
                         operator const value_type*() const noexcept
                         {
-                            return reinterpret_cast<const value_type*>(&dummy);
+                            return reinterpret_cast<const value_type*>(dummy.get());
                         }
 
-                        TBuf* buf;
-                        // construct a dummy element in case someone wants to
-                        // do nullptr checks or something on the native pointer
-                        void* dummy;
+                        TBuf buf;
+                        // construct a dummy in case someone wants to do nullptr
+                        // checks or something on the native pointer
+                        std::shared_ptr<void> dummy;
                     };
                 }
             }
@@ -337,13 +338,13 @@ namespace alpaka
                     ALPAKA_FN_HOST static auto getPtrNative(
                         mem::buf::BufSycl<TElem, TDim, TIdx> const & buf)
                     {
-                        return mem::buf::sycl::detail::buffer_wrapper{&(buf.m_buf)};
+                        return mem::buf::sycl::detail::buffer_wrapper{buf.m_buf};
                     }
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrNative(
                         mem::buf::BufSycl<TElem, TDim, TIdx> & buf)
                     {
-                        return mem::buf::sycl::detail::buffer_wrapper{&(buf.m_buf)};
+                        return mem::buf::sycl::detail::buffer_wrapper{buf.m_buf};
                     }
                 };
 
@@ -437,7 +438,7 @@ namespace alpaka
 
                         return mem::buf::BufSycl<TElem, dim::DimInt<1u>, TIdx> {
                                 dev,
-                                std::move(buf),
+                                buf,
                                 static_cast<TIdx>(widthBytes),
                                 extent};
                     }
@@ -683,7 +684,7 @@ namespace alpaka
                         dev::DevSycl const &)
                     -> TElem const *
                     {
-                        throw std::runtime_error{"SYCL does not expose host pointers to device code"};
+                        static_assert(sizeof(TElem) == 0, "SYCL does not expose host pointers to device code");
                     }
                     //-----------------------------------------------------------------------------
                     ALPAKA_FN_HOST static auto getPtrDev(
@@ -691,7 +692,7 @@ namespace alpaka
                         dev::DevSycl const &)
                     -> TElem *
                     {
-                        throw std::runtime_error{"SYCL does not expose host pointers to device code"};
+                        static_assert(sizeof(TElem) == 0, "SYCL does not expose host pointers to device code");
                     }
                 };
             }
