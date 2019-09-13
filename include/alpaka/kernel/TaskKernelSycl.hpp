@@ -80,15 +80,13 @@ namespace alpaka
                     using value_type = typename buf_type::value_type;
                     if constexpr(std::is_const_v<buf_type>)
                     {
-                        return cl::sycl::accessor<value_type, TDim::value,
-                                                  cl::sycl::access::mode::read,
-                                                  cl::sycl::access::target::global_buffer>{*(buf.buf), cgh};
+                        return buf.buf.template get_access<cl::sycl::access::mode::read,
+                                                           cl::sycl::access::target::global_buffer>(cgh);
                     }
                     else
                     {
-                        return cl::sycl::accessor<value_type, TDim::value,
-                                                  cl::sycl::access::mode::read_write,
-                                                  cl::sycl::access::target::global_buffer>{*(buf.buf), cgh};
+                        return buf.buf.template get_access<cl::sycl::access::mode::read_write,
+                                                           cl::sycl::access::target::global_buffer>(cgh);
                     }
                 }
 
