@@ -63,9 +63,8 @@ namespace alpaka
         {
             namespace detail
             {
-                template <typename Name>
-                struct kernel {}; // make ComputeCpp happy by declaring the
-                                  // kernel name in a globally visible namespace
+                template <typename TName>
+                struct kernel {}; // SYCL kernel names must be globally visible
 
                 struct general {};
                 struct special : general {};
@@ -258,8 +257,8 @@ namespace alpaka
                                         std_accessor_args, // intentional, only for shared mem allocation
                                         std::make_index_sequence<sizeof...(TArgs)>{});
                 
-                // allocate shared memory
-                const auto shared_mem_bytes = std::apply(
+                // allocate shared memory -- needs at least 1 byte to make XRT happy
+                const auto shared_mem_bytes = std::max(1ul, std::apply(
                 [&](const auto & ... args)
                 {
                     return kernel::getBlockSharedMemDynSizeBytes<
@@ -268,7 +267,11 @@ namespace alpaka
                                             group_items,
                                             item_elements,
                                             args...);
-                }, dummy_args);
+                }, dummy_args));
+
+                // copy-by-value so we don't access 'this' on the device
+                auto k_func = m_kernelFnObj;
+
 
                 auto shared_accessor = cl::sycl::accessor<unsigned char, 1,
                                                           cl::sycl::access::mode::read_write,
@@ -276,11 +279,7 @@ namespace alpaka
                                                               cl::sycl::range<1>{shared_mem_bytes},
                                                               cgh};
 
-                // copy-by-value so we don't access 'this' on the device
-                auto k_func = m_kernelFnObj;
-
-                using kernel_type = sycl::detail::kernel<TKernelFnObj>;
-                cgh.parallel_for<kernel_type>(
+                cgh.parallel_for<sycl::detail::kernel<TKernelFnObj>>(
                         cl::sycl::nd_range<TDim::value> {
                             global_size, local_size
                         },
