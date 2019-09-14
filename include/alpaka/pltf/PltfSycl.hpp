@@ -125,8 +125,8 @@ namespace alpaka
                     // FIXME: Xilinx' sw_emu and hw_emu don't report their
                     // "devices" as available if there is no FPGA installed on
                     // the local system
-                    if(sycl_dev.get_info<cl::sycl::info::device::is_available>())
-                    {
+                    //if(sycl_dev.get_info<cl::sycl::info::device::is_available>())
+                    //{
                         // Log this device.
     #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
                         printDeviceProperties(sycl_dev);
@@ -134,14 +134,14 @@ namespace alpaka
                         std::cout << __func__
                             << sycl_dev.get_info<cl::sycl::info::device::name>() << std::endl;
     #endif
-                    }
+                    /*}
                     else
                     {
                         auto ss_err = std::stringstream{};
                         ss_err << "Unable to return device handle for device "
                             << devIdx << ". It is not accessible!";
                         throw std::runtime_error(ss_err.str());
-                    }
+                    }*/
 
                     auto exception_handler = [](cl::sycl::exception_list exceptions)
                     {
