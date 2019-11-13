@@ -115,8 +115,8 @@ namespace alpaka
                 T,
                 THierarchy>
             {
-                static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
-                              "SYCL atomics do not support this type");
+                /*static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
+                              "SYCL atomics do not support this type");*/
                 //-----------------------------------------------------------------------------
                 //#ifdef __OPENCL_C_VERSION__
                 /*static auto atomicOp(
@@ -141,8 +141,8 @@ namespace alpaka
                     T const & value)
                 -> T
                 {
-                    static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
-                              "SYCL atomics do not support this type");
+                    /* static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
+                              "SYCL atomics do not support this type"); */
                     auto addr_ptr = cl::sycl::global_ptr<T>{addr};
                     if constexpr(std::is_integral_v<T>)
                     {
