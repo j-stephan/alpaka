@@ -293,7 +293,8 @@ namespace alpaka
 
                         buffer_wrapper(TBuf wrapped_buf) noexcept
                         : buf{wrapped_buf}
-                        , dummy{std::aligned_alloc(alignof(value_type), sizeof(std::size_t)),
+                        , dummy{std::aligned_alloc(alignof(value_type),
+                                                   sizeof(std::size_t)),
                                 [](void* ptr) { std::free(ptr); }}
                         {
                         }
