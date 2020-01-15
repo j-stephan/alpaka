@@ -42,7 +42,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The SYCL device handle.
-        class DevSycl
+        class DevSycl : public concepts::Implements<wait::ConceptCurrentThreadWaitFor, DevSycl>
         {
             friend struct pltf::traits::GetDevByIdx<pltf::PltfSycl>;
 
