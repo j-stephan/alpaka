@@ -134,6 +134,8 @@ namespace alpaka
                     dev::DevSycl const & dev)
                 -> std::size_t
                 {
+                    // FIXME: The Intel compiler doesn't like the AMD extension
+                    /*
                     if(dev.m_Device.has_extension("cl_amd_device_attribute_query"))
                     {
                         auto kiB = cl_ulong{};
@@ -155,7 +157,7 @@ namespace alpaka
                         return kiB * 1024ul;
                     }
                     else
-                    {
+                    {*/
                         // FIXME: There is no way in either SYCL or OpenCL to
                         // query free memory. If you find a way be sure to update the
                         // documentation above.
@@ -163,7 +165,7 @@ namespace alpaka
                             "[SYCL] Warning: Querying free device memory unsupported."
                             << std::endl;
                         return getMemBytes(dev);
-                    }
+                    //}
                 }
             };
 
