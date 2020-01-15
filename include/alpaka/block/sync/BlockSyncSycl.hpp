@@ -7,9 +7,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-// FIXME: None of the following actually obeys const-correctness imposed by
-// Alpaka's API. Unfortunately we need const-casts everywhere.
-
 #pragma once
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
@@ -31,7 +28,7 @@ namespace alpaka
             //#############################################################################
             //! The SYCL block synchronization.
             template <typename TDim>
-            class BlockSyncSycl
+            class BlockSyncSycl : public concepts::Implements<ConceptBlockSync, BlockSyncSycl<TDim>>
             {
             public:
                 using BlockSyncBase = BlockSyncSycl<TDim>;
