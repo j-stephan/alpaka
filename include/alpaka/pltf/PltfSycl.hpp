@@ -46,7 +46,7 @@ namespace alpaka
         }
         //#############################################################################
         //! The SYCL device manager.
-        class PltfSycl
+        class PltfSycl : public concepts::Implements<ConceptPltf, PltfSycl>
         {
         public:
             //-----------------------------------------------------------------------------
