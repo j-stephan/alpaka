@@ -78,9 +78,10 @@ namespace alpaka
             public math::MathSycl,
             public block::shared::dyn::BlockSharedMemDynSycl,
             //public block::shared::st::BlockSharedMemStSycl,
-            public block::sync::BlockSyncSycl<TDim>
+            public block::sync::BlockSyncSycl<TDim>,
             //public rand::RandSycl,
             //public time::TimeSycl
+            public concepts::Implements<ConceptAcc, AccSycl<TDim, TIdx>>
         {
         public:
             //-----------------------------------------------------------------------------
