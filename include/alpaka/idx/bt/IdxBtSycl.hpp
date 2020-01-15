@@ -36,7 +36,7 @@ namespace alpaka
             template<
                 typename TDim,
                 typename TIdx>
-            class IdxBtSycl
+            class IdxBtSycl : public concepts::Implements<ConceptIdxBt, IdxBtSycl<TDim, TIdx>>
             {
             public:
                 using IdxBtBase = IdxBtSycl;
