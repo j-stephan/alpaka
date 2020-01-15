@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library cbrt.
-        class CbrtSycl
+        class CbrtSycl : concepts::Implements<ConceptMathCbrt, CbrtSycl>
         {
         public:
             using CbrtBase = CbrtSycl;

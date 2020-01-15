@@ -32,7 +32,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library min.
-        class MinSycl
+        class MinSycl : public concepts::Implements<ConceptMathMin, MinSycl>
         {
         public:
             using MinBase = MinSycl;

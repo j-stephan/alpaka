@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library atan.
-        class AtanSycl
+        class AtanSycl : concepts::Implements<ConceptMathAtan, AtanSycl>
         {
         public:
             using AtanBase = AtanSycl;

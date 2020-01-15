@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library abs.
-        class AbsSycl
+        class AbsSycl : public concepts::Implements<ConceptMathAbs, AbsSycl>
         {
         public:
             using AbsBase = AbsSycl;

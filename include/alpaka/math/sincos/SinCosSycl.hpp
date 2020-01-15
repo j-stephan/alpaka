@@ -28,7 +28,7 @@ namespace alpaka
     {
         //#############################################################################
         //! sincos.
-        class SinCosSycl
+        class SinCosSycl : public concepts::Implements<ConceptMathSinCos, SinCosSycl>
         {
         public:
             using SinCosBase = SinCosSycl;

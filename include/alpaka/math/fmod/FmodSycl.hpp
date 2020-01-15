@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library fmod.
-        class FmodSycl
+        class FmodSycl : public concepts::Implements<ConceptMathFmod, FmodSycl>
         {
         public:
             using FmodBase = FmodSycl;

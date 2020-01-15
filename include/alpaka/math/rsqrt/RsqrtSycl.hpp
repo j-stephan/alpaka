@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library rsqrt.
-        class RsqrtSycl
+        class RsqrtSycl : public concepts::Implements<ConceptMathRsqrt, RsqrtSycl>
         {
         public:
             using RsqrtBase = RsqrtSycl;
