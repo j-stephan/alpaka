@@ -34,7 +34,7 @@ namespace alpaka
         template<
             typename TDim,
             typename TIdx>
-        class WorkDivSycl
+        class WorkDivSycl : public concepts::Implements<ConceptWorkDiv, WorkDivSycl<TDim, TIdx>>
         {
         public:
             using WorkDivBase = WorkDivSycl;
