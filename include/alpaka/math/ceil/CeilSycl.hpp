@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library ceil.
-        class CeilSycl
+        class CeilSycl : public concepts::Implements<ConceptMathCeil, CeilSycl>
         {
         public:
             using CeilBase = CeilSycl;

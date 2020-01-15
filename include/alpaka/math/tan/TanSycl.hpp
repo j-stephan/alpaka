@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library tan.
-        class TanSycl
+        class TanSycl : public concepts::Implements<ConceptMathTan, TanSycl>
         {
         public:
             using TanBase = TanSycl;

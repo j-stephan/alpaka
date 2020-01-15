@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library floor.
-        class FloorSycl
+        class FloorSycl : public concepts::Implements<ConceptMathFloor, FloorSycl>
         {
         public:
             using FloorBase = FloorSycl;

@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library trunc.
-        class TruncSycl
+        class TruncSycl : concepts::Implements<ConceptMathTrunc, TruncSycl>
         {
         public:
             using TruncBase = TruncSycl;

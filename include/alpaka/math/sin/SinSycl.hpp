@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library sin.
-        class SinSycl
+        class SinSycl : public concepts::Implements<ConceptMathSin, SinSycl>
         {
         public:
             using SinBase = SinSycl;

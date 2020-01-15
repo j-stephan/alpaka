@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library log.
-        class LogSycl
+        class LogSycl : public concepts::Implements<ConceptMathLog, LogSycl>
         {
         public:
             using LogBase = LogSycl;

@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library acos.
-        class AcosSycl
+        class AcosSycl : public concepts::Implements<ConceptMathAcos, AcosSycl>
         {
         public:
             using AcosBase = AcosSycl;

@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library pow.
-        class PowSycl
+        class PowSycl : concepts::Implements<ConceptMathPow, PowSycl>
         {
         public:
             using PowBase = PowSycl;

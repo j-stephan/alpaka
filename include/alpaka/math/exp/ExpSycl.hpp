@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library exp.
-        class ExpSycl
+        class ExpSycl : public concepts::Implements<ConceptMathExp, ExpSycl>
         {
         public:
             using ExpBase = ExpSycl;

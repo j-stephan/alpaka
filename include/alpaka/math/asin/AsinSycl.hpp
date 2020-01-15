@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library asin.
-        class AsinSycl
+        class AsinSycl : concepts::Implements<ConceptMathAsin, AsinSycl>
         {
         public:
             using AsinBase = AsinSycl;

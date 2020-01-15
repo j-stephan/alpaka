@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library cos.
-        class CosSycl
+        class CosSycl : public concepts::Implements<ConceptMathCos, CosSycl>
         {
         public:
             using CosBase = CosSycl;

@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library max.
-        class MaxSycl
+        class MaxSycl : public concepts::Implements<ConceptMathMax, MaxSycl>
         {
         public:
             using MaxBase = MaxSycl;

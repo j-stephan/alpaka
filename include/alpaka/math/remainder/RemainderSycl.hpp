@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library remainder.
-        class RemainderSycl
+        class RemainderSycl : concepts::Implements<ConceptMathRemainder, RemainderSycl>
         {
         public:
             using RemainderBase = RemainderSycl;

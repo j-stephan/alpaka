@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library erf.
-        class ErfSycl
+        class ErfSycl : public concepts::Implements<ConceptMathErf, ErfSycl>
         {
         public:
             using ErfBase = ErfSycl;

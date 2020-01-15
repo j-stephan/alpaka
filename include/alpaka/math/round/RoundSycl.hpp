@@ -30,7 +30,7 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library round.
-        class RoundSycl
+        class RoundSycl : public concepts::Implements<ConceptMathRound, RoundSycl>
         {
         public:
             using RoundBase = RoundSycl;
