@@ -115,36 +115,24 @@ namespace alpaka
                 T,
                 THierarchy>
             {
-                /*static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
-                              "SYCL atomics do not support this type");*/
+                static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
+                              "SYCL atomics do not support this type");
+
                 //-----------------------------------------------------------------------------
-                //#ifdef __OPENCL_C_VERSION__
-                /*static auto atomicOp(
-                    atomic::AtomicSycl const &,
-                    __global unsigned long long * const addr,
-                    unsigned long long const & value
-                    )
-                -> unsigned long long
-                {
-                    auto addr_ptr = cl::sycl::global_ptr<unsigned long long>{addr};
-                    auto atomic_addr = cl::sycl::atomic<
-                                            unsigned long long,
-                                            cl::sycl::access::address_space::global_space>{addr_ptr};
-
-                    return cl::sycl::atomic_fetch_add(atomic_addr, value);
-                }*/
-                //#endif
-
+                //
                 static auto atomicOp(
                     atomic::AtomicSycl const &, 
                     T * const addr,
                     T const & value)
                 -> T
                 {
-                    /* static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
-                              "SYCL atomics do not support this type"); */
                     auto addr_ptr = cl::sycl::global_ptr<T>{addr};
-                    if constexpr(std::is_integral_v<T>)
+
+                    if constexpr(std::is_same_v<T, double>)
+                        return simulate_atomic_add<unsigned long long>(addr_ptr, value);
+                    else if constexpr(std::is_same_v<T, float>)
+                        return simulate_atomic_add<unsigned int>(addr_ptr, value);
+                    else
                     {
                         auto atomic_addr = cl::sycl::atomic<
                                             T,
@@ -152,10 +140,6 @@ namespace alpaka
 
                         return cl::sycl::atomic_fetch_add(atomic_addr, value);
                     }
-                    else if constexpr(std::is_same_v<T, double>)
-                        return simulate_atomic_add<unsigned long long>(addr_ptr, value);
-                    else if constexpr(std::is_same_v<T, float>)
-                        return simulate_atomic_add<unsigned int>(addr_ptr, value);
                 }
 
                 template <class TInt>
@@ -182,33 +166,6 @@ namespace alpaka
                     return *(reinterpret_cast<T*>(&old));
                 }
             };
-
-            /*#ifdef __OPENCL_C_VERSION__
-            template<
-                typename THierarchy>
-            struct AtomicOp<
-                op::Add,
-                atomic::AtomicSycl,
-                __global unsigned long long,
-                THierarchy>
-            {
-                //-----------------------------------------------------------------------------
-                static auto atomicOp(
-                    atomic::AtomicSycl const &,
-                    __global unsigned long long * const addr,
-                    unsigned long long const & value
-                    )
-                -> unsigned long long
-                {
-                    auto addr_ptr = cl::sycl::global_ptr<unsigned long long>{addr};
-                    auto atomic_addr = cl::sycl::atomic<
-                                            unsigned long long,
-                                            cl::sycl::access::address_space::global_space>{addr_ptr};
-
-                    return cl::sycl::atomic_fetch_add(atomic_addr, value);
-                }
-            };
-            #endif*/
 
             //-----------------------------------------------------------------------------
             // Sub.
