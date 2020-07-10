@@ -13,6 +13,7 @@ var namespacealpaka =
     [ "extent", "namespacealpaka_1_1extent.html", "namespacealpaka_1_1extent" ],
     [ "hierarchy", "namespacealpaka_1_1hierarchy.html", "namespacealpaka_1_1hierarchy" ],
     [ "idx", "namespacealpaka_1_1idx.html", "namespacealpaka_1_1idx" ],
+    [ "intrinsic", "namespacealpaka_1_1intrinsic.html", "namespacealpaka_1_1intrinsic" ],
     [ "kernel", "namespacealpaka_1_1kernel.html", "namespacealpaka_1_1kernel" ],
     [ "math", "namespacealpaka_1_1math.html", "namespacealpaka_1_1math" ],
     [ "mem", "namespacealpaka_1_1mem.html", "namespacealpaka_1_1mem" ],
@@ -22,6 +23,7 @@ var namespacealpaka =
     [ "queue", "namespacealpaka_1_1queue.html", "namespacealpaka_1_1queue" ],
     [ "rand", "namespacealpaka_1_1rand.html", "namespacealpaka_1_1rand" ],
     [ "time", "namespacealpaka_1_1time.html", "namespacealpaka_1_1time" ],
+    [ "uniform_cuda_hip", "namespacealpaka_1_1uniform__cuda__hip.html", null ],
     [ "vec", "namespacealpaka_1_1vec.html", "namespacealpaka_1_1vec" ],
     [ "wait", "namespacealpaka_1_1wait.html", "namespacealpaka_1_1wait" ],
     [ "workdiv", "namespacealpaka_1_1workdiv.html", "namespacealpaka_1_1workdiv" ]
