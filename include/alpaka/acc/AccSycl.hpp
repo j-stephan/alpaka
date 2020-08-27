@@ -190,7 +190,10 @@ namespace alpaka
                         // m_threadElemExtentMax
                         vec::Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
                         // m_threadElemCountMax
-                        std::numeric_limits<TIdx>::max()};
+                        std::numeric_limits<TIdx>::max(),
+                        // m_sharedMemSizeBytes
+                        dev.m_Device.get_info<cl::sycl::info::device::local_mem_size>()
+                    };
                 }
             };
             //#############################################################################
