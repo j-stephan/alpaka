@@ -19,6 +19,7 @@ var namespacealpaka =
     [ "mem", "namespacealpaka_1_1mem.html", "namespacealpaka_1_1mem" ],
     [ "meta", "namespacealpaka_1_1meta.html", "namespacealpaka_1_1meta" ],
     [ "offset", "namespacealpaka_1_1offset.html", "namespacealpaka_1_1offset" ],
+    [ "omp5", "namespacealpaka_1_1omp5.html", null ],
     [ "pltf", "namespacealpaka_1_1pltf.html", "namespacealpaka_1_1pltf" ],
     [ "queue", "namespacealpaka_1_1queue.html", "namespacealpaka_1_1queue" ],
     [ "rand", "namespacealpaka_1_1rand.html", "namespacealpaka_1_1rand" ],
@@ -26,5 +27,6 @@ var namespacealpaka =
     [ "uniform_cuda_hip", "namespacealpaka_1_1uniform__cuda__hip.html", null ],
     [ "vec", "namespacealpaka_1_1vec.html", "namespacealpaka_1_1vec" ],
     [ "wait", "namespacealpaka_1_1wait.html", "namespacealpaka_1_1wait" ],
+    [ "warp", "namespacealpaka_1_1warp.html", "namespacealpaka_1_1warp" ],
     [ "workdiv", "namespacealpaka_1_1workdiv.html", "namespacealpaka_1_1workdiv" ]
 ];
