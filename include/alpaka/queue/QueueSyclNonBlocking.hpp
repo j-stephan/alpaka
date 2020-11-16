@@ -29,182 +29,135 @@
 
 namespace alpaka
 {
-    namespace event
-    {
-        class EventSycl;
-    }
-}
+    class EventSycl;
 
-namespace alpaka
-{
-    namespace queue
+    //#############################################################################
+    //! The SYCL non-blocking queue.
+    class QueueSyclNonBlocking final
+    {
+    public:
+        //-----------------------------------------------------------------------------
+        ALPAKA_FN_HOST QueueSyclNonBlocking(DevSycl & dev)
+        : m_dev{dev}
+        {}
+        //-----------------------------------------------------------------------------
+        QueueSyclNonBlocking(QueueSyclNonBlocking const &) = default;
+        //-----------------------------------------------------------------------------
+        QueueSyclNonBlocking(QueueSyclNonBlocking &&) = default;
+        //-----------------------------------------------------------------------------
+        auto operator=(QueueSyclNonBlocking const &) -> QueueSyclNonBlocking & = default;
+        //-----------------------------------------------------------------------------
+        auto operator=(QueueSyclNonBlocking &&) -> QueueSyclNonBlocking & = default;
+        //-----------------------------------------------------------------------------
+        ALPAKA_FN_HOST auto operator==(QueueSyclNonBlocking const & rhs) const -> bool
+        {
+            return (m_dev == rhs.m_dev) && (m_event == rhs.m_event);
+        }
+        //-----------------------------------------------------------------------------
+        ALPAKA_FN_HOST auto operator!=(QueueSyclNonBlocking const & rhs) const -> bool
+        {
+            return !operator==(rhs);
+        }
+        //-----------------------------------------------------------------------------
+        ~QueueSyclNonBlocking() = default;
+
+    public:
+        DevSycl m_dev; //!< The device this queue is bound to.
+        cl::sycl::event m_event; //!< The last event in the dependency graph.
+    };
+
+    namespace traits
     {
         //#############################################################################
-        //! The SYCL non-blocking queue.
-        class QueueSyclNonBlocking final
+        //! The SYCL non-blocking queue device type trait specialization.
+        template<>
+        struct DevType<QueueSyclNonBlocking>
         {
-        public:
-            //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST QueueSyclNonBlocking(
-                dev::DevSycl & dev)
-                : m_dev{dev}
-            {}
-            //-----------------------------------------------------------------------------
-            QueueSyclNonBlocking(QueueSyclNonBlocking const &) = default;
-            //-----------------------------------------------------------------------------
-            QueueSyclNonBlocking(QueueSyclNonBlocking &&) = default;
-            //-----------------------------------------------------------------------------
-            auto operator=(QueueSyclNonBlocking const &) -> QueueSyclNonBlocking & = default;
-            //-----------------------------------------------------------------------------
-            auto operator=(QueueSyclNonBlocking &&) -> QueueSyclNonBlocking & = default;
-            //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator==(QueueSyclNonBlocking const & rhs) const -> bool
-            {
-                return (m_dev == rhs.m_dev) && (m_event == rhs.m_event);
-            }
-            //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST auto operator!=(QueueSyclNonBlocking const & rhs) const -> bool
-            {
-                return !operator==(rhs);
-            }
-            //-----------------------------------------------------------------------------
-            ~QueueSyclNonBlocking() = default;
-
-        public:
-            dev::DevSycl m_dev; //!< The device this queue is bound to.
-            cl::sycl::event m_event; //!< The last event in the dependency graph.
+            using type = DevSycl;
         };
-    }
 
-    namespace dev
-    {
-        namespace traits
+        //#############################################################################
+        //! The SYCL non-blocking queue device get trait specialization.
+        template<>
+        struct GetDev<QueueSyclNonBlocking>
         {
-            //#############################################################################
-            //! The SYCL non-blocking queue device type trait specialization.
-            template<>
-            struct DevType<
-                queue::QueueSyclNonBlocking>
+            //-----------------------------------------------------------------------------
+            ALPAKA_FN_HOST static auto getDev(QueueSyclNonBlocking const & queue) -> DevSycl
             {
-                using type = dev::DevSycl;
-            };
-            //#############################################################################
-            //! The SYCL non-blocking queue device get trait specialization.
-            template<>
-            struct GetDev<
-                queue::QueueSyclNonBlocking>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto getDev(
-                    queue::QueueSyclNonBlocking const & queue)
-                -> dev::DevSycl
-                {
-                    return queue.m_dev;
-                }
-            };
-        }
-    }
-    namespace event
-    {
-        namespace traits
-        {
-            //#############################################################################
-            //! The SYCL non-blocking queue event type trait specialization.
-            template<>
-            struct EventType<
-                queue::QueueSyclNonBlocking>
-            {
-                using type = event::EventSycl;
-            };
-        }
-    }
-    namespace queue
-    {
-        namespace traits
-        {
-            //#############################################################################
-            //! The SYCL non-blocking queue enqueue trait specialization.
-            template<
-                typename TTask>
-            struct Enqueue<
-                queue::QueueSyclNonBlocking,
-                TTask>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto enqueue(
-                    queue::QueueSyclNonBlocking & queue,
-                    TTask const & task)
-                -> void
-                {
-                    // FIXME: This is not thread-safe.
-                    
-                    // task must be a SYCL command group function object
-                    queue.m_event = queue.m_dev.m_Queue.submit(task);
-                }
-            };
+                return queue.m_dev;
+            }
+        };
 
-            //#############################################################################
-            //! The SYCL non-blocking queue test trait specialization.
-            template<>
-            struct Empty<
-                queue::QueueSyclNonBlocking>
+        //#############################################################################
+        //! The SYCL non-blocking queue event type trait specialization.
+        template<>
+        struct EventType<QueueSyclNonBlocking>
+        {
+            using type = EventSycl;
+        };
+
+        //#############################################################################
+        //! The SYCL non-blocking queue enqueue trait specialization.
+        template<typename TTask>
+        struct Enqueue<QueueSyclNonBlocking, TTask>
+        {
+            //-----------------------------------------------------------------------------
+            ALPAKA_FN_HOST static auto enqueue(QueueSyclNonBlocking & queue, TTask const & task) -> void
             {
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto empty(
-                    queue::QueueSyclNonBlocking const & queue)
-                -> bool
+                // FIXME: This is not thread-safe.
+                
+                // task must be a SYCL command group function object
+                queue.m_event = queue.m_dev.m_Queue.submit(task);
+            }
+        };
+
+        //#############################################################################
+        //! The SYCL non-blocking queue test trait specialization.
+        template<>
+        struct Empty<QueueSyclNonBlocking>
+        {
+            //-----------------------------------------------------------------------------
+            ALPAKA_FN_HOST static auto empty(QueueSyclNonBlocking const & queue) -> bool
+            {
+                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+                // SYCL objects are reference counted, so we can just copy the queue here
+                auto non_const_queue = queue;
+                // check for previous events
+                if(auto prev = non_const_queue.m_event.get_wait_list(); prev.empty())
                 {
-                    ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-                    // SYCL objects are reference counted, so we can just copy the queue here
-                    auto non_const_queue = queue;
-                    // check for previous events
-                    if(auto prev = non_const_queue.m_event.get_wait_list();
-                            prev.empty())
+                    switch(non_const_queue.m_event.get_info<cl::sycl::info::event::command_execution_status>())
                     {
-                        switch(non_const_queue.m_event.get_info<
-                                cl::sycl::info::event::command_execution_status>())
-                        {
-                            // Last event is completed
-                            case cl::sycl::info::event_command_status::complete:
-                                return true;
+                        // Last event is completed
+                        case cl::sycl::info::event_command_status::complete:
+                            return true;
 
-                            // Last event is submitted or running
-                            default:
-                                return false;
-                        }
+                        // Last event is submitted or running
+                        default:
+                            return false;
                     }
-
-                    // we are still waiting for previous events
-                    return false;
                 }
-            };
-        }
-    }
 
-    namespace wait
-    {
-        namespace traits
+                // we are still waiting for previous events
+                return false;
+            }
+        };
+
+        //#############################################################################
+        //! The SYCL non-blocking queue thread wait trait specialization.
+        //!
+        //! Blocks execution of the calling thread until the queue has finished processing all previously requested tasks (kernels, data copies, ...)
+        template<>
+        struct CurrentThreadWaitFor<QueueSyclNonBlocking>
         {
-            //#############################################################################
-            //! The SYCL non-blocking queue thread wait trait specialization.
-            //!
-            //! Blocks execution of the calling thread until the queue has finished processing all previously requested tasks (kernels, data copies, ...)
-            template<>
-            struct CurrentThreadWaitFor<
-                queue::QueueSyclNonBlocking>
+            //-----------------------------------------------------------------------------
+            ALPAKA_FN_HOST static auto currentThreadWaitFor(QueueSyclNonBlocking const & queue) -> void
             {
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto currentThreadWaitFor(
-                    queue::QueueSyclNonBlocking const & queue)
-                -> void
-                {
-                    ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-                    // SYCL objects are reference counted, so we can just copy the queue here
-                    auto non_const_queue = queue;
-                    non_const_queue.m_dev.m_Queue.wait_and_throw();
-                }
-            };
-        }
+                ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
+                // SYCL objects are reference counted, so we can just copy the queue here
+                auto non_const_queue = queue;
+                non_const_queue.m_dev.m_Queue.wait_and_throw();
+            }
+        };
     }
 }
 

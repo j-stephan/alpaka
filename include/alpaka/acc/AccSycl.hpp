@@ -48,271 +48,181 @@
 
 namespace alpaka
 {
-    namespace kernel
+    template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
+    class TaskKernelSycl;
+
+    //#############################################################################
+    //! The SYCL accelerator.
+    //!
+    //! This accelerator allows parallel kernel execution on SYCL devices.
+    template<
+        typename TDim,
+        typename TIdx>
+    class AccSycl final :
+        public WorkDivSycl<TDim, TIdx>,
+        public gb::IdxGbSycl<TDim, TIdx>,
+        public bt::IdxBtSycl<TDim, TIdx>,
+        public AtomicHierarchy<AtomicSycl, AtomicSycl, AtomicSycl>,
+        public math::MathSycl,
+        public BlockSharedMemDynSycl,
+        //public BlockSharedMemStSycl,
+        public BlockSyncSycl<TDim>,
+        //public rand::RandSycl,
+        //public TimeSycl
+        public concepts::Implements<ConceptAcc, AccSycl<TDim, TIdx>>
     {
-        template<
-            typename TDim,
-            typename TIdx,
-            typename TKernelFnObj,
-            typename... TArgs>
-        class TaskKernelSycl;
-    }
-    namespace acc
+    public:
+        //-----------------------------------------------------------------------------
+        AccSycl(
+            Vec<TDim, TIdx> const & threadElemExtent,
+            cl::sycl::nd_item<TDim::value> work_item,
+            cl::sycl::accessor<unsigned char, 1,
+                               cl::sycl::access::mode::read_write,
+                               cl::sycl::access::target::local> shared_acc,
+            cl::sycl::accessor<int, 0,
+                               cl::sycl::access::mode::atomic,
+                               cl::sycl::access::target::local> pred_counter) :
+                WorkDivSycl<TDim, TIdx>{threadElemExtent, work_item},
+                gb::IdxGbSycl<TDim, TIdx>{work_item},
+                bt::IdxBtSycl<TDim, TIdx>{work_item},
+                AtomicHierarchy<AtomicSycl, AtomicSycl, AtomicSycl>{},
+                math::MathSycl(),
+                BlockSharedMemDynSycl{shared_acc},
+                // BlockSharedMemStSycl(),
+                BlockSyncSycl<TDim>{work_item, pred_counter}
+                /*rand::RandSycl(),
+                TimeSycl()*/
+        {}
+
+    public:
+        //-----------------------------------------------------------------------------
+        AccSycl(AccSycl const & rhs)
+        : WorkDivSycl<TDim, TIdx>{rhs}
+        , gb::IdxGbSycl<TDim, TIdx>{rhs}
+        , bt::IdxBtSycl<TDim, TIdx>{rhs}
+        , AtomicHierarchy<AtomicSycl, AtomicSycl, AtomicSycl>{rhs}
+        , math::MathSycl{rhs}
+        , BlockSharedMemDynSycl{rhs}
+        , BlockSyncSycl<TDim>{rhs}
+        {
+        }
+        //-----------------------------------------------------------------------------
+        AccSycl(AccSycl &&) = delete;
+        //-----------------------------------------------------------------------------
+        auto operator=(AccSycl const &) -> AccSycl & = delete;
+        //-----------------------------------------------------------------------------
+        auto operator=(AccSycl &&) -> AccSycl & = delete;
+        //-----------------------------------------------------------------------------
+        ~AccSycl() = default;
+    };
+
+    namespace traits
     {
         //#############################################################################
-        //! The SYCL accelerator.
-        //!
-        //! This accelerator allows parallel kernel execution on SYCL devices.
-        template<
-            typename TDim,
-            typename TIdx>
-        class AccSycl final :
-            public workdiv::WorkDivSycl<TDim, TIdx>,
-            public idx::gb::IdxGbSycl<TDim, TIdx>,
-            public idx::bt::IdxBtSycl<TDim, TIdx>,
-            public atomic::AtomicHierarchy<
-                atomic::AtomicSycl, // grid atomics
-                atomic::AtomicSycl, // block atomics
-                atomic::AtomicSycl  // thread atomics
-            >,
-            public math::MathSycl,
-            public block::shared::dyn::BlockSharedMemDynSycl,
-            //public block::shared::st::BlockSharedMemStSycl,
-            public block::sync::BlockSyncSycl<TDim>,
-            //public rand::RandSycl,
-            //public time::TimeSycl
-            public concepts::Implements<ConceptAcc, AccSycl<TDim, TIdx>>
+        //! The SYCL accelerator type trait specialization.
+        template<typename TDim, typename TIdx>
+        struct AccType<AccSycl<TDim, TIdx>>
         {
-        public:
-            //-----------------------------------------------------------------------------
-            AccSycl(
-                vec::Vec<TDim, TIdx> const & threadElemExtent,
-                cl::sycl::nd_item<TDim::value> work_item,
-                cl::sycl::accessor<unsigned char, 1,
-                                   cl::sycl::access::mode::read_write,
-                                   cl::sycl::access::target::local> shared_acc,
-                cl::sycl::accessor<int, 0,
-                                   cl::sycl::access::mode::atomic,
-                                   cl::sycl::access::target::local> pred_counter) :
-                    workdiv::WorkDivSycl<TDim, TIdx>{threadElemExtent, work_item},
-                    idx::gb::IdxGbSycl<TDim, TIdx>{work_item},
-                    idx::bt::IdxBtSycl<TDim, TIdx>{work_item},
-                    atomic::AtomicHierarchy<
-                        atomic::AtomicSycl, // atomics between grids
-                        atomic::AtomicSycl, // atomics between blocks
-                        atomic::AtomicSycl  // atomics between threads
-                    >{},
-                    math::MathSycl(),
-                    block::shared::dyn::BlockSharedMemDynSycl{shared_acc},
-                    // block::shared::st::BlockSharedMemStSycl(),
-                    block::sync::BlockSyncSycl<TDim>{work_item, pred_counter}
-                    /*rand::RandSycl(),
-                    time::TimeSycl()*/
-            {}
-
-        public:
-            //-----------------------------------------------------------------------------
-            AccSycl(AccSycl const & rhs)
-            : workdiv::WorkDivSycl<TDim, TIdx>{rhs}
-            , idx::gb::IdxGbSycl<TDim, TIdx>{rhs}
-            , idx::bt::IdxBtSycl<TDim, TIdx>{rhs}
-            , atomic::AtomicHierarchy<
-                atomic::AtomicSycl,     // atomics between grids
-                atomic::AtomicSycl,     // atomics between blocks
-                atomic::AtomicSycl>{rhs}   // atomics between threads
-            , math::MathSycl{rhs}
-            , block::shared::dyn::BlockSharedMemDynSycl{rhs}
-            , block::sync::BlockSyncSycl<TDim>{rhs}
-            {
-            }
-            //-----------------------------------------------------------------------------
-            AccSycl(AccSycl &&) = delete;
-            //-----------------------------------------------------------------------------
-            auto operator=(AccSycl const &) -> AccSycl & = delete;
-            //-----------------------------------------------------------------------------
-            auto operator=(AccSycl &&) -> AccSycl & = delete;
-            //-----------------------------------------------------------------------------
-            ~AccSycl() = default;
+            using type = AccSycl<TDim, TIdx>;
         };
-    }
 
-    namespace acc
-    {
-        namespace traits
+        //#############################################################################
+        //! The SYCL accelerator device properties get trait specialization.
+        template<typename TDim, typename TIdx>
+        struct GetAccDevProps<AccSycl<TDim, TIdx>>
         {
-            //#############################################################################
-            //! The SYCL accelerator type trait specialization.
-            template<
-                typename TDim,
-                typename TIdx>
-            struct AccType<
-                acc::AccSycl<TDim, TIdx>>
+            //-----------------------------------------------------------------------------
+            ALPAKA_FN_HOST static auto getAccDevProps(DevSycl const & dev) -> AccDevProps<TDim, TIdx>
             {
-                using type = acc::AccSycl<TDim, TIdx>;
-            };
-            //#############################################################################
-            //! The SYCL accelerator device properties get trait specialization.
-            template<
-                typename TDim,
-                typename TIdx>
-            struct GetAccDevProps<
-                acc::AccSycl<TDim, TIdx>>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto getAccDevProps(
-                    dev::DevSycl const & dev)
-                -> acc::AccDevProps<TDim, TIdx>
-                {
-                    auto max_threads_dim =
-                        dev.m_Device.get_info<cl::sycl::info::device::max_work_item_sizes>();
-                    return {
-                        // m_multiProcessorCount
-                        alpaka::core::clipCast<TIdx>(
-                                dev.m_Device.get_info<cl::sycl::info::device::max_compute_units>()),
-                        // m_gridBlockExtentMax
-                        extent::getExtentVecEnd<TDim>(
-                            vec::Vec<dim::DimInt<3u>, TIdx>(
-                                // FIXME: There is no SYCL way to determine these values
-                                std::numeric_limits<TIdx>::max(),
-                                std::numeric_limits<TIdx>::max(),
-                                std::numeric_limits<TIdx>::max())),
-                        // m_gridBlockCountMax
-                        std::numeric_limits<TIdx>::max(),
-                        // m_blockThreadExtentMax
-                        extent::getExtentVecEnd<TDim>(
-                            vec::Vec<dim::DimInt<3u>, TIdx>(
-                                alpaka::core::clipCast<TIdx>(max_threads_dim[2u]),
-                                alpaka::core::clipCast<TIdx>(max_threads_dim[1u]),
-                                alpaka::core::clipCast<TIdx>(max_threads_dim[0u]))),
-                        // m_blockThreadCountMax
-                        alpaka::core::clipCast<TIdx>(
-                                dev.m_Device.get_info<cl::sycl::info::device::max_work_group_size>()),
-                        // m_threadElemExtentMax
-                        vec::Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
-                        // m_threadElemCountMax
-                        std::numeric_limits<TIdx>::max(),
-                        // m_sharedMemSizeBytes
-                        dev.m_Device.get_info<cl::sycl::info::device::local_mem_size>()
-                    };
-                }
-            };
-            //#############################################################################
-            //! The SYCL accelerator name trait specialization.
-            template<
-                typename TDim,
-                typename TIdx>
-            struct GetAccName<
-                acc::AccSycl<TDim, TIdx>>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto getAccName()
-                -> std::string
-                {
-                    return "AccSycl<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
-                }
-            };
-        }
-    }
-    namespace dev
-    {
-        namespace traits
+                auto max_threads_dim =
+                    dev.m_Device.get_info<cl::sycl::info::device::max_work_item_sizes>();
+                return {
+                    // m_multiProcessorCount
+                    alpaka::core::clipCast<TIdx>(dev.m_Device.get_info<cl::sycl::info::device::max_compute_units>()),
+                    // m_gridBlockExtentMax
+                    extent::getExtentVecEnd<TDim>(
+                        Vec<DimInt<3u>, TIdx>(
+                            // FIXME: There is no SYCL way to determine these values
+                            std::numeric_limits<TIdx>::max(),
+                            std::numeric_limits<TIdx>::max(),
+                            std::numeric_limits<TIdx>::max())),
+                    // m_gridBlockCountMax
+                    std::numeric_limits<TIdx>::max(),
+                    // m_blockThreadExtentMax
+                    extent::getExtentVecEnd<TDim>(
+                        Vec<DimInt<3u>, TIdx>(
+                            alpaka::core::clipCast<TIdx>(max_threads_dim[2u]),
+                            alpaka::core::clipCast<TIdx>(max_threads_dim[1u]),
+                            alpaka::core::clipCast<TIdx>(max_threads_dim[0u]))),
+                    // m_blockThreadCountMax
+                    alpaka::core::clipCast<TIdx>(
+                            dev.m_Device.get_info<cl::sycl::info::device::max_work_group_size>()),
+                    // m_threadElemExtentMax
+                    Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
+                    // m_threadElemCountMax
+                    std::numeric_limits<TIdx>::max(),
+                    // m_sharedMemSizeBytes
+                    dev.m_Device.get_info<cl::sycl::info::device::local_mem_size>()
+                };
+            }
+        };
+
+        //#############################################################################
+        //! The SYCL accelerator name trait specialization.
+        template<typename TDim, typename TIdx>
+        struct GetAccName<AccSycl<TDim, TIdx>>
         {
-            //#############################################################################
-            //! The SYCL accelerator device type trait specialization.
-            template<
-                typename TDim,
-                typename TIdx>
-            struct DevType<
-                acc::AccSycl<TDim, TIdx>>
+            //-----------------------------------------------------------------------------
+            ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
-                using type = dev::DevSycl;
-            };
-        }
-    }
-    namespace dim
-    {
-        namespace traits
+                return "AccSycl<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
+            }
+        };
+
+        //#############################################################################
+        //! The SYCL accelerator device type trait specialization.
+        template<typename TDim, typename TIdx>
+        struct DevType<AccSycl<TDim, TIdx>>
         {
-            //#############################################################################
-            //! The SYCL accelerator dimension getter trait specialization.
-            template<
-                typename TDim,
-                typename TIdx>
-            struct DimType<
-                acc::AccSycl<TDim, TIdx>>
-            {
-                using type = TDim;
-            };
-        }
-    }
-    namespace kernel
-    {
-        namespace traits
+            using type = DevSycl;
+        };
+
+        //#############################################################################
+        //! The SYCL accelerator dimension getter trait specialization.
+        template<typename TDim, typename TIdx>
+        struct DimType<AccSycl<TDim, TIdx>>
         {
-            //#############################################################################
-            //! The SYCL accelerator execution task type trait specialization.
-            template<
-                typename TDim,
-                typename TIdx,
-                typename TWorkDiv,
-                typename TKernelFnObj,
-                typename... TArgs>
-            struct CreateTaskKernel<
-                acc::AccSycl<TDim, TIdx>,
-                TWorkDiv,
-                TKernelFnObj,
-                TArgs...>
-            {
-                //-----------------------------------------------------------------------------
-                ALPAKA_FN_HOST static auto createTaskKernel(
-                    TWorkDiv const & workDiv,
-                    TKernelFnObj const & kernelFnObj,
-                    TArgs const & ... args)
-                {
-                    return
-                        kernel::TaskKernelSycl<
-                            TDim,
-                            TIdx,
-                            TKernelFnObj,
-                            TArgs...>(
-                                workDiv,
-                                kernelFnObj,
-                                args...);
-                }
-            };
-        }
-    }
-    namespace pltf
-    {
-        namespace traits
+            using type = TDim;
+        };
+
+        //#############################################################################
+        //! The SYCL accelerator execution task type trait specialization.
+        template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
+        struct CreateTaskKernel<AccSycl<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
         {
-            //#############################################################################
-            //! The SYCL execution task platform type trait specialization.
-            template<
-                typename TDim,
-                typename TIdx>
-            struct PltfType<
-                acc::AccSycl<TDim, TIdx>>
+            //-----------------------------------------------------------------------------
+            ALPAKA_FN_HOST static auto createTaskKernel(TWorkDiv const & workDiv, TKernelFnObj const & kernelFnObj,
+                                                        TArgs const & ... args)
             {
-                using type = pltf::PltfSycl;
-            };
-        }
-    }
-    namespace idx
-    {
-        namespace traits
+                return TaskKernelSycl<TDim, TIdx, TKernelFnObj, TArgs...>(workDiv, kernelFnObj, args...);
+            }
+        };
+
+        //#############################################################################
+        //! The SYCL execution task platform type trait specialization.
+        template<typename TDim, typename TIdx>
+        struct PltfType<AccSycl<TDim, TIdx>>
         {
-            //#############################################################################
-            //! The SYCL accelerator idx type trait specialization.
-            template<
-                typename TDim,
-                typename TIdx>
-            struct IdxType<
-                acc::AccSycl<TDim, TIdx>>
-            {
-                using type = TIdx;
-            };
-        }
+            using type = PltfSycl;
+        };
+
+        //#############################################################################
+        //! The SYCL accelerator idx type trait specialization.
+        template<typename TDim, typename TIdx>
+        struct IdxType<AccSycl<TDim, TIdx>>
+        {
+            using type = TIdx;
+        };
     }
 }
 
