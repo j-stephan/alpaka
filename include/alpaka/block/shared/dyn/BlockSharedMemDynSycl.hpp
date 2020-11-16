@@ -24,64 +24,48 @@
 
 namespace alpaka
 {
-    namespace block
+    //#############################################################################
+    //! The SYCL block shared memory allocator.
+    class BlockSharedMemDynSycl : public concepts::Implements<ConceptBlockSharedDyn, BlockSharedMemDynSycl>
     {
-        namespace shared
+    public:
+        using BlockSharedMemDynBase = BlockSharedMemDynSycl;
+
+        //-----------------------------------------------------------------------------
+        BlockSharedMemDynSycl(cl::sycl::accessor<unsigned char, 1,
+                                cl::sycl::access::mode::read_write,
+                                cl::sycl::access::target::local>
+                                shared_acc)
+        : acc{shared_acc}
+        {}
+
+        //-----------------------------------------------------------------------------
+        BlockSharedMemDynSycl(BlockSharedMemDynSycl const &) = default;
+        //-----------------------------------------------------------------------------
+        BlockSharedMemDynSycl(BlockSharedMemDynSycl &&) = delete;
+        //-----------------------------------------------------------------------------
+        auto operator=(BlockSharedMemDynSycl const &) -> BlockSharedMemDynSycl & = delete;
+        //-----------------------------------------------------------------------------
+        auto operator=(BlockSharedMemDynSycl &&) -> BlockSharedMemDynSycl & = delete;
+        //-----------------------------------------------------------------------------
+        /*virtual*/ ~BlockSharedMemDynSycl() = default;
+
+        cl::sycl::accessor<unsigned char, 1, cl::sycl::access::mode::read_write, cl::sycl::access::target::local> acc;
+    };
+
+    namespace traits
+    {
+        //#############################################################################
+        template<typename T>
+        struct GetMem<T, BlockSharedMemDynSycl>
         {
-            namespace dyn
+            //-----------------------------------------------------------------------------
+            static auto getMem(BlockSharedMemDynSycl const & shared) -> T *
             {
-                //#############################################################################
-                //! The SYCL block shared memory allocator.
-                class BlockSharedMemDynSycl : public concepts::Implements<ConceptBlockSharedDyn, BlockSharedMemDynSycl>
-                {
-                public:
-                    using BlockSharedMemDynBase = BlockSharedMemDynSycl;
-
-                    //-----------------------------------------------------------------------------
-                    BlockSharedMemDynSycl(cl::sycl::accessor<unsigned char, 1,
-                                            cl::sycl::access::mode::read_write,
-                                            cl::sycl::access::target::local>
-                                            shared_acc)
-                    : acc{shared_acc}
-                    {}
-
-                    //-----------------------------------------------------------------------------
-                    BlockSharedMemDynSycl(BlockSharedMemDynSycl const &) = default;
-                    //-----------------------------------------------------------------------------
-                    BlockSharedMemDynSycl(BlockSharedMemDynSycl &&) = delete;
-                    //-----------------------------------------------------------------------------
-                    auto operator=(BlockSharedMemDynSycl const &) -> BlockSharedMemDynSycl & = delete;
-                    //-----------------------------------------------------------------------------
-                    auto operator=(BlockSharedMemDynSycl &&) -> BlockSharedMemDynSycl & = delete;
-                    //-----------------------------------------------------------------------------
-                    /*virtual*/ ~BlockSharedMemDynSycl() = default;
-
-                    cl::sycl::accessor<unsigned char, 1,
-                                       cl::sycl::access::mode::read_write,
-                                       cl::sycl::access::target::local> acc;
-                };
-
-                namespace traits
-                {
-                    //#############################################################################
-                    template<
-                        typename T>
-                    struct GetMem<
-                        T,
-                        BlockSharedMemDynSycl>
-                    {
-                        //-----------------------------------------------------------------------------
-                        static auto getMem(
-                            block::shared::dyn::BlockSharedMemDynSycl const & shared)
-                        -> T *
-                        {
-                            auto ptr = static_cast<unsigned char*>(shared.acc.get_pointer());
-                            return reinterpret_cast<T*>(ptr);
-                        }
-                    };
-                }
+                auto ptr = static_cast<unsigned char*>(shared.acc.get_pointer());
+                return reinterpret_cast<T*>(ptr);
             }
-        }
+        };
     }
 }
 

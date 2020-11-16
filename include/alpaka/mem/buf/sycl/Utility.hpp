@@ -23,36 +23,21 @@
 
 namespace alpaka
 {
-    namespace mem
+    namespace detail
     {
-        namespace view
+        //#############################################################################
+        //! Returns a SYCL range with the correct dimensionality.
+        template <int Dim, typename TExtent>
+        auto get_sycl_range(TExtent const & extent)
         {
-            namespace sycl
-            {
-                namespace detail
-                {
-                    //#############################################################################
-                    //! Returns a SYCL range with the correct dimensionality.
-                    template <int Dim,
-                              typename TExtent>
-                    auto get_sycl_range(TExtent const & extent)
-                    {
-                        if constexpr(Dim == 1)
-                            return cl::sycl::range<1>{extent::getWidth(extent)};
-                        else if constexpr(Dim == 2)
-                        {
-                            return cl::sycl::range<2>{extent::getWidth(extent),
-                                                      extent::getHeight(extent)};
-                        }
-                        else
-                        {
-                            return cl::sycl::range<3>{extent::getWidth(extent),
-                                                      extent::getHeight(extent),
-                                                      extent::getDepth(extent)};
-                        }
-                    }
-                }
-            }
+            using namespace cl::sycl;
+
+            if constexpr(Dim == 1)
+                return range<1>{extent::getWidth(extent)};
+            else if constexpr(Dim == 2)
+                return range<2>{extent::getWidth(extent), extent::getHeight(extent)};
+            else
+                return range<3>{extent::getWidth(extent), extent::getHeight(extent), extent::getDepth(extent)};
         }
     }
 }

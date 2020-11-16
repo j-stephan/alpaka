@@ -69,8 +69,7 @@ namespace alpaka
             //! on top of those in the C++ standard. Note that SYCL's equivalent
             //! to CUDA's dim3 type is a different class type and thus not used
             //! here.
-            template<
-                typename T>
+            template<typename T>
             struct IsSyclBuiltInType :
                 detail::is_any<T,
                     // built-in scalar types - these are the standard C++
@@ -158,54 +157,34 @@ namespace alpaka
         }
     }
 
-    namespace dim
+    namespace traits
     {
-        namespace traits
+        //##################################################################
+        //! SYCL's types get trait specialization.
+        template<typename T>
+        struct DimType<T, std::enable_if_t<sycl::traits::IsSyclBuiltInType<T>::value>>
         {
-            //##################################################################
-            //! SYCL's types get trait specialization.
-            template<
-                typename T>
-            struct DimType<
-                T,
-                std::enable_if_t<
-                    sycl::traits::IsSyclBuiltInType<T>::value>>
-            {
-                using type = dim::DimInt<sycl::detail::extract<T>>;
-            };
-        }
+            using type = DimInt<sycl::detail::extract<T>>;
+        };
+
+        //##################################################################
+        //! The SYCL vectors' elem type trait specialization.
+        template<typename T>
+        struct ElemType<T, std::enable_if_t<sycl::traits::IsSyclBuiltInType<T>::value>>
+        {
+            using type = std::conditional_t<std::is_scalar_v<T>, T, typename T::element_type>;
+        };
     }
 
-    namespace elem
-    {
-        namespace traits
-        {
-            //##################################################################
-            //! The SYCL vectors' elem type trait specialization.
-            template<
-                typename T>
-            struct ElemType<
-                T,
-                std::enable_if_t<sycl::traits::IsSyclBuiltInType<T>::value>>
-            {
-                using type = std::conditional_t<std::is_scalar_v<T>,
-                                                T,
-                                                typename T::element_type>;
-            };
-        }
-    }
     namespace extent
     {
         namespace traits
         {
             //##################################################################
             //! The SYCL vectors' extent get trait specialization.
-            template<
-                typename TExtent>
-            struct GetExtent<
-                dim::DimInt<dim::Dim<TExtent>::value>,
-                TExtent,
-                std::enable_if_t<sycl::traits::IsSyclBuiltInType<TExtent>::value>>
+            template<typename TExtent>
+            struct GetExtent<DimInt<Dim<TExtent>::value>, TExtent,
+                             std::enable_if_t<sycl::traits::IsSyclBuiltInType<TExtent>::value>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getExtent(
@@ -214,23 +193,15 @@ namespace alpaka
                     if constexpr(std::is_scalar_v<TExtent>)
                         return extent;
                     else
-                    {
-                        return extent.template swizzle<
-                            dim::DimInt<dim::Dim<TExtent>::value>::value>();
-                    }
+                        return extent.template swizzle<DimInt<Dim<TExtent>::value>::value>();
                 }
             };
 
             //#############################################################################
             //! The SYCL vectors' extent set trait specialization.
-            template<
-                typename TExtent,
-                typename TExtentVal>
-            struct SetExtent<
-                dim::DimInt<dim::Dim<TExtent>::value>,
-                TExtent,
-                TExtentVal,
-                std::enable_if_t<sycl::traits::IsSyclBuiltInType<TExtent>::value>>
+            template<typename TExtent, typename TExtentVal>
+            struct SetExtent<DimInt<Dim<TExtent>::value>, TExtent, TExtentVal,
+                             std::enable_if_t<sycl::traits::IsSyclBuiltInType<TExtent>::value>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto setExtent(
@@ -240,79 +211,53 @@ namespace alpaka
                     if constexpr(std::is_scalar_v<TExtent>)
                         extent = extentVal;
                     else
-                    {
-                        extent.template swizzle<
-                            dim::DimInt<dim::Dim<TExtent>::value>::value>() = extentVal;
-                    }
-                }
-            };
-        }
-    }
-    namespace offset
-    {
-        namespace traits
-        {
-            //#############################################################################
-            //! The SYCL vectors' offset get trait specialization.
-            template<
-                typename TOffsets>
-            struct GetOffset<
-                dim::DimInt<dim::Dim<TOffsets>::value>,
-                TOffsets,
-                std::enable_if_t<sycl::traits::IsSyclBuiltInType<TOffsets>::value>>
-            {
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto getOffset(
-                    TOffsets const & offsets)
-                {
-                    if constexpr(std::is_scalar_v<TOffsets>)
-                        return offsets;
-                    else
-                        return offsets.template swizzle<
-                            dim::DimInt<dim::Dim<TOffsets>::value>::value>();
-                }
-            };
-
-            //#############################################################################
-            //! The SYCL vectors' offset set trait specialization.
-            template<
-                typename TOffsets,
-                typename TOffset>
-            struct SetOffset<
-                dim::DimInt<dim::Dim<TOffsets>::value>,
-                TOffsets,
-                TOffset,
-                std::enable_if_t<sycl::traits::IsSyclBuiltInType<TOffsets>::value>>
-            {
-                ALPAKA_NO_HOST_ACC_WARNING
-                ALPAKA_FN_HOST_ACC static auto setOffset(
-                    TOffsets const & offsets,
-                    TOffset const & offset)
-                {
-                    if constexpr(std::is_scalar_v<TOffsets>)
-                        offsets = offset;
-                    else
-                        offsets.template swizzle<dim::DimInt<dim::Dim<TOffsets>::value>::value>() = offset;
+                        extent.template swizzle<DimInt<Dim<TExtent>::value>::value>() = extentVal;
                 }
             };
         }
     }
 
-    namespace idx
+    namespace traits
     {
-        namespace traits
+        //#############################################################################
+        //! The SYCL vectors' offset get trait specialization.
+        template<typename TOffsets>
+        struct GetOffset<DimInt<Dim<TOffsets>::value>, TOffsets,
+                         std::enable_if_t<sycl::traits::IsSyclBuiltInType<TOffsets>::value>>
         {
-            //#############################################################################
-            //! The SYCL vectors' idx type trait specialization.
-            template<
-                typename TIdx>
-            struct IdxType<
-                TIdx,
-                std::enable_if_t<sycl::traits::IsSyclBuiltInType<TIdx>::value>>
+            ALPAKA_NO_HOST_ACC_WARNING
+            ALPAKA_FN_HOST_ACC static auto getOffset(TOffsets const & offsets)
             {
-                using type = std::size_t;
-            };
-        }
+                if constexpr(std::is_scalar_v<TOffsets>)
+                    return offsets;
+                else
+                    return offsets.template swizzle<DimInt<Dim<TOffsets>::value>::value>();
+            }
+        };
+
+        //#############################################################################
+        //! The SYCL vectors' offset set trait specialization.
+        template<typename TOffsets, typename TOffset>
+        struct SetOffset<DimInt<Dim<TOffsets>::value>, TOffsets, TOffset,
+                         std::enable_if_t<sycl::traits::IsSyclBuiltInType<TOffsets>::value>>
+        {
+            ALPAKA_NO_HOST_ACC_WARNING
+            ALPAKA_FN_HOST_ACC static auto setOffset(TOffsets const & offsets, TOffset const & offset)
+            {
+                if constexpr(std::is_scalar_v<TOffsets>)
+                    offsets = offset;
+                else
+                    offsets.template swizzle<DimInt<Dim<TOffsets>::value>::value>() = offset;
+            }
+        };
+
+        //#############################################################################
+        //! The SYCL vectors' idx type trait specialization.
+        template<typename TIdx>
+        struct IdxType<TIdx, std::enable_if_t<sycl::traits::IsSyclBuiltInType<TIdx>::value>>
+        {
+            using type = std::size_t;
+        };
     }
 }
 

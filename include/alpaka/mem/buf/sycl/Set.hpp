@@ -30,83 +30,55 @@
 
 namespace alpaka
 {
-    namespace dev
-    {
-        class DevSycl;
-    }
-}
+    class DevSycl;
 
-namespace alpaka
-{
-    namespace mem
+    namespace detail
     {
-        namespace view
+        //#############################################################################
+        //! The SYCL memory set trait.
+        template<typename TDim>
+        struct TaskSetSycl
         {
-            namespace sycl
+            //-----------------------------------------------------------------------------
+            auto operator()(cl::sycl::handler& cgh) -> void
             {
-                namespace detail
-                {
-                    //#############################################################################
-                    //! The SYCL memory set trait.
-                    template<
-                        typename TDim>
-                    struct TaskSetSycl
-                    {
-                        //-----------------------------------------------------------------------------
-                        auto operator()(cl::sycl::handler& cgh) -> void
-                        {
-                            auto acc = buf.template get_access<
-                                cl::sycl::access::mode::write>(cgh, range);
-                            cgh.fill(acc, byte);
-                        }
-
-                        cl::sycl::buffer<std::uint8_t, TDim::value> buf;
-                        std::uint8_t byte;
-                        cl::sycl::range<TDim::value> range;
-                    };
-                }
+                auto acc = buf.template get_access<cl::sycl::access::mode::write>(cgh, range);
+                cgh.fill(acc, byte);
             }
 
-            namespace traits
+            cl::sycl::buffer<std::uint8_t, TDim::value> buf;
+            std::uint8_t byte;
+            cl::sycl::range<TDim::value> range;
+        };
+    }
+
+    namespace traits
+    {
+        //#############################################################################
+        //! The SYCL device memory set trait specialization.
+        template<typename TDim>
+        struct CreateTaskMemset<TDim, DevSycl>
+        {
+            //-----------------------------------------------------------------------------
+            template<typename TExtent, typename TView>
+            ALPAKA_FN_HOST static auto createTaskMemset(TView & view, std::uint8_t const & byte, TExtent const & extent)
             {
-                //#############################################################################
-                //! The SYCL device memory set trait specialization.
-                template<
-                    typename TDim>
-                struct CreateTaskSet<
-                    TDim,
-                    dev::DevSycl>
-                {
-                    //-----------------------------------------------------------------------------
-                    template<
-                        typename TExtent,
-                        typename TView>
-                    ALPAKA_FN_HOST static auto createTaskSet(
-                        TView & view,
-                        std::uint8_t const & byte,
-                        TExtent const & extent)
-                    {
-                        using elem_type = elem::Elem<TView>;
-                        constexpr auto elem_size = sizeof(elem_type);
+                using elem_type = Elem<TView>;
+                constexpr auto elem_size = sizeof(elem_type);
 
-                        // multiply original range with sizeof(elem_type)
-                        const auto old_buf_range = view.m_buf.get_range();
-                        const auto new_buf_range = old_buf_range * elem_size;
+                // multiply original range with sizeof(elem_type)
+                const auto old_buf_range = view.m_buf.get_range();
+                const auto new_buf_range = old_buf_range * elem_size;
 
-                        const auto sycl_range = mem::view::sycl::detail::get_sycl_range<dim::Dim<TExtent>::value>(extent);
-                        const auto byte_range = sycl_range * elem_size;
+                const auto sycl_range = detail::get_sycl_range<Dim<TExtent>::value>(extent);
+                const auto byte_range = sycl_range * elem_size;
 
-                        // reinterpret the original buffer as a byte buffer
-                        auto new_buf = view.m_buf.template reinterpret<std::uint8_t>(new_buf_range);
+                // reinterpret the original buffer as a byte buffer
+                auto new_buf = view.m_buf.template reinterpret<std::uint8_t>(new_buf_range);
 
-                        return mem::view::sycl::detail::TaskSetSycl<TDim>{
-                            new_buf, byte, byte_range
-                        };
-
-                    }
-                };
+                return detail::TaskSetSycl<TDim>{new_buf, byte, byte_range};
             }
-        }
+        };
     }
 }
 

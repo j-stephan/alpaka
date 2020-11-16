@@ -27,166 +27,107 @@
 
 namespace alpaka
 {
-    namespace workdiv
+    //#############################################################################
+    //! The SYCL accelerator work division.
+    template<typename TDim, typename TIdx>
+    class WorkDivSycl : public concepts::Implements<ConceptWorkDiv, WorkDivSycl<TDim, TIdx>>
+    {
+    public:
+        using WorkDivBase = WorkDivSycl;
+
+        //-----------------------------------------------------------------------------
+        WorkDivSycl(Vec<TDim, TIdx> const & threadElemExtent, cl::sycl::nd_item<TDim::value> work_item)
+        : m_threadElemExtent{threadElemExtent}, my_item{work_item}
+        {}
+        //-----------------------------------------------------------------------------
+        WorkDivSycl(WorkDivSycl const &) = default;
+        //-----------------------------------------------------------------------------
+        WorkDivSycl(WorkDivSycl &&) = delete;
+        //-----------------------------------------------------------------------------
+        auto operator=(WorkDivSycl const &) -> WorkDivSycl & = delete;
+        //-----------------------------------------------------------------------------
+        auto operator=(WorkDivSycl &&) -> WorkDivSycl & = delete;
+        //-----------------------------------------------------------------------------
+        /*virtual*/ ~WorkDivSycl() = default;
+
+    public:
+        Vec<TDim, TIdx> const & m_threadElemExtent;
+        cl::sycl::nd_item<TDim::value> my_item;
+
+    };
+
+    namespace traits
     {
         //#############################################################################
-        //! The SYCL accelerator work division.
-        template<
-            typename TDim,
-            typename TIdx>
-        class WorkDivSycl : public concepts::Implements<ConceptWorkDiv, WorkDivSycl<TDim, TIdx>>
+        //! The SYCL accelerator work division dimension get trait specialization.
+        template<typename TDim, typename TIdx>
+        struct DimType<WorkDivSycl<TDim, TIdx>>
         {
-        public:
-            using WorkDivBase = WorkDivSycl;
-
-            //-----------------------------------------------------------------------------
-            WorkDivSycl(
-                vec::Vec<TDim, TIdx> const & threadElemExtent,
-                cl::sycl::nd_item<TDim::value> work_item)
-                : m_threadElemExtent{threadElemExtent}, my_item{work_item}
-            {}
-            //-----------------------------------------------------------------------------
-            WorkDivSycl(WorkDivSycl const &) = default;
-            //-----------------------------------------------------------------------------
-            WorkDivSycl(WorkDivSycl &&) = delete;
-            //-----------------------------------------------------------------------------
-            auto operator=(WorkDivSycl const &) -> WorkDivSycl & = delete;
-            //-----------------------------------------------------------------------------
-            auto operator=(WorkDivSycl &&) -> WorkDivSycl & = delete;
-            //-----------------------------------------------------------------------------
-            /*virtual*/ ~WorkDivSycl() = default;
-
-        public:
-            vec::Vec<TDim, TIdx> const & m_threadElemExtent;
-            cl::sycl::nd_item<TDim::value> my_item;
-
+            using type = TDim;
         };
-    }
 
-    namespace dim
-    {
-        namespace traits
+        //#############################################################################
+        //! The SYCL accelerator work division idx type trait specialization.
+        template<typename TDim, typename TIdx>
+        struct IdxType<WorkDivSycl<TDim, TIdx>>
         {
-            //#############################################################################
-            //! The SYCL accelerator work division dimension get trait specialization.
-            template<
-                typename TDim,
-                typename TIdx>
-            struct DimType<
-                workdiv::WorkDivSycl<TDim, TIdx>>
-            {
-                using type = TDim;
-            };
-        }
-    }
-    namespace idx
-    {
-        namespace traits
-        {
-            //#############################################################################
-            //! The SYCL accelerator work division idx type trait specialization.
-            template<
-                typename TDim,
-                typename TIdx>
-            struct IdxType<
-                workdiv::WorkDivSycl<TDim, TIdx>>
-            {
-                using type = TIdx;
-            };
-        }
-    }
-    namespace workdiv
-    {
-        namespace traits
-        {
-            //#############################################################################
-            //! The SYCL accelerator work division grid block extent trait specialization.
-            template<
-                typename TDim,
-                typename TIdx>
-            struct GetWorkDiv<
-                WorkDivSycl<TDim, TIdx>,
-                origin::Grid,
-                unit::Blocks>
-            {
-                //-----------------------------------------------------------------------------
-                //! \return The number of blocks in each dimension of the grid.
-                static auto getWorkDiv(
-                    WorkDivSycl<TDim, TIdx> const & workDiv)
-                -> vec::Vec<TDim, TIdx>
-                {
-                    if constexpr(TDim::value == 1)
-                    {
-                        return vec::Vec<TDim, TIdx>{workDiv.my_item.get_group_range(0)};
-                    }
-                    else if constexpr(TDim::value == 2)
-                    {
-                        return vec::Vec<TDim, TIdx>{workDiv.my_item.get_group_range(0),
-                                                    workDiv.my_item.get_group_range(1)};
-                    }
-                    else
-                    {
-                        return vec::Vec<TDim, TIdx>{workDiv.my_item.get_group_range(0),
-                                                    workDiv.my_item.get_group_range(1),
-                                                    workDiv.my_item.get_group_range(2)};
-                    }
-                }
-            };
+            using type = TIdx;
+        };
 
-            //#############################################################################
-            //! The SYCL accelerator work division block thread extent trait specialization.
-            template<
-                typename TDim,
-                typename TIdx>
-            struct GetWorkDiv<
-                WorkDivSycl<TDim, TIdx>,
-                origin::Block,
-                unit::Threads>
+        //#############################################################################
+        //! The SYCL accelerator work division grid block extent trait specialization.
+        template<typename TDim, typename TIdx>
+        struct GetWorkDiv<WorkDivSycl<TDim, TIdx>, origin::Grid, unit::Blocks>
+        {
+            //-----------------------------------------------------------------------------
+            //! \return The number of blocks in each dimension of the grid.
+            static auto getWorkDiv(WorkDivSycl<TDim, TIdx> const & workDiv) -> Vec<TDim, TIdx>
             {
-                //-----------------------------------------------------------------------------
-                //! \return The number of threads in each dimension of a block.
-                static auto getWorkDiv(
-                    WorkDivSycl<TDim, TIdx> const & workDiv)
-                -> vec::Vec<TDim, TIdx>
+                if constexpr(TDim::value == 1)
+                    return Vec<TDim, TIdx>{workDiv.my_item.get_group_range(0)};
+                else if constexpr(TDim::value == 2)
+                    return Vec<TDim, TIdx>{workDiv.my_item.get_group_range(0), workDiv.my_item.get_group_range(1)};
+                else
                 {
-                    if constexpr(TDim::value == 1)
-                    {
-                        return vec::Vec<TDim, TIdx>{workDiv.my_item.get_local_range(0)};
-                    }
-                    else if constexpr(TDim::value == 2)
-                    {
-                        return vec::Vec<TDim, TIdx>{workDiv.my_item.get_local_range(0),
-                                                    workDiv.my_item.get_local_range(1)};
-                    }
-                    else
-                    {
-                        return vec::Vec<TDim, TIdx>{workDiv.my_item.get_local_range(0),
-                                                    workDiv.my_item.get_local_range(1),
-                                                    workDiv.my_item.get_local_range(2)};
-                    }
+                    return Vec<TDim, TIdx>{workDiv.my_item.get_group_range(0), workDiv.my_item.get_group_range(1),
+                                           workDiv.my_item.get_group_range(2)};
                 }
-            };
+            }
+        };
 
-            //#############################################################################
-            //! The SYCL accelerator work division thread element extent trait specialization.
-            template<
-                typename TDim,
-                typename TIdx>
-            struct GetWorkDiv<
-                WorkDivSycl<TDim, TIdx>,
-                origin::Thread,
-                unit::Elems>
+        //#############################################################################
+        //! The SYCL accelerator work division block thread extent trait specialization.
+        template<typename TDim, typename TIdx>
+        struct GetWorkDiv<WorkDivSycl<TDim, TIdx>, origin::Block, unit::Threads>
+        {
+            //-----------------------------------------------------------------------------
+            //! \return The number of threads in each dimension of a block.
+            static auto getWorkDiv(WorkDivSycl<TDim, TIdx> const & workDiv) -> Vec<TDim, TIdx>
             {
-                //-----------------------------------------------------------------------------
-                //! \return The number of blocks in each dimension of the grid.
-                static auto getWorkDiv(
-                    WorkDivSycl<TDim, TIdx> const & workDiv)
-                -> vec::Vec<TDim, TIdx>
+                if constexpr(TDim::value == 1)
+                    return Vec<TDim, TIdx>{workDiv.my_item.get_local_range(0)};
+                else if constexpr(TDim::value == 2)
+                    return Vec<TDim, TIdx>{workDiv.my_item.get_local_range(0), workDiv.my_item.get_local_range(1)};
+                else
                 {
-                    return workDiv.m_threadElemExtent;
+                    return Vec<TDim, TIdx>{workDiv.my_item.get_local_range(0), workDiv.my_item.get_local_range(1),
+                                           workDiv.my_item.get_local_range(2)};
                 }
-            };
-        }
+            }
+        };
+
+        //#############################################################################
+        //! The SYCL accelerator work division thread element extent trait specialization.
+        template<typename TDim, typename TIdx>
+        struct GetWorkDiv<WorkDivSycl<TDim, TIdx>, origin::Thread, unit::Elems>
+        {
+            //-----------------------------------------------------------------------------
+            //! \return The number of blocks in each dimension of the grid.
+            static auto getWorkDiv(WorkDivSycl<TDim, TIdx> const & workDiv) -> Vec<TDim, TIdx>
+            {
+                return workDiv.m_threadElemExtent;
+            }
+        };
     }
 }
 
