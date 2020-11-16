@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -31,7 +31,40 @@ namespace alpaka
 {
     namespace detail
     {
-        struct xilinx_selector : cl::sycl::device_selector
+        struct intel_fpga_selector : cl::sycl::device_selector
+        {
+            auto operator()(const cl::sycl::device& dev) const -> int override
+            {
+                const auto platform = dev.get_platform();
+                const auto name = platform.get_info<cl::sycl::info::platform::name>();
+
+                return (name == "Intel(R) FPGA SDK for OpenCL(TM)") ? 1 : -1;
+            }
+        };
+
+        struct intel_fpga_emulator_selector : cl::sycl::device_selector
+        {
+            auto operator()(const cl::sycl::device& dev) const -> int override
+            {
+                const auto platform = dev.get_platform();
+                const auto name = platform.get_info<cl::sycl::info::platform::name>();
+
+                return (name == "Intel(R) FPGA Emulation Platform for OpenCL(TM)") ? 1 : -1;
+            }
+        };
+
+        struct intel_gpu_selector : cl::sycl::device_selector
+        {
+            auto operator()(const cl::sycl::device& dev) const -> int override
+            {
+                const auto vendor = dev.get_info<cl::sycl::info::device::vendor>();
+                const auto is_intel_gpu = (vendor.find("HD Graphics Neo") != std::string::npos) && dev.is_gpu();
+
+                return is_intel_gpu ? 1 : -1;
+            }
+        };
+
+        struct xilinx_fpga_selector : cl::sycl::device_selector
         {
             auto operator()(const cl::sycl::device& dev) const -> int override
             {
@@ -40,16 +73,50 @@ namespace alpaka
 
                 return is_xilinx ? 1 : -1;
             }
-        };
+        }; 
     }
 
     //#############################################################################
     //! The SYCL device manager.
-    class PltfSycl : public concepts::Implements<ConceptPltf, PltfSycl>
+    class PltfUniformSycl : public concepts::Implements<ConceptPltf, PltfUniformSycl>
     {
     public:
         //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST PltfSycl() = delete;
+
+        using selector = cl::sycl::default_selector;
+    };
+
+    class PltfSyclIntelFpga : public PltfSycl
+    {
+    public:
+        ALPAKA_FN_HOST PltfSyclIntelFpga() = delete;
+
+        using selector = detail::intel_fpga_selector;
+    };
+
+    class PltfSyclIntelFpgaEmulator : public PltfSycl
+    {
+    public:
+        ALPAKA_FN_HOST PltfSyclIntelFpgaEmulator() = delete;
+
+        using selector = detail::intel_fpga_emulator_selector;
+    };
+
+    class PltfSyclIntelGpu : public PltfSycl
+    {
+    public:
+        ALPAKA_FN_HOST PltfSyclIntelGpu() = delete;
+
+        using selector = detail::intel_gpu_selector;
+    };
+
+    class PltfSyclXilinxFpga : public PltfSycl 
+    {
+    public:
+        ALPAKA_FN_HOST PltfSyclXilinxFpga() = delete;
+
+        using selector = detail::xilinx_fpga_selector;
     };
 
     namespace traits
@@ -62,74 +129,58 @@ namespace alpaka
             using type = DevSycl;
         };
 
+        template<>
+        struct DevType<PltfSyclIntelFpga>
+        {
+            using type = DevSyclIntelFpga;
+        };
+
+        template<>
+        struct DevType<PltfSyclIntelFpgaEmulator>
+        {
+            using type = DevSyclIntelFpgaEmulator;
+        };
+
+        template<>
+        struct DevType<PltfSyclIntelGpu>
+        {
+            using type = DevSyclIntelGpu;
+        };
+
+        template<>
+        struct DevType<PltfSyclXilinxFpga>
+        {
+            using type = DevSyclXilinxFpga;
+        };
+
+
         //#############################################################################
         //! The SYCL platform device count get trait specialization.
-        template<>
-        struct GetDevCount<PltfSycl>
+        template<typename TPltf, std::enable_if_t<std::is_base_of_v<PltfSycl, TPltf>>>
+        struct GetDevCount<TPltf>
         {
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto getDevCount()
-            -> std::size_t
+            ALPAKA_FN_HOST static auto getDevCount() -> std::size_t
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
-                // FIXME: make this agnostic
-                auto platform = cl::sycl::platform{cl::sycl::gpu_selector{}};
-
-                // TODO: This returns all SYCL devices, we should probably
-                // allow for users to select GPUs, FPGAs etc.
-                auto devices = platform.get_devices();
+                static auto platform = cl::sycl::platform{TPltf::selector{}};
+                static auto devices = platform.get_devices();
                 return devices.size();
             }
         };
 
         //#############################################################################
         //! The SYCL platform device get trait specialization.
-        template<>
-        struct GetDevByIdx<PltfSycl>
+        template<typename TPltf, std::enable_if_t<std::is_base_of_v<PltfSycl, TPltf>>>
+        struct GetDevByIdx<TPltf>
         {
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto getDevByIdx(
-                std::size_t const & devIdx)
-            -> DevSycl
+            ALPAKA_FN_HOST static auto getDevByIdx(std::size_t const & devIdx)
             {
+                using namespace cl::sycl;
+
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
-
-                // FIXME: duplicate code here
-                auto platform = cl::sycl::platform{cl::sycl::gpu_selector{}};
-                auto devices = platform.get_devices();
-                
-                if(devIdx >= devices.size())
-                {
-                    auto ss_err = std::stringstream{};
-                    ss_err << "Unable to return device handle for device "
-                           << devIdx << ". There are only "
-                           << devices.size() << " SYCL devices!";
-                    throw std::runtime_error(ss_err.str());
-                }
-
-                auto sycl_dev = devices.at(devIdx);
-
-                // FIXME: Xilinx' sw_emu and hw_emu don't report their
-                // "devices" as available if there is no FPGA installed on
-                // the local system
-                //if(sycl_dev.get_info<cl::sycl::info::device::is_available>())
-                //{
-                    // Log this device.
-#if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                    printDeviceProperties(sycl_dev);
-#elif ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-                    std::cout << __func__
-                        << sycl_dev.get_info<cl::sycl::info::device::name>() << std::endl;
-#endif
-                /*}
-                else
-                {
-                    auto ss_err = std::stringstream{};
-                    ss_err << "Unable to return device handle for device "
-                        << devIdx << ". It is not accessible!";
-                    throw std::runtime_error(ss_err.str());
-                }*/
 
                 auto exception_handler = [](cl::sycl::exception_list exceptions)
                 {
@@ -150,16 +201,36 @@ namespace alpaka
                     }
                 };
 
-                return DevSycl{sycl_dev, cl::sycl::queue{sycl_dev, exception_handler, cl::sycl::property::queue::enable_profiling{}}};
+                static auto pf = platform{TPltf::selector{}};
+                static auto devices = pf.get_devices();
+                static auto ctx = context{devices, exception_handler};
+                
+                if(devIdx >= devices.size())
+                {
+                    auto ss_err = std::stringstream{};
+                    ss_err << "Unable to return device handle for device "
+                           << devIdx << ". There are only "
+                           << devices.size() << " SYCL devices!";
+                    throw std::runtime_error(ss_err.str());
+                }
+
+                auto sycl_dev = devices.at(devIdx);
+                auto sycl_queue = queue{sycl_dev, exception_handler, property::queue::enable_profiling{}};
+
+                // Log this device.
+#if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
+                printDeviceProperties(sycl_dev);
+#elif ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
+                std::cout << __func__ << sycl_dev.get_info<info::device::name>() << '\n';
+#endif
+                return typename DevType<TPltf>::type{sycl_dev, ctx, sycl_queue};
             }
 
         private:
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
             //-----------------------------------------------------------------------------
             //! Prints all the device properties to std::cout.
-            ALPAKA_FN_HOST static auto printDeviceProperties(
-                const cl::sycl::device& device)
-            -> void
+            static auto printDeviceProperties(const cl::sycl::device& device) -> void
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
 

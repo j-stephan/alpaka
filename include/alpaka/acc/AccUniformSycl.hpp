@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -22,8 +22,8 @@
 #include <alpaka/workdiv/WorkDivSycl.hpp>
 #include <alpaka/idx/gb/IdxGbSycl.hpp>
 #include <alpaka/idx/bt/IdxBtSycl.hpp>
-#include <alpaka/atomic/AtomicSycl.hpp>
 #include <alpaka/atomic/AtomicHierarchy.hpp>
+#include <alpaka/atomic/AtomicUniformSycl.hpp>
 #include <alpaka/math/MathSycl.hpp>
 #include <alpaka/block/shared/dyn/BlockSharedMemDynSycl.hpp>
 //#include <alpaka/block/shared/st/BlockSharedMemStSycl.hpp>
@@ -44,7 +44,8 @@
 #include <alpaka/core/Sycl.hpp>
 #include <alpaka/dev/DevSycl.hpp>
 
-#include <typeinfo>
+#include <string>
+#include <type_traits>
 
 namespace alpaka
 {
@@ -55,25 +56,23 @@ namespace alpaka
     //! The SYCL accelerator.
     //!
     //! This accelerator allows parallel kernel execution on SYCL devices.
-    template<
-        typename TDim,
-        typename TIdx>
-    class AccSycl final :
-        public WorkDivSycl<TDim, TIdx>,
-        public gb::IdxGbSycl<TDim, TIdx>,
-        public bt::IdxBtSycl<TDim, TIdx>,
-        public AtomicHierarchy<AtomicSycl, AtomicSycl, AtomicSycl>,
-        public math::MathSycl,
-        public BlockSharedMemDynSycl,
-        //public BlockSharedMemStSycl,
-        public BlockSyncSycl<TDim>,
-        //public rand::RandSycl,
-        //public TimeSycl
-        public concepts::Implements<ConceptAcc, AccSycl<TDim, TIdx>>
+    template<typename TDim, typename TIdx>
+    class AccUniformSycl :
+        public WorkDivUniformSycl<TDim, TIdx>,
+        public gb::IdxGbUniformSycl<TDim, TIdx>,
+        public bt::IdxBtUniformSycl<TDim, TIdx>,
+        public AtomicHierarchy<AtomicUniformSycl, AtomicUniformSycl, AtomicSycl>,
+        public math::MathUniformSycl,
+        public BlockSharedMemDynUniformSycl,
+        //public BlockSharedMemStUniformSycl,
+        public BlockSyncUniformSycl<TDim>,
+        //public rand::RandUniformSycl,
+        //public TimeUniformSycl
+        public concepts::Implements<ConceptAcc, AccUniformSycl<TDim, TIdx>>
     {
     public:
         //-----------------------------------------------------------------------------
-        AccSycl(
+        AccUniformSycl(
             Vec<TDim, TIdx> const & threadElemExtent,
             cl::sycl::nd_item<TDim::value> work_item,
             cl::sycl::accessor<unsigned char, 1,
@@ -82,57 +81,58 @@ namespace alpaka
             cl::sycl::accessor<int, 0,
                                cl::sycl::access::mode::atomic,
                                cl::sycl::access::target::local> pred_counter) :
-                WorkDivSycl<TDim, TIdx>{threadElemExtent, work_item},
-                gb::IdxGbSycl<TDim, TIdx>{work_item},
-                bt::IdxBtSycl<TDim, TIdx>{work_item},
-                AtomicHierarchy<AtomicSycl, AtomicSycl, AtomicSycl>{},
-                math::MathSycl(),
-                BlockSharedMemDynSycl{shared_acc},
-                // BlockSharedMemStSycl(),
-                BlockSyncSycl<TDim>{work_item, pred_counter}
-                /*rand::RandSycl(),
-                TimeSycl()*/
+                WorkDivUniformSycl<TDim, TIdx>{threadElemExtent, work_item},
+                gb::IdxGbUniformSycl<TDim, TIdx>{work_item},
+                bt::IdxBtUniformSycl<TDim, TIdx>{work_item},
+                AtomicHierarchy<AtomicUniformSycl, AtomicUniformSycl, AtomicUniformSycl>{},
+                math::MathUniformSycl(),
+                BlockSharedMemDynUniformSycl{shared_acc},
+                // BlockSharedMemStUniformSycl(),
+                BlockSyncUniformSycl<TDim>{work_item, pred_counter}
+                /*rand::RandUniformSycl(),
+                TimeUniformSycl()*/
         {}
 
-    public:
         //-----------------------------------------------------------------------------
-        AccSycl(AccSycl const & rhs)
-        : WorkDivSycl<TDim, TIdx>{rhs}
-        , gb::IdxGbSycl<TDim, TIdx>{rhs}
-        , bt::IdxBtSycl<TDim, TIdx>{rhs}
-        , AtomicHierarchy<AtomicSycl, AtomicSycl, AtomicSycl>{rhs}
-        , math::MathSycl{rhs}
-        , BlockSharedMemDynSycl{rhs}
-        , BlockSyncSycl<TDim>{rhs}
+        AccUniformSycl(AccUniformSycl const & rhs)
+        : WorkDivUniformSycl<TDim, TIdx>{rhs}
+        , gb::IdxGbUniformSycl<TDim, TIdx>{rhs}
+        , bt::IdxBtUniformSycl<TDim, TIdx>{rhs}
+        , AtomicHierarchy<AtomicUniformSycl, AtomicUniformSycl, AtomicUniformSycl>{rhs}
+        , math::MathUniformSycl{rhs}
+        , BlockSharedMemDynUniformSycl{rhs}
+        , BlockSyncUniformSycl<TDim>{rhs}
         {
         }
         //-----------------------------------------------------------------------------
-        AccSycl(AccSycl &&) = delete;
+        AccUniformSycl(AccUniformSycl &&) = delete;
         //-----------------------------------------------------------------------------
-        auto operator=(AccSycl const &) -> AccSycl & = delete;
+        auto operator=(AccUniformSycl const &) -> AccUniformSycl & = delete;
         //-----------------------------------------------------------------------------
-        auto operator=(AccSycl &&) -> AccSycl & = delete;
+        auto operator=(AccUniformSycl &&) -> AccUniformSycl & = delete;
         //-----------------------------------------------------------------------------
-        ~AccSycl() = default;
+        ~AccUniformSycl() = default;
     };
 
     namespace traits
     {
         //#############################################################################
         //! The SYCL accelerator type trait specialization.
-        template<typename TDim, typename TIdx>
-        struct AccType<AccSycl<TDim, TIdx>>
+        template<typename TAcc, typename TDim, typename TIdx,
+                 typename Sfinae = std::enable_if_t<std::is_base_of_v<AccUniformSycl<TDim, TIdx>, TAcc>>>
+        struct AccType<TAcc>
         {
-            using type = AccSycl<TDim, TIdx>;
+            using type = TAcc;
         };
 
         //#############################################################################
         //! The SYCL accelerator device properties get trait specialization.
-        template<typename TDim, typename TIdx>
-        struct GetAccDevProps<AccSycl<TDim, TIdx>>
+        template<typename TAcc, typename TDim, typename TIdx,
+                 typename Sfinae = std::enable_if_t<std::is_base_of_v<AccUniformSycl<TDim, TIdx>, TAcc>>>
+        struct GetAccDevProps<TAcc>
         {
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto getAccDevProps(DevSycl const & dev) -> AccDevProps<TDim, TIdx>
+            ALPAKA_FN_HOST static auto getAccDevProps(DevUniformSycl const & dev) -> AccDevProps<TDim, TIdx>
             {
                 auto max_threads_dim =
                     dev.m_Device.get_info<cl::sycl::info::device::max_work_item_sizes>();
@@ -170,27 +170,28 @@ namespace alpaka
         //#############################################################################
         //! The SYCL accelerator name trait specialization.
         template<typename TDim, typename TIdx>
-        struct GetAccName<AccSycl<TDim, TIdx>>
+        struct GetAccName<AccUniformSycl<TDim, TIdx>>
         {
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
-                return "AccSycl<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
+                return "AccUniformSycl<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
             }
         };
 
         //#############################################################################
         //! The SYCL accelerator device type trait specialization.
         template<typename TDim, typename TIdx>
-        struct DevType<AccSycl<TDim, TIdx>>
+        struct DevType<AccUniformSycl<TDim, TIdx>>
         {
-            using type = DevSycl;
+            using type = DevUniformSycl;
         };
 
         //#############################################################################
         //! The SYCL accelerator dimension getter trait specialization.
-        template<typename TDim, typename TIdx>
-        struct DimType<AccSycl<TDim, TIdx>>
+        template<typename TAcc, typename TDim, typename TIdx,
+                 typename Sfinae = std::enable_if_t<std::is_base_of_v<AccUniformSycl<TDim, TIdx>, TAcc>>>
+        struct DimType<TAcc>
         {
             using type = TDim;
         };
@@ -198,28 +199,29 @@ namespace alpaka
         //#############################################################################
         //! The SYCL accelerator execution task type trait specialization.
         template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
-        struct CreateTaskKernel<AccSycl<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
+        struct CreateTaskKernel<AccUniformSycl<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
         {
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto createTaskKernel(TWorkDiv const & workDiv, TKernelFnObj const & kernelFnObj,
                                                         TArgs const & ... args)
             {
-                return TaskKernelSycl<TDim, TIdx, TKernelFnObj, TArgs...>(workDiv, kernelFnObj, args...);
+                return TaskKernelUniformSycl<TDim, TIdx, TKernelFnObj, TArgs...>(workDiv, kernelFnObj, args...);
             }
         };
 
         //#############################################################################
         //! The SYCL execution task platform type trait specialization.
         template<typename TDim, typename TIdx>
-        struct PltfType<AccSycl<TDim, TIdx>>
+        struct PltfType<AccUniformSycl<TDim, TIdx>>
         {
-            using type = PltfSycl;
+            using type = PltfUniformSycl;
         };
 
         //#############################################################################
         //! The SYCL accelerator idx type trait specialization.
-        template<typename TDim, typename TIdx>
-        struct IdxType<AccSycl<TDim, TIdx>>
+        template<typename TAcc, typename TDim, typename TIdx,
+                 typename Sfinae = std::enable_if_t<std::is_base_of_v<AccUniformSycl<TDim, TIdx>, TAcc>>>
+        struct IdxType<TAcc>
         {
             using type = TIdx;
         };
