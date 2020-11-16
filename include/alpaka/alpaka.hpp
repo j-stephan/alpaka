@@ -27,11 +27,14 @@
 #include <alpaka/acc/AccCpuOmp2Threads.hpp>
 #include <alpaka/acc/AccOmp5.hpp>
 #include <alpaka/acc/AccOacc.hpp>
+#include <alpaka/acc/AccFpgaSyclIntel.hpp>
+#include <alpaka/acc/AccFpgaSyclXilinx.hpp>
 #include <alpaka/acc/AccGpuUniformCudaHipRt.hpp>
 #include <alpaka/acc/AccGpuCudaRt.hpp>
 #include <alpaka/acc/AccGpuHipRt.hpp>
+#include <alpaka/acc/AccGpuSyclIntel.hpp>
 #include <alpaka/acc/AccDevProps.hpp>
-#include <alpaka/acc/AccSycl.hpp>
+#include <alpaka/acc/AccUniformSycl.hpp>
 #include <alpaka/acc/Traits.hpp>
 //-----------------------------------------------------------------------------
 // atomic
@@ -39,7 +42,7 @@
 #include <alpaka/atomic/AtomicNoOp.hpp>
 #include <alpaka/atomic/AtomicOmpBuiltIn.hpp>
 #include <alpaka/atomic/AtomicStdLibLock.hpp>
-#include <alpaka/atomic/AtomicSycl.hpp>
+#include <alpaka/atomic/AtomicUniformSycl.hpp>
 #include <alpaka/atomic/Op.hpp>
 #include <alpaka/atomic/Traits.hpp>
 //-----------------------------------------------------------------------------
@@ -95,7 +98,10 @@
 // dev
 #include <alpaka/dev/DevUniformCudaHipRt.hpp>
 #include <alpaka/dev/DevCpu.hpp>
-#include <alpaka/dev/DevSycl.hpp>
+#include <alpaka/dev/DevUniformSycl.hpp>
+#include <alpaka/dev/DevFpgaSyclIntel.hpp>
+#include <alpaka/dev/DevFpgaSyclXilinx.hpp>
+#include <alpaka/dev/DevGpuSyclIntel.hpp>
 #include <alpaka/dev/cpu/Wait.hpp>
 #include <alpaka/dev/Traits.hpp>
 //-----------------------------------------------------------------------------
@@ -192,7 +198,10 @@
 #include <alpaka/pltf/PltfUniformCudaHipRt.hpp>
 #include <alpaka/pltf/PltfOmp5.hpp>
 #include <alpaka/pltf/PltfOacc.hpp>
-#include <alpaka/pltf/PltfSycl.hpp>
+#include <alpaka/pltf/PltfUniformSycl.hpp>
+#include <alpaka/pltf/PltfFpgaSyclIntel.hpp>
+#include <alpaka/pltf/PltfFpgaSyclXilinx.hpp>
+#include <alpaka/pltf/PltfGpuSyclIntel.hpp>
 #include <alpaka/pltf/Traits.hpp>
 //-----------------------------------------------------------------------------
 // rand
