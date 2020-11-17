@@ -49,9 +49,6 @@
 
 namespace alpaka
 {
-    template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-    class TaskKernelSycl;
-
     //#############################################################################
     //! The SYCL accelerator.
     //!
@@ -118,27 +115,26 @@ namespace alpaka
     {
         //#############################################################################
         //! The SYCL accelerator type trait specialization.
-        template<typename TAcc, typename TDim, typename TIdx,
-                 typename Sfinae = std::enable_if_t<std::is_base_of_v<AccUniformSycl<TDim, TIdx>, TAcc>>>
-        struct AccType<TAcc>
+        template<typename TAcc, typename TDim, typename TIdx>
+        struct AccType<TAcc, std::enable_if_t<std::is_base_of_v<AccUniformSycl<TDim, TIdx>, TAcc>>>
         {
             using type = TAcc;
         };
 
         //#############################################################################
         //! The SYCL accelerator device properties get trait specialization.
-        template<typename TAcc, typename TDim, typename TIdx,
-                 typename Sfinae = std::enable_if_t<std::is_base_of_v<AccUniformSycl<TDim, TIdx>, TAcc>>>
-        struct GetAccDevProps<TAcc>
+        template<typename TAcc, typename TDim, typename TIdx>
+        struct GetAccDevProps<TAcc, std::enable_if_t<std::is_base_of_v<AccUniformSycl<TDim, TIdx>, TAcc>>>
         {
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto getAccDevProps(DevUniformSycl const & dev) -> AccDevProps<TDim, TIdx>
+            ALPAKA_FN_HOST static auto getAccDevProps(typename DevType<TAcc>::type const & dev) -> AccDevProps<TDim, TIdx>
             {
-                auto max_threads_dim =
-                    dev.m_Device.get_info<cl::sycl::info::device::max_work_item_sizes>();
+                using namespace cl::sycl;
+
+                auto max_threads_dim = dev.m_device.get_info<info::device::max_work_item_sizes>();
                 return {
                     // m_multiProcessorCount
-                    alpaka::core::clipCast<TIdx>(dev.m_Device.get_info<cl::sycl::info::device::max_compute_units>()),
+                    alpaka::core::clipCast<TIdx>(dev.m_device.get_info<info::device::max_compute_units>()),
                     // m_gridBlockExtentMax
                     extent::getExtentVecEnd<TDim>(
                         Vec<DimInt<3u>, TIdx>(
@@ -156,13 +152,13 @@ namespace alpaka
                             alpaka::core::clipCast<TIdx>(max_threads_dim[0u]))),
                     // m_blockThreadCountMax
                     alpaka::core::clipCast<TIdx>(
-                            dev.m_Device.get_info<cl::sycl::info::device::max_work_group_size>()),
+                            dev.m_Device.get_info<info::device::max_work_group_size>()),
                     // m_threadElemExtentMax
                     Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
                     // m_threadElemCountMax
                     std::numeric_limits<TIdx>::max(),
                     // m_sharedMemSizeBytes
-                    dev.m_Device.get_info<cl::sycl::info::device::local_mem_size>()
+                    dev.m_Device.get_info<info::device::local_mem_size>()
                 };
             }
         };
@@ -189,9 +185,8 @@ namespace alpaka
 
         //#############################################################################
         //! The SYCL accelerator dimension getter trait specialization.
-        template<typename TAcc, typename TDim, typename TIdx,
-                 typename Sfinae = std::enable_if_t<std::is_base_of_v<AccUniformSycl<TDim, TIdx>, TAcc>>>
-        struct DimType<TAcc>
+        template<typename TAcc, typename TDim, typename TIdx>
+        struct DimType<TAcc, std::enable_if_t<std::is_base_of_v<AccUniformSycl<TDim, TIdx>, TAcc>>>
         {
             using type = TDim;
         };
@@ -219,9 +214,8 @@ namespace alpaka
 
         //#############################################################################
         //! The SYCL accelerator idx type trait specialization.
-        template<typename TAcc, typename TDim, typename TIdx,
-                 typename Sfinae = std::enable_if_t<std::is_base_of_v<AccUniformSycl<TDim, TIdx>, TAcc>>>
-        struct IdxType<TAcc>
+        template<typename TAcc, typename TDim, typename TIdx>
+        struct IdxType<TAcc, std::enable_if_t<std::is_base_of_v<AccUniformSycl<TDim, TIdx>, TAcc>>>
         {
             using type = TIdx;
         };

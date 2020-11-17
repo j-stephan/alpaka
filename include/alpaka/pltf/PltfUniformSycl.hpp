@@ -29,53 +29,6 @@
 
 namespace alpaka
 {
-    namespace detail
-    {
-        struct intel_fpga_selector : cl::sycl::device_selector
-        {
-            auto operator()(const cl::sycl::device& dev) const -> int override
-            {
-                const auto platform = dev.get_platform();
-                const auto name = platform.get_info<cl::sycl::info::platform::name>();
-
-                return (name == "Intel(R) FPGA SDK for OpenCL(TM)") ? 1 : -1;
-            }
-        };
-
-        struct intel_fpga_emulator_selector : cl::sycl::device_selector
-        {
-            auto operator()(const cl::sycl::device& dev) const -> int override
-            {
-                const auto platform = dev.get_platform();
-                const auto name = platform.get_info<cl::sycl::info::platform::name>();
-
-                return (name == "Intel(R) FPGA Emulation Platform for OpenCL(TM)") ? 1 : -1;
-            }
-        };
-
-        struct intel_gpu_selector : cl::sycl::device_selector
-        {
-            auto operator()(const cl::sycl::device& dev) const -> int override
-            {
-                const auto vendor = dev.get_info<cl::sycl::info::device::vendor>();
-                const auto is_intel_gpu = (vendor.find("HD Graphics Neo") != std::string::npos) && dev.is_gpu();
-
-                return is_intel_gpu ? 1 : -1;
-            }
-        };
-
-        struct xilinx_fpga_selector : cl::sycl::device_selector
-        {
-            auto operator()(const cl::sycl::device& dev) const -> int override
-            {
-                const auto vendor = dev.get_info<cl::sycl::info::device::vendor>();
-                const auto is_xilinx = (vendor.find("Xilinx") != std::string::npos);
-
-                return is_xilinx ? 1 : -1;
-            }
-        }; 
-    }
-
     //#############################################################################
     //! The SYCL device manager.
     class PltfUniformSycl : public concepts::Implements<ConceptPltf, PltfUniformSycl>
@@ -87,77 +40,20 @@ namespace alpaka
         using selector = cl::sycl::default_selector;
     };
 
-    class PltfSyclIntelFpga : public PltfSycl
-    {
-    public:
-        ALPAKA_FN_HOST PltfSyclIntelFpga() = delete;
-
-        using selector = detail::intel_fpga_selector;
-    };
-
-    class PltfSyclIntelFpgaEmulator : public PltfSycl
-    {
-    public:
-        ALPAKA_FN_HOST PltfSyclIntelFpgaEmulator() = delete;
-
-        using selector = detail::intel_fpga_emulator_selector;
-    };
-
-    class PltfSyclIntelGpu : public PltfSycl
-    {
-    public:
-        ALPAKA_FN_HOST PltfSyclIntelGpu() = delete;
-
-        using selector = detail::intel_gpu_selector;
-    };
-
-    class PltfSyclXilinxFpga : public PltfSycl 
-    {
-    public:
-        ALPAKA_FN_HOST PltfSyclXilinxFpga() = delete;
-
-        using selector = detail::xilinx_fpga_selector;
-    };
-
     namespace traits
     {
         //#############################################################################
         //! The SYCL device manager device type trait specialization.
         template<>
-        struct DevType<PltfSycl>
+        struct DevType<PltfUniformSycl>
         {
             using type = DevSycl;
         };
 
-        template<>
-        struct DevType<PltfSyclIntelFpga>
-        {
-            using type = DevSyclIntelFpga;
-        };
-
-        template<>
-        struct DevType<PltfSyclIntelFpgaEmulator>
-        {
-            using type = DevSyclIntelFpgaEmulator;
-        };
-
-        template<>
-        struct DevType<PltfSyclIntelGpu>
-        {
-            using type = DevSyclIntelGpu;
-        };
-
-        template<>
-        struct DevType<PltfSyclXilinxFpga>
-        {
-            using type = DevSyclXilinxFpga;
-        };
-
-
         //#############################################################################
         //! The SYCL platform device count get trait specialization.
-        template<typename TPltf, std::enable_if_t<std::is_base_of_v<PltfSycl, TPltf>>>
-        struct GetDevCount<TPltf>
+        template<typename TPltf>
+        struct GetDevCount<TPltf, std::enable_if_t<std::is_base_of_v<PltfUniformSycl, TPltf>>>
         {
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getDevCount() -> std::size_t
@@ -172,8 +68,8 @@ namespace alpaka
 
         //#############################################################################
         //! The SYCL platform device get trait specialization.
-        template<typename TPltf, std::enable_if_t<std::is_base_of_v<PltfSycl, TPltf>>>
-        struct GetDevByIdx<TPltf>
+        template<typename TPltf>
+        struct GetDevByIdx<TPltf, std::enable_if_t<std::is_base_of_v<PltfUniformSycl, TPltf>>>
         {
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getDevByIdx(std::size_t const & devIdx)
