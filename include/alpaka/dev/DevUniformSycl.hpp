@@ -26,23 +26,6 @@
 
 namespace alpaka
 {
-    namespace traits
-    {
-        template<typename TPltf, typename TSfinae>
-        struct GetDevByIdx;
-
-        template<typename TDev, typename TSfinae = std::enable_if_t<std::is_base_of<DevUniformSycl, TDev>>>
-        struct GetName<TDev>;
-
-        template<typename TDev, typename TSfinae = std::enable_if_t<std::is_base_of_v<DevUniformSycl, TDev>>>
-        struct GetMemBytes<TDev>
-    }
-    
-    class PltfUniformSycl;
-
-    template<typename TElem, typename TDim, typename TIdx>
-    class BufUniformSycl;
-
     //#############################################################################
     //! The SYCL device handle.
     class DevUniformSycl : public concepts::Implements<ConceptCurrentThreadWaitFor, DevUniformSycl>
@@ -90,8 +73,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The SYCL device name get trait specialization.
-        template<typename TDev, typename TSfinae = std::enable_if_t<std::is_base_of<DevUniformSycl, TDev>>>
-        struct GetName<TDev>
+        template<typename TDev>
+        struct GetName<TDev, std::enable_if_t<std::is_base_of<DevUniformSycl, TDev>>>
         {
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getName(TDev const& dev) -> std::string
@@ -102,8 +85,8 @@ namespace alpaka
 
         //#############################################################################
         //! The SYCL device available memory get trait specialization.
-        template<typename TDev, typename TSfinae = std::enable_if_t<std::is_base_of_v<DevUniformSycl, TDev>>>
-        struct GetMemBytes<TDev>
+        template<typename TDev>
+        struct GetMemBytes<TDev, std::enable_if_t<std::is_base_of_v<DevUniformSycl, TDev>>>
         {
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getMemBytes(TDev const& dev) -> std::size_t
@@ -116,15 +99,15 @@ namespace alpaka
         //! The SYCL device free memory get trait specialization. Note that
         //! this function will usually return the size of the device memory
         //! as there is no standard way in SYCL to query free memory.
-        template<typename TDev, typename TSfinae = std::enable_if_t<std::is_base_of_v<DevUniformSycl, TDev>>>
-        struct GetFreeMemBytes<TDev>
+        template<typename TDev>
+        struct GetFreeMemBytes<TDev, std::enable_if_t<std::is_base_of_v<DevUniformSycl, TDev>>>
         {
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getFreeMemBytes(TDev const& dev) -> std::size_t
             {
                 // There is no way in SYCL to query free memory. If you find a way be sure to update the
                 // documentation above.
-                std::cerr << "[SYCL] Warning: Querying free device memory unsupported.\n";
+                std::cerr << "[SYCL] Warning: Querying free device memory not supported for SYCL devices.\n";
                 return getMemBytes(dev);
             }
         };
@@ -133,14 +116,14 @@ namespace alpaka
         //! The SYCL device reset trait specialization. Note that this
         //! function won't actually do anything. If you need to reset your
         //! SYCL device its destructor must be called.
-        template<typename TDev, typename TSfinae = std::enable_if_t<std::is_base_of_v<DevUniformSycl, TDev>>>
-        struct Reset<TDev>
+        template<typename TDev>
+        struct Reset<TDev, std::enable_if_t<std::is_base_of_v<DevUniformSycl, TDev>>>
         {
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto reset(TDev const& dev) -> void
+            ALPAKA_FN_HOST static auto reset(TDev const&) -> void
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
-                std::cerr << "[SYCL] Warning: Explicit device reset not supported on SYCL platforms\n";
+                std::cerr << "[SYCL] Warning: Explicit device reset not supported for SYCL devices\n";
             }
         };
 
@@ -165,13 +148,13 @@ namespace alpaka
         //!
         //! Blocks until the device has completed all preceding requested tasks.
         //! Tasks that are enqueued or queues that are created after this call is made are not waited for.
-        template<typename TDev, typename TSfinae = std::enable_if_t<std::is_base_of_v<DevUniformSycl, TDev>>>
-        struct CurrentThreadWaitFor<TDev>
+        template<typename TDev>
+        struct CurrentThreadWaitFor<TDev, std::enable_if_t<std::is_base_of_v<DevUniformSycl, TDev>>>
         {
-            ALPAKA_FN_HOST static auto currentThreadWaitFor(TDev const& dev) -> void
+            ALPAKA_FN_HOST static auto currentThreadWaitFor(TDev const&) -> void
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
-                std::cerr << "[SYCL] Warning: You cannot wait for devices with SYCL. Use the queue instead.\n";
+                std::cerr << "[SYCL] Warning: You cannot wait for SYCL devices. Use the queue instead.\n";
             }
         };
     }
