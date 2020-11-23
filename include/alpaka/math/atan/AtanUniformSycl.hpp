@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/log/Traits.hpp>
+#include <alpaka/math/atan/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,30 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library log.
-        class LogSycl : public concepts::Implements<ConceptMathLog, LogSycl>
+        //! The standard library atan.
+        class AtanUniformSycl : concepts::Implements<ConceptMathAtan, AtanUniformSycl>
         {
         public:
-            using LogBase = LogSycl;
+            using AtanBase = AtanUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library log trait specialization.
+            //! The standard library atan trait specialization.
             template<
                 typename TArg>
-            struct Log<
-                LogSycl,
+            struct Atan<
+                AtanUniformSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto log(
-                    LogSycl const & log,
+                static auto atan(
+                    AtanUniformSycl const&,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(log);
-                    return cl::sycl::log(arg);
+                    return cl::sycl::atan(arg);
                 }
             };
         }

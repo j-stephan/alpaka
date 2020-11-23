@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/sin/Traits.hpp>
+#include <alpaka/math/abs/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,30 +29,23 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library sin.
-        class SinSycl : public concepts::Implements<ConceptMathSin, SinSycl>
+        //! The standard library abs.
+        class AbsUniformSycl : public concepts::Implements<ConceptMathAbs, AbsUniformSycl>
         {
         public:
-            using SinBase = SinSycl;
+            using AbsBase = AbsUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library sin trait specialization.
-            template<
-                typename TArg>
-            struct Sin<
-                SinSycl,
-                TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+            //! The SYCL built in abs trait specialization.
+            template<typename TArg>
+            struct Abs<AbsUniformSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto sin(
-                    SinSycl const & sin,
-                    TArg const & arg)
+                static auto abs(AbsUniformSycl const&, TArg const & arg)
                 {
-                    alpaka::ignore_unused(sin);
-                    return cl::sycl::sin(arg);
+                    return cl::sycl::fabs(arg);
                 }
             };
         }

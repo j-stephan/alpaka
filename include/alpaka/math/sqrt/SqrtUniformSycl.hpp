@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -6,6 +6,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
+
+
 #pragma once
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
@@ -17,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/sincos/Traits.hpp>
+#include <alpaka/math/sqrt/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -27,32 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! sincos.
-        class SinCosSycl : public concepts::Implements<ConceptMathSinCos, SinCosSycl>
+        //! The standard library sqrt.
+        class SqrtUniformSycl : public concepts::Implements<ConceptMathSqrt, SqrtUniformSycl>
         {
         public:
-            using SinCosBase = SinCosSycl;
+            using SqrtBase = SqrtUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-
-            //! sincos trait specialization.
-            template<typename TArg>
-            struct SinCos<
-                SinCosSycl,
-                TArg>
+            //! The standard library sqrt trait specialization.
+            template<
+                typename TArg>
+            struct Sqrt<
+                SqrtUniformSycl,
+                TArg,
+                std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto sincos(
-                    SinCosSycl const & sincos_ctx,
-                    TArg const & arg,
-                    TArg & result_sin,
-                    TArg & result_cos)
-                -> void
+                static auto sqrt(
+                    SqrtUniformSycl const &,
+                    TArg const & arg)
                 {
-                    alpaka::ignore_unused(sincos_ctx);
-                    result_sin = cl::sycl::sincos(arg, &result_cos);
+                    return cl::sycl::sqrt(arg);
                 }
             };
         }

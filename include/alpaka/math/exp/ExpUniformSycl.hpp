@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/floor/Traits.hpp>
+#include <alpaka/math/exp/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,30 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library floor.
-        class FloorSycl : public concepts::Implements<ConceptMathFloor, FloorSycl>
+        //! The standard library exp.
+        class ExpUniformSycl : public concepts::Implements<ConceptMathExp, ExpUniformSycl>
         {
         public:
-            using FloorBase = FloorSycl;
+            using ExpBase = ExpUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library floor trait specialization.
+            //! The standard library exp trait specialization.
             template<
                 typename TArg>
-            struct Floor<
-                FloorSycl,
+            struct Exp<
+                ExpUniformSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto floor(
-                    FloorSycl const & floor,
+                static auto exp(
+                    ExpUniformSycl const &,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(floor);
-                    return cl::sycl::floor(arg);
+                    return cl::sycl::exp(arg);
                 }
             };
         }

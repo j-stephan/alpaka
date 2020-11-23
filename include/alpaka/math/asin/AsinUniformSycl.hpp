@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/ceil/Traits.hpp>
+#include <alpaka/math/asin/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,30 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library ceil.
-        class CeilSycl : public concepts::Implements<ConceptMathCeil, CeilSycl>
+        //! The standard library asin.
+        class AsinUniformSycl : concepts::Implements<ConceptMathAsin, AsinUniformSycl>
         {
         public:
-            using CeilBase = CeilSycl;
+            using AsinBase = AsinUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library ceil trait specialization.
+            //! The standard library asin trait specialization.
             template<
                 typename TArg>
-            struct Ceil<
-                CeilSycl,
+            struct Asin<
+                AsinUniformSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto ceil(
-                    CeilSycl const & ceil,
+                static auto asin(
+                    AsinUniformSycl const&,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(ceil);
-                    return cl::sycl::ceil(arg);
+                    return cl::sycl::asin(arg);
                 }
             };
         }

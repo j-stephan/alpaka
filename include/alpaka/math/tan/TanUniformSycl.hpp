@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/pow/Traits.hpp>
+#include <alpaka/math/tan/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,35 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library pow.
-        class PowSycl : concepts::Implements<ConceptMathPow, PowSycl>
+        //! The standard library tan.
+        class TanUniformSycl : public concepts::Implements<ConceptMathTan, TanUniformSycl>
         {
         public:
-            using PowBase = PowSycl;
+            using TanBase = TanUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library pow trait specialization.
+            //! The standard library tan trait specialization.
             template<
-                typename TBase,
-                typename TExp>
-            struct Pow<
-                PowSycl,
-                TBase,
-                TExp,
-                std::enable_if_t<
-                    std::is_floating_point_v<TBase>
-                    && std::is_floating_point_v<TExp>>>
+                typename TArg>
+            struct Tan<
+                TanUniformSycl,
+                TArg,
+                std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto pow(
-                    PowSycl const & pow,
-                    TBase const & base,
-                    TExp const & exp)
+                static auto tan(
+                    TanUniformSycl const &,
+                    TArg const & arg)
                 {
-                    alpaka::ignore_unused(pow);
-                    return cl::sycl::pow(base, exp);
+                    return cl::sycl::tan(arg);
                 }
             };
         }

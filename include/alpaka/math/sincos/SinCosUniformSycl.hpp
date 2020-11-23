@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -6,8 +6,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-
-
 #pragma once
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
@@ -19,7 +17,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/acos/Traits.hpp>
+#include <alpaka/math/sincos/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,30 +27,31 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library acos.
-        class AcosSycl : public concepts::Implements<ConceptMathAcos, AcosSycl>
+        //! sincos.
+        class SinCosUniformSycl : public concepts::Implements<ConceptMathSinCos, SinCosUniformSycl>
         {
         public:
-            using AcosBase = AcosSycl;
+            using SinCosBase = SinCosUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library acos trait specialization.
-            template<
-                typename TArg>
-            struct Acos<
-                AcosSycl,
-                TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+
+            //! sincos trait specialization.
+            template<typename TArg>
+            struct SinCos<
+                SinCosUniformSycl,
+                TArg>
             {
-                static auto acos(
-                    AcosSycl const & acos,
-                    TArg const & arg)
+                static auto sincos(
+                    SinCosUniformSycl const &,
+                    TArg const & arg,
+                    TArg & result_sin,
+                    TArg & result_cos)
+                -> void
                 {
-                    alpaka::ignore_unused(acos);
-                    return cl::sycl::acos(arg);
+                    result_sin = cl::sycl::sincos(arg, &result_cos);
                 }
             };
         }

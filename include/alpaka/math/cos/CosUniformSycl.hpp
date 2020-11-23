@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/exp/Traits.hpp>
+#include <alpaka/math/cos/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,30 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library exp.
-        class ExpSycl : public concepts::Implements<ConceptMathExp, ExpSycl>
+        //! The standard library cos.
+        class CosUniformSycl : public concepts::Implements<ConceptMathCos, CosUniformSycl>
         {
         public:
-            using ExpBase = ExpSycl;
+            using CosBase = CosUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library exp trait specialization.
+            //! The standard library cos trait specialization.
             template<
                 typename TArg>
-            struct Exp<
-                ExpSycl,
+            struct Cos<
+                CosUniformSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto exp(
-                    ExpSycl const & exp,
+                static auto cos(
+                    CosUniformSycl const &,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(exp);
-                    return cl::sycl::exp(arg);
+                    return cl::sycl::cos(arg);
                 }
             };
         }

@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/trunc/Traits.hpp>
+#include <alpaka/math/acos/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,30 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library trunc.
-        class TruncSycl : concepts::Implements<ConceptMathTrunc, TruncSycl>
+        //! The standard library acos.
+        class AcosUniformSycl : public concepts::Implements<ConceptMathAcos, AcosUniformSycl>
         {
         public:
-            using TruncBase = TruncSycl;
+            using AcosBase = AcosUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library trunc trait specialization.
+            //! The standard library acos trait specialization.
             template<
                 typename TArg>
-            struct Trunc<
-                TruncSycl,
+            struct Acos<
+                AcosUniformSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto trunc(
-                    TruncSycl const & trunc,
+                static auto acos(
+                    AcosUniformSycl const&,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(trunc);
-                    return cl::sycl::trunc(arg);
+                    return cl::sycl::acos(arg);
                 }
             };
         }

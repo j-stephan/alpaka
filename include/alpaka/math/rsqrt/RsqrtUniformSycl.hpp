@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/atan2/Traits.hpp>
+#include <alpaka/math/rsqrt/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,35 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library atan2.
-        class Atan2Sycl : concepts::Implements<ConceptMathAtan2, Atan2Sycl>
+        //! The standard library rsqrt.
+        class RsqrtUniformSycl : public concepts::Implements<ConceptMathRsqrt, RsqrtUniformSycl>
         {
         public:
-            using Atan2Base = Atan2Sycl;
+            using RsqrtBase = RsqrtUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library atan2 trait specialization.
+            //! The standard library rsqrt trait specialization.
             template<
-                typename Ty,
-                typename Tx>
-            struct Atan2<
-                Atan2Sycl,
-                Ty,
-                Tx,
-                std::enable_if_t<
-                    std::is_floating_point_v<Ty>
-                    && std::is_floating_point_v<Tx>>>
+                typename TArg>
+            struct Rsqrt<
+                RsqrtUniformSycl,
+                TArg,
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto atan2(
-                    Atan2Sycl const & atan2,
-                    Ty const & y,
-                    Tx const & x)
+                static auto rsqrt(
+                    RsqrtUniformSycl const &,
+                    TArg const & arg)
                 {
-                    alpaka::ignore_unused(atan2);
-                    return cl::sycl::atan2(y, x);
+                    return cl::sycl::rsqrt(arg);
                 }
             };
         }

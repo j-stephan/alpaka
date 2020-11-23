@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -30,10 +30,10 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library erf.
-        class ErfSycl : public concepts::Implements<ConceptMathErf, ErfSycl>
+        class ErfUniformSycl : public concepts::Implements<ConceptMathErf, ErfUniformSycl>
         {
         public:
-            using ErfBase = ErfSycl;
+            using ErfBase = ErfUniformSycl;
         };
 
         namespace traits
@@ -43,15 +43,14 @@ namespace alpaka
             template<
                 typename TArg>
             struct Erf<
-                ErfSycl,
+                ErfUniformSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
                 static auto erf(
-                    ErfSycl const & erf,
+                    ErfUniformSycl const &,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(erf);
                     return cl::sycl::erf(arg);
                 }
             };

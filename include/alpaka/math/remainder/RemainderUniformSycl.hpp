@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/fmod/Traits.hpp>
+#include <alpaka/math/remainder/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,35 +29,34 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library fmod.
-        class FmodSycl : public concepts::Implements<ConceptMathFmod, FmodSycl>
+        //! The standard library remainder.
+        class RemainderUniformSycl : concepts::Implements<ConceptMathRemainder, RemainderUniformSycl>
         {
         public:
-            using FmodBase = FmodSycl;
+            using RemainderBase = RemainderUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library fmod trait specialization.
+            //! The standard library remainder trait specialization.
             template<
                 typename Tx,
                 typename Ty>
-            struct Fmod<
-                FmodSycl,
+            struct Remainder<
+                RemainderUniformSycl,
                 Tx,
                 Ty,
                 std::enable_if_t<
                     std::is_floating_point_v<Tx>
                     && std::is_floating_point_v<Ty>>>
             {
-                static auto fmod(
-                    FmodSycl const & fmod,
+                static auto remainder(
+                    RemainderUniformSycl const &,
                     Tx const & x,
                     Ty const & y)
                 {
-                    alpaka::ignore_unused(fmod);
-                    return cl::sycl::fmod(x, y);
+                    return cl::sycl::remainder(x, y);
                 }
             };
         }

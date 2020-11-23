@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/remainder/Traits.hpp>
+#include <alpaka/math/floor/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,35 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library remainder.
-        class RemainderSycl : concepts::Implements<ConceptMathRemainder, RemainderSycl>
+        //! The standard library floor.
+        class FloorUniformSycl : public concepts::Implements<ConceptMathFloor, FloorUniformSycl>
         {
         public:
-            using RemainderBase = RemainderSycl;
+            using FloorBase = FloorUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library remainder trait specialization.
+            //! The standard library floor trait specialization.
             template<
-                typename Tx,
-                typename Ty>
-            struct Remainder<
-                RemainderSycl,
-                Tx,
-                Ty,
-                std::enable_if_t<
-                    std::is_floating_point_v<Tx>
-                    && std::is_floating_point_v<Ty>>>
+                typename TArg>
+            struct Floor<
+                FloorUniformSycl,
+                TArg,
+                std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto remainder(
-                    RemainderSycl const & remainder,
-                    Tx const & x,
-                    Ty const & y)
+                static auto floor(
+                    FloorUniformSycl const &,
+                    TArg const & arg)
                 {
-                    alpaka::ignore_unused(remainder);
-                    return cl::sycl::remainder(x, y);
+                    return cl::sycl::floor(arg);
                 }
             };
         }
