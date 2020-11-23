@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/rsqrt/Traits.hpp>
+#include <alpaka/math/cbrt/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,30 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library rsqrt.
-        class RsqrtSycl : public concepts::Implements<ConceptMathRsqrt, RsqrtSycl>
+        //! The standard library cbrt.
+        class CbrtUniformSycl : concepts::Implements<ConceptMathCbrt, CbrtUniformSycl>
         {
         public:
-            using RsqrtBase = RsqrtSycl;
+            using CbrtBase = CbrtUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library rsqrt trait specialization.
+            //! The standard library cbrt trait specialization.
             template<
                 typename TArg>
-            struct Rsqrt<
-                RsqrtSycl,
+            struct Cbrt<
+                CbrtUniformSycl,
                 TArg,
                 std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto rsqrt(
-                    RsqrtSycl const & rsqrt,
+                static auto cbrt(
+                    CbrtUniformSycl const &,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(rsqrt);
-                    return cl::sycl::rsqrt(arg);
+                    return cl::sycl::cbrt(arg);
                 }
             };
         }

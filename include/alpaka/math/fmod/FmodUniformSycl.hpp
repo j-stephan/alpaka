@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/cbrt/Traits.hpp>
+#include <alpaka/math/fmod/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,30 +29,34 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library cbrt.
-        class CbrtSycl : concepts::Implements<ConceptMathCbrt, CbrtSycl>
+        //! The standard library fmod.
+        class FmodUniformSycl : public concepts::Implements<ConceptMathFmod, FmodUniformSycl>
         {
         public:
-            using CbrtBase = CbrtSycl;
+            using FmodBase = FmodUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library cbrt trait specialization.
+            //! The standard library fmod trait specialization.
             template<
-                typename TArg>
-            struct Cbrt<
-                CbrtSycl,
-                TArg,
-                std::enable_if_t<std::is_arithmetic_v<TArg>>>
+                typename Tx,
+                typename Ty>
+            struct Fmod<
+                FmodUniformSycl,
+                Tx,
+                Ty,
+                std::enable_if_t<
+                    std::is_floating_point_v<Tx>
+                    && std::is_floating_point_v<Ty>>>
             {
-                static auto cbrt(
-                    CbrtSycl const & cbrt,
-                    TArg const & arg)
+                static auto fmod(
+                    FmodUniformSycl const &,
+                    Tx const & x,
+                    Ty const & y)
                 {
-                    alpaka::ignore_unused(cbrt);
-                    return cl::sycl::cbrt(arg);
+                    return cl::sycl::fmod(x, y);
                 }
             };
         }

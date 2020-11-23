@@ -19,6 +19,7 @@
 #endif
 
 #include <alpaka/dev/Traits.hpp>
+#include <alpaka/dev/DevUniformSycl.hpp>
 #include <alpaka/dim/DimIntegralConst.hpp>
 #include <alpaka/extent/Traits.hpp>
 #include <alpaka/mem/view/Traits.hpp>
@@ -30,25 +31,22 @@
 
 namespace alpaka
 {
-    class DevSycl;
-
     namespace detail
     {
         //#############################################################################
         //! The SYCL memory set trait.
-        template<typename TDim>
+        template<typename TElem>
         struct TaskSetSycl
         {
             //-----------------------------------------------------------------------------
             auto operator()(cl::sycl::handler& cgh) -> void
             {
-                auto acc = buf.template get_access<cl::sycl::access::mode::write>(cgh, range);
-                cgh.fill(acc, byte);
+                cgh.memset(ptr, value, bytes);
             }
 
-            cl::sycl::buffer<std::uint8_t, TDim::value> buf;
-            std::uint8_t byte;
-            cl::sycl::range<TDim::value> range;
+            TElem* const ptr;
+            int value;
+            std::size_t bytes;
         };
     }
 
@@ -56,27 +54,25 @@ namespace alpaka
     {
         //#############################################################################
         //! The SYCL device memory set trait specialization.
-        template<typename TDim>
-        struct CreateTaskMemset<TDim, DevSycl>
+        template<typename TDim, typename TDev>
+        struct CreateTaskMemset<TDim, TDev, std::enable_if_t<std::is_base_of_v<DevUniformSycl, TDev>>>
         {
             //-----------------------------------------------------------------------------
             template<typename TExtent, typename TView>
-            ALPAKA_FN_HOST static auto createTaskMemset(TView & view, std::uint8_t const & byte, TExtent const & extent)
+            ALPAKA_FN_HOST static auto createTaskMemset(TView & view, std::uint8_t const& byte, TExtent const& ext)
             {
-                using elem_type = Elem<TView>;
-                constexpr auto elem_size = sizeof(elem_type);
+                using Type = Elem<TView>;
+                constexpr auto TypeBytes = sizeof(Type);
 
-                // multiply original range with sizeof(elem_type)
-                const auto old_buf_range = view.m_buf.get_range();
-                const auto new_buf_range = old_buf_range * elem_size;
+                auto bytes = std::size_t{};
+                if constexpr(Dim<TExtent>::value == 1)
+                    bytes = extent::getWidth(ext) * TypeBytes;
+                else if constexpr(Dim<TExtent>::value == 2)
+                    bytes = extent::getWidth(ext) * extent::getHeight(ext) * TypeBytes;
+                else
+                    bytes = extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext) * TypeBytes;
 
-                const auto sycl_range = detail::get_sycl_range<Dim<TExtent>::value>(extent);
-                const auto byte_range = sycl_range * elem_size;
-
-                // reinterpret the original buffer as a byte buffer
-                auto new_buf = view.m_buf.template reinterpret<std::uint8_t>(new_buf_range);
-
-                return detail::TaskSetSycl<TDim>{new_buf, byte, byte_range};
+                return detail::TaskSetSycl<TDim, Type>{getPtrNative(view), static_cast<int>(byte), bytes};
             }
         };
     }

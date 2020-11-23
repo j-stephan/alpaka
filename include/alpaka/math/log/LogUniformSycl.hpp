@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/cos/Traits.hpp>
+#include <alpaka/math/log/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,30 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library cos.
-        class CosSycl : public concepts::Implements<ConceptMathCos, CosSycl>
+        //! The standard library log.
+        class LogUniformSycl : public concepts::Implements<ConceptMathLog, LogUniformSycl>
         {
         public:
-            using CosBase = CosSycl;
+            using LogBase = LogUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library cos trait specialization.
+            //! The standard library log trait specialization.
             template<
                 typename TArg>
-            struct Cos<
-                CosSycl,
+            struct Log<
+                LogUniformSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto cos(
-                    CosSycl const & cos,
+                static auto log(
+                    LogUniformSycl const &,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(cos);
-                    return cl::sycl::cos(arg);
+                    return cl::sycl::log(arg);
                 }
             };
         }

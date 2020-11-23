@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/abs/Traits.hpp>
+#include <alpaka/math/pow/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,30 +29,34 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library abs.
-        class AbsSycl : public concepts::Implements<ConceptMathAbs, AbsSycl>
+        //! The standard library pow.
+        class PowUniformSycl : concepts::Implements<ConceptMathPow, PowUniformSycl>
         {
         public:
-            using AbsBase = AbsSycl;
+            using PowBase = PowUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The SYCL built in abs trait specialization.
+            //! The standard library pow trait specialization.
             template<
-                typename TArg>
-            struct Abs<
-                AbsSycl,
-                TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                typename TBase,
+                typename TExp>
+            struct Pow<
+                PowUniformSycl,
+                TBase,
+                TExp,
+                std::enable_if_t<
+                    std::is_floating_point_v<TBase>
+                    && std::is_floating_point_v<TExp>>>
             {
-                static auto abs(
-                    AbsSycl const & abs,
-                    TArg const & arg)
+                static auto pow(
+                    PowUniformSycl const &,
+                    TBase const & base,
+                    TExp const & exp)
                 {
-                    alpaka::ignore_unused(abs);
-                    return cl::sycl::fabs(arg);
+                    return cl::sycl::pow(base, exp);
                 }
             };
         }

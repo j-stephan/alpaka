@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -30,10 +30,10 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library round.
-        class RoundSycl : public concepts::Implements<ConceptMathRound, RoundSycl>
+        class RoundUniformSycl : public concepts::Implements<ConceptMathRound, RoundUniformSycl>
         {
         public:
-            using RoundBase = RoundSycl;
+            using RoundBase = RoundUniformSycl;
         };
 
         namespace traits
@@ -43,15 +43,14 @@ namespace alpaka
             template<
                 typename TArg>
             struct Round<
-                RoundSycl,
+                RoundUniformSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
                 static auto round(
-                    RoundSycl const & round,
+                    RoundUniformSycl const &,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(round);
                     return cl::sycl::round(arg);
                 }
             };
@@ -60,15 +59,14 @@ namespace alpaka
             template<
                 typename TArg>
             struct Lround<
-                RoundSycl,
+                RoundUniformSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
                 static auto lround(
-                    RoundSycl const & lround,
+                    RoundUniformSycl const &,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(lround);
                     return static_cast<long int>(cl::sycl::round(arg));
                 }
             };
@@ -77,15 +75,14 @@ namespace alpaka
             template<
                 typename TArg>
             struct Llround<
-                RoundSycl,
+                RoundUniformSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
                 static auto llround(
-                    RoundSycl const & llround,
+                    RoundUniformSycl const &,
                     TArg const & arg)
                 {
-                    alpaka::ignore_unused(llround);
                     return static_cast<long long int>(cl::sycl::round(arg));
                 }
             };

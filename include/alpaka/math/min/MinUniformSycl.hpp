@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,67 +19,67 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/max/Traits.hpp>
+#include <alpaka/math/min/Traits.hpp>
 
 #include <CL/sycl.hpp>
+
 #include <type_traits>
+#include <algorithm>
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library max.
-        class MaxSycl : public concepts::Implements<ConceptMathMax, MaxSycl>
+        //! The standard library min.
+        class MinUniformSycl : public concepts::Implements<ConceptMathMin, MinUniformSycl>
         {
         public:
-            using MaxBase = MaxSycl;
+            using MinBase = MinUniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library integral max trait specialization.
+            //! The standard library integral min trait specialization.
             template<
                 typename Tx,
                 typename Ty>
-            struct Max<
-                MaxSycl,
+            struct Min<
+                MinUniformSycl,
                 Tx,
                 Ty,
                 std::enable_if_t<
                     std::is_integral_v<Tx>
                     && std::is_integral_v<Ty>>>
             {
-                static auto max(
-                    MaxSycl const & max,
+                static auto min(
+                    MinUniformSycl const &,
                     Tx const & x,
                     Ty const & y)
                 {
-                    alpaka::ignore_unused(max);
-                    return cl::sycl::max(x, y);
+                    return cl::sycl::min(x, y);
                 }
             };
             //#############################################################################
-            //! The standard library mixed integral floating point max trait specialization.
+            //! The standard library mixed integral floating point min trait specialization.
             template<
                 typename Tx,
                 typename Ty>
-            struct Max<
-                MaxSycl,
+            struct Min<
+                MinUniformSycl,
                 Tx,
                 Ty,
                 std::enable_if_t<
                     std::is_floating_point_v<Tx>
                     && std::is_floating_point_v<Ty>>>
             {
-                static auto max(
-                    MaxSycl const & max,
+                static auto min(
+                    MinUniformSycl const &,
                     Tx const & x,
                     Ty const & y)
                 {
-                    alpaka::ignore_unused(max);
-                    return cl::sycl::fmax(x, y);
+                    return cl::sycl::fmin(x, y);
                 }
             };
         }

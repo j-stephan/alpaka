@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/asin/Traits.hpp>
+#include <alpaka/math/atan2/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,30 +29,34 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library asin.
-        class AsinSycl : concepts::Implements<ConceptMathAsin, AsinSycl>
+        //! The standard library atan2.
+        class Atan2UniformSycl : concepts::Implements<ConceptMathAtan2, Atan2UniformSycl>
         {
         public:
-            using AsinBase = AsinSycl;
+            using Atan2Base = Atan2UniformSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library asin trait specialization.
+            //! The standard library atan2 trait specialization.
             template<
-                typename TArg>
-            struct Asin<
-                AsinSycl,
-                TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                typename Ty,
+                typename Tx>
+            struct Atan2<
+                Atan2UniformSycl,
+                Ty,
+                Tx,
+                std::enable_if_t<
+                    std::is_floating_point_v<Ty>
+                    && std::is_floating_point_v<Tx>>>
             {
-                static auto asin(
-                    AsinSycl const & asin,
-                    TArg const & arg)
+                static auto atan2(
+                    Atan2UniformSycl const &,
+                    Ty const & y,
+                    Tx const & x)
                 {
-                    alpaka::ignore_unused(asin);
-                    return cl::sycl::asin(arg);
+                    return cl::sycl::atan2(y, x);
                 }
             };
         }
