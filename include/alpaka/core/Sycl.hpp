@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -39,126 +39,117 @@
 // SYCL vector types trait specializations.
 namespace alpaka
 {
-    //-----------------------------------------------------------------------------
-    //! The SYCL specifics.
-    namespace sycl
+    namespace detail
     {
-        namespace detail
-        {
-            // Remove std::is_same boilerplate
-            template <typename T, typename... Ts>
-            struct is_any : std::bool_constant<(std::is_same_v<T, Ts> || ...)> {};
+        // Remove std::is_same boilerplate
+        template <typename T, typename... Ts>
+        struct is_any : std::bool_constant<(std::is_same_v<T, Ts> || ...)> {};
 
-            // Extract cl::sycl::vec's number of elements which isn't constexpr
-            // despite being a template parameter
-            template <int N_arg>
-            struct val { static constexpr auto N = N_arg; };
+        // Extract cl::sycl::vec's number of elements which isn't constexpr
+        // despite being a template parameter
+        template <int N_arg>
+        struct val { static constexpr auto N = N_arg; };
 
-            template <typename T, int N>
-            constexpr auto extract_impl(const cl::sycl::vec<T, N>&) -> val<N>;
+        template <typename T, int N>
+        constexpr auto extract_impl(const cl::sycl::vec<T, N>&) -> val<N>;
 
-            template <typename T>
-            constexpr auto extract = decltype(extract_impl(std::declval<T>()))::N;
-        }
-
-        namespace traits
-        {
-            //##################################################################
-            //! In contrast to CUDA SYCL doesn't know 1D vectors. It does
-            //! support OpenCL's data types which have additional requirements
-            //! on top of those in the C++ standard. Note that SYCL's equivalent
-            //! to CUDA's dim3 type is a different class type and thus not used
-            //! here.
-            template<typename T>
-            struct IsSyclBuiltInType :
-                detail::is_any<T,
-                    // built-in scalar types - these are the standard C++
-                    // built-in scalar types, std::size_t and cl::sycl::half
-                    cl::sycl::half,
-
-                    // additional scalar types
-                    cl::sycl::byte,
-
-                    // TODO: OpenCL scalar types
-                    /*cl::sycl::cl_bool, 
-                    cl::sycl::cl_char, cl::sycl::cl_uchar,
-                    cl::sycl::cl_short, cl::sycl::cl_ushort,
-                    cl::sycl::cl_int, cl::sycl::cl_uint,
-                    cl::sycl::cl_long, cl::sycl::cl_ulong,
-                    cl::sycl::cl_float, cl::sycl::cl_double,
-                    cl::sycl::cl_half,*/
-
-                    // 2 component vector types
-                    cl::sycl::char2, cl::sycl::schar2, cl::sycl::uchar2,
-                    cl::sycl::short2, cl::sycl::ushort2,
-                    cl::sycl::int2, cl::sycl::uint2,
-                    cl::sycl::long2, cl::sycl::ulong2,
-                    cl::sycl::longlong2, cl::sycl::ulonglong2,
-                    cl::sycl::float2, cl::sycl::double2, cl::sycl::half2,
-                    cl::sycl::cl_char2, cl::sycl::cl_uchar2,
-                    cl::sycl::cl_short2, cl::sycl::cl_ushort2,
-                    cl::sycl::cl_int2, cl::sycl::cl_uint2,
-                    cl::sycl::cl_long2, cl::sycl::cl_ulong2,
-                    cl::sycl::cl_float2, cl::sycl::cl_double2, cl::sycl::cl_half2,
-
-                    // 3 component vector types
-                    cl::sycl::char3, cl::sycl::schar3, cl::sycl::uchar3,
-                    cl::sycl::short3, cl::sycl::ushort3,
-                    cl::sycl::int3, cl::sycl::uint3,
-                    cl::sycl::long3, cl::sycl::ulong3,
-                    cl::sycl::longlong3, cl::sycl::ulonglong3,
-                    cl::sycl::float3, cl::sycl::double3, cl::sycl::half3,
-                    cl::sycl::cl_char3, cl::sycl::cl_uchar3,
-                    cl::sycl::cl_short3, cl::sycl::cl_ushort3,
-                    cl::sycl::cl_int3, cl::sycl::cl_uint3,
-                    cl::sycl::cl_long3, cl::sycl::cl_ulong3,
-                    cl::sycl::cl_float3, cl::sycl::cl_double3, cl::sycl::cl_half3,
-
-                    // 4 component vector types
-                    cl::sycl::char4, cl::sycl::schar4, cl::sycl::uchar4,
-                    cl::sycl::short4, cl::sycl::ushort4,
-                    cl::sycl::int4, cl::sycl::uint4,
-                    cl::sycl::long4, cl::sycl::ulong4,
-                    cl::sycl::longlong4, cl::sycl::ulonglong4,
-                    cl::sycl::float4, cl::sycl::double4, cl::sycl::half4,
-                    cl::sycl::cl_char4, cl::sycl::cl_uchar4,
-                    cl::sycl::cl_short4, cl::sycl::cl_ushort4,
-                    cl::sycl::cl_int4, cl::sycl::cl_uint4,
-                    cl::sycl::cl_long4, cl::sycl::cl_ulong4,
-                    cl::sycl::cl_float4, cl::sycl::cl_double4, cl::sycl::cl_half4,
-
-                    // 8 component vector types
-                    cl::sycl::char8, cl::sycl::schar8, cl::sycl::uchar8,
-                    cl::sycl::short8, cl::sycl::ushort8,
-                    cl::sycl::int8, cl::sycl::uint8,
-                    cl::sycl::long8, cl::sycl::ulong8,
-                    cl::sycl::longlong8, cl::sycl::ulonglong8,
-                    cl::sycl::float8, cl::sycl::double8, cl::sycl::half8,
-                    cl::sycl::cl_char8, cl::sycl::cl_uchar8,
-                    cl::sycl::cl_short8, cl::sycl::cl_ushort8,
-                    cl::sycl::cl_int8, cl::sycl::cl_uint8,
-                    cl::sycl::cl_long8, cl::sycl::cl_ulong8,
-                    cl::sycl::cl_float8, cl::sycl::cl_double8, cl::sycl::cl_half8,
-
-                    // 16 component vector types
-                    cl::sycl::char16, cl::sycl::schar16, cl::sycl::uchar16,
-                    cl::sycl::short16, cl::sycl::ushort16,
-                    cl::sycl::int16, cl::sycl::uint16,
-                    cl::sycl::long16, cl::sycl::ulong16,
-                    cl::sycl::longlong16, cl::sycl::ulonglong16,
-                    cl::sycl::float16, cl::sycl::double16, cl::sycl::half16,
-                    cl::sycl::cl_char16, cl::sycl::cl_uchar16,
-                    cl::sycl::cl_short16, cl::sycl::cl_ushort16,
-                    cl::sycl::cl_int16, cl::sycl::cl_uint16,
-                    cl::sycl::cl_long16, cl::sycl::cl_ulong16,
-                    cl::sycl::cl_float16, cl::sycl::cl_double16, cl::sycl::cl_half16
-                >
-            {};
-        }
+        template <typename T>
+        constexpr auto extract = decltype(extract_impl(std::declval<T>()))::N;
     }
 
     namespace traits
     {
+        //##################################################################
+        //! In contrast to CUDA SYCL doesn't know 1D vectors. It does
+        //! support OpenCL's data types which have additional requirements
+        //! on top of those in the C++ standard. Note that SYCL's equivalent
+        //! to CUDA's dim3 type is a different class type and thus not used
+        //! here.
+        template<typename T>
+        struct IsSyclBuiltInType :
+            detail::is_any<T,
+                // built-in scalar types - these are the standard C++ built-in types, std::size_t and cl::sycl::half
+                cl::sycl::half,
+
+                // additional scalar types
+                cl::sycl::byte,
+
+                // OpenCL scalar types
+                cl::sycl::cl_bool, 
+                cl::sycl::cl_char, cl::sycl::cl_uchar,
+                cl::sycl::cl_short, cl::sycl::cl_ushort,
+                cl::sycl::cl_int, cl::sycl::cl_uint,
+                cl::sycl::cl_long, cl::sycl::cl_ulong,
+                cl::sycl::cl_float, cl::sycl::cl_double,
+                cl::sycl::cl_half,
+
+                // 2 component vector types
+                cl::sycl::char2, cl::sycl::schar2, cl::sycl::uchar2,
+                cl::sycl::short2, cl::sycl::ushort2,
+                cl::sycl::int2, cl::sycl::uint2,
+                cl::sycl::long2, cl::sycl::ulong2,
+                cl::sycl::longlong2, cl::sycl::ulonglong2,
+                cl::sycl::float2, cl::sycl::double2, cl::sycl::half2,
+                cl::sycl::cl_char2, cl::sycl::cl_uchar2,
+                cl::sycl::cl_short2, cl::sycl::cl_ushort2,
+                cl::sycl::cl_int2, cl::sycl::cl_uint2,
+                cl::sycl::cl_long2, cl::sycl::cl_ulong2,
+                cl::sycl::cl_float2, cl::sycl::cl_double2, cl::sycl::cl_half2,
+
+                // 3 component vector types
+                cl::sycl::char3, cl::sycl::schar3, cl::sycl::uchar3,
+                cl::sycl::short3, cl::sycl::ushort3,
+                cl::sycl::int3, cl::sycl::uint3,
+                cl::sycl::long3, cl::sycl::ulong3,
+                cl::sycl::longlong3, cl::sycl::ulonglong3,
+                cl::sycl::float3, cl::sycl::double3, cl::sycl::half3,
+                cl::sycl::cl_char3, cl::sycl::cl_uchar3,
+                cl::sycl::cl_short3, cl::sycl::cl_ushort3,
+                cl::sycl::cl_int3, cl::sycl::cl_uint3,
+                cl::sycl::cl_long3, cl::sycl::cl_ulong3,
+                cl::sycl::cl_float3, cl::sycl::cl_double3, cl::sycl::cl_half3,
+
+                // 4 component vector types
+                cl::sycl::char4, cl::sycl::schar4, cl::sycl::uchar4,
+                cl::sycl::short4, cl::sycl::ushort4,
+                cl::sycl::int4, cl::sycl::uint4,
+                cl::sycl::long4, cl::sycl::ulong4,
+                cl::sycl::longlong4, cl::sycl::ulonglong4,
+                cl::sycl::float4, cl::sycl::double4, cl::sycl::half4,
+                cl::sycl::cl_char4, cl::sycl::cl_uchar4,
+                cl::sycl::cl_short4, cl::sycl::cl_ushort4,
+                cl::sycl::cl_int4, cl::sycl::cl_uint4,
+                cl::sycl::cl_long4, cl::sycl::cl_ulong4,
+                cl::sycl::cl_float4, cl::sycl::cl_double4, cl::sycl::cl_half4,
+
+                // 8 component vector types
+                cl::sycl::char8, cl::sycl::schar8, cl::sycl::uchar8,
+                cl::sycl::short8, cl::sycl::ushort8,
+                cl::sycl::int8, cl::sycl::uint8,
+                cl::sycl::long8, cl::sycl::ulong8,
+                cl::sycl::longlong8, cl::sycl::ulonglong8,
+                cl::sycl::float8, cl::sycl::double8, cl::sycl::half8,
+                cl::sycl::cl_char8, cl::sycl::cl_uchar8,
+                cl::sycl::cl_short8, cl::sycl::cl_ushort8,
+                cl::sycl::cl_int8, cl::sycl::cl_uint8,
+                cl::sycl::cl_long8, cl::sycl::cl_ulong8,
+                cl::sycl::cl_float8, cl::sycl::cl_double8, cl::sycl::cl_half8,
+
+                // 16 component vector types
+                cl::sycl::char16, cl::sycl::schar16, cl::sycl::uchar16,
+                cl::sycl::short16, cl::sycl::ushort16,
+                cl::sycl::int16, cl::sycl::uint16,
+                cl::sycl::long16, cl::sycl::ulong16,
+                cl::sycl::longlong16, cl::sycl::ulonglong16,
+                cl::sycl::float16, cl::sycl::double16, cl::sycl::half16,
+                cl::sycl::cl_char16, cl::sycl::cl_uchar16,
+                cl::sycl::cl_short16, cl::sycl::cl_ushort16,
+                cl::sycl::cl_int16, cl::sycl::cl_uint16,
+                cl::sycl::cl_long16, cl::sycl::cl_ulong16,
+                cl::sycl::cl_float16, cl::sycl::cl_double16, cl::sycl::cl_half16
+            >
+        {};
+
         //##################################################################
         //! SYCL's types get trait specialization.
         template<typename T>

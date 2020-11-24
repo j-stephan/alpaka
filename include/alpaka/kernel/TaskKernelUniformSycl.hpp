@@ -45,6 +45,8 @@
 #include <alpaka/meta/ApplyTuple.hpp>
 #include <alpaka/meta/Metafunctions.hpp>
 
+#include <memory>
+#include <shared_mutex>
 #include <stdexcept>
 #include <tuple>
 #include <type_traits>
@@ -118,6 +120,8 @@ namespace alpaka
 
             TKernelFnObj m_kernelFnObj;
             std::tuple<TArgs...> m_args;
+            std::vector<cl::sycl::event> m_dependencies = {};
+            std::shared_ptr<std::shared_mutex> mutex_ptr{std::make_shared<std::shared_mutex>()};
 
             inline auto operator()(cl::sycl::handler& cgh)
             { 
@@ -149,6 +153,9 @@ namespace alpaka
                 // copy-by-value so we don't access 'this' on the device
                 auto k_func = m_kernelFnObj;
 
+                // wait for previous kernels to complete
+                cgh.depends_on(m_dependencies);
+
                 cgh.parallel_for<kernel<TKernelFnObj>>(nd_range<TDim::value>{global_size, local_size},
                 [=](nd_item<TDim::value> work_item)
                 {
@@ -165,6 +172,7 @@ namespace alpaka
                     apply(k_func, kernel_args);
                 });
             }
+
 
         private:
             auto get_global_size(const Vec<TDim, TIdx>& work_groups, const Vec<TDim, TIdx>& group_items)

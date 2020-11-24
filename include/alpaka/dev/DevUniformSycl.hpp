@@ -21,8 +21,12 @@
 #include <alpaka/mem/buf/Traits.hpp>
 #include <alpaka/pltf/Traits.hpp>
 #include <alpaka/wait/Traits.hpp>
-
 #include <alpaka/core/Sycl.hpp>
+
+#include <CL/sycl.hpp>
+
+#include <mutex>
+#include <vector>
 
 namespace alpaka
 {
@@ -67,6 +71,8 @@ namespace alpaka
         cl::sycl::device m_device;
         cl::sycl::context m_context;
         cl::sycl::queue m_queue;
+        std::vector<cl::sycl::event> m_dependencies = {};
+        std::shared_ptr<std::shared_mutex> mutable mutex_ptr{std::make_shared<std::shared_mutex>()};
     };
 
     namespace traits

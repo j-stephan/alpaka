@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -20,35 +20,34 @@
 
 #include <alpaka/block/shared/dyn/Traits.hpp>
 
-#include <type_traits>
+#include <CL/sycl.hpp>
 
 namespace alpaka
 {
     //#############################################################################
     //! The SYCL block shared memory allocator.
-    class BlockSharedMemDynSycl : public concepts::Implements<ConceptBlockSharedDyn, BlockSharedMemDynSycl>
+    class BlockSharedMemDynUniformSycl : public concepts::Implements<ConceptBlockSharedDyn, BlockSharedMemDynUniformSycl>
     {
     public:
-        using BlockSharedMemDynBase = BlockSharedMemDynSycl;
+        using BlockSharedMemDynBase = BlockSharedMemDynUniformSycl;
 
         //-----------------------------------------------------------------------------
-        BlockSharedMemDynSycl(cl::sycl::accessor<unsigned char, 1,
-                                cl::sycl::access::mode::read_write,
-                                cl::sycl::access::target::local>
-                                shared_acc)
+        BlockSharedMemDynUniformSycl(cl::sycl::accessor<unsigned char, 1,
+                                                        cl::sycl::access::mode::read_write,
+                                                        cl::sycl::access::target::local> shared_acc)
         : acc{shared_acc}
         {}
 
         //-----------------------------------------------------------------------------
-        BlockSharedMemDynSycl(BlockSharedMemDynSycl const &) = default;
+        BlockSharedMemDynUniformSycl(BlockSharedMemDynUniformSycl const &) = default;
         //-----------------------------------------------------------------------------
-        BlockSharedMemDynSycl(BlockSharedMemDynSycl &&) = delete;
+        BlockSharedMemDynUniformSycl(BlockSharedMemDynUniformSycl &&) = delete;
         //-----------------------------------------------------------------------------
-        auto operator=(BlockSharedMemDynSycl const &) -> BlockSharedMemDynSycl & = delete;
+        auto operator=(BlockSharedMemDynUniformSycl const &) -> BlockSharedMemDynUniformSycl & = delete;
         //-----------------------------------------------------------------------------
-        auto operator=(BlockSharedMemDynSycl &&) -> BlockSharedMemDynSycl & = delete;
+        auto operator=(BlockSharedMemDynUniformSycl &&) -> BlockSharedMemDynUniformSycl & = delete;
         //-----------------------------------------------------------------------------
-        /*virtual*/ ~BlockSharedMemDynSycl() = default;
+        /*virtual*/ ~BlockSharedMemDynUniformSycl() = default;
 
         cl::sycl::accessor<unsigned char, 1, cl::sycl::access::mode::read_write, cl::sycl::access::target::local> acc;
     };
@@ -57,10 +56,10 @@ namespace alpaka
     {
         //#############################################################################
         template<typename T>
-        struct GetMem<T, BlockSharedMemDynSycl>
+        struct GetMem<T, BlockSharedMemDynUniformSycl>
         {
             //-----------------------------------------------------------------------------
-            static auto getMem(BlockSharedMemDynSycl const & shared) -> T *
+            static auto getMem(BlockSharedMemDynUniformSycl const & shared) -> T *
             {
                 auto ptr = static_cast<unsigned char*>(shared.acc.get_pointer());
                 return reinterpret_cast<T*>(ptr);
