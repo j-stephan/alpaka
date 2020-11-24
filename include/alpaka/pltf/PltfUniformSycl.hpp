@@ -19,9 +19,9 @@
 #endif
 
 #include <alpaka/dev/Traits.hpp>
-#include <alpaka/dev/DevSycl.hpp>
+#include <alpaka/dev/DevUniformSycl.hpp>
 
-#include <alpaka/core/Sycl.hpp>
+#include <alpaka/core/UniformSycl.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -47,7 +47,7 @@ namespace alpaka
         template<>
         struct DevType<PltfUniformSycl>
         {
-            using type = DevSycl;
+            using type = DevUniformSycl;
         };
 
         //#############################################################################

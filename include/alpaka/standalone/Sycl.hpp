@@ -1,4 +1,4 @@
-/* Copyright 2019 Jan Stephan
+/* Copyright 2020 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -11,4 +11,12 @@
 
 #ifndef ALPAKA_ACC_SYCL_ENABLED
     #define ALPAKA_ACC_SYCL_ENABLED
+#endif
+
+#ifndef ALPAKA_SYCL_BACKEND_ONEAPI
+    #define ALPAKA_SYCL_BACKEND_ONEAPI
+#endif
+
+#ifndef ALPAKA_SYCL_BACKEND_XILINX
+    #define ALPAKA_SYCL_BACKEND_XILINX
 #endif

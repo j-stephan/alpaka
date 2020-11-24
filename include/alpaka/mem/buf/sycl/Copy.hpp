@@ -24,11 +24,15 @@
 #include <alpaka/extent/Traits.hpp>
 #include <alpaka/mem/view/Traits.hpp>
 #include <alpaka/mem/buf/sycl/Utility.hpp>
-
 #include <alpaka/core/Assert.hpp>
-#include <alpaka/core/Sycl.hpp>
+#include <alpaka/core/UniformSycl.hpp>
 
+#include <CL/sycl.hpp>
+
+#include <memory>
+#include <shared_mutex>
 #include <type_traits>
+#include <vector>
 
 namespace alpaka
 {
@@ -41,12 +45,15 @@ namespace alpaka
         {
             auto operator()(cl::sycl::handler& cgh) -> void
             {
+                cgh.depends_on(m_dependencies);
                 cgh.memcpy(dst_ptr, src_ptr, bytes);
             }
 
             TElem const* const src_ptr;
             TElem* const dst_ptr;
             std::size_t bytes;
+            std::vector<cl::sycl::event> m_dependencies;
+            std::shared_ptr<std::shared_mutex> mutex_ptr{std::make_shared<std::shared_mutex>()};
         };
     }
 
@@ -94,7 +101,7 @@ namespace alpaka
                 else
                     bytes = extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext) * SrcBytes;
 
-                return detail::TaskCopySycl<SrcType>{getPtrNative(viewSrc), getPtrNative(viewDst), bytes};
+                return detail::TaskCopySycl<SrcType>{getPtrNative(viewSrc), getPtrNative(viewDst), bytes, {}};
             }
         };
     }
