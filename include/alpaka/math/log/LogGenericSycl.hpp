@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/acos/Traits.hpp>
+#include <alpaka/math/log/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,29 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library acos.
-        class AcosUniformSycl : public concepts::Implements<ConceptMathAcos, AcosUniformSycl>
+        //! The standard library log.
+        class LogGenericSycl : public concepts::Implements<ConceptMathLog, LogGenericSycl>
         {
         public:
-            using AcosBase = AcosUniformSycl;
+            using LogBase = LogGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library acos trait specialization.
+            //! The standard library log trait specialization.
             template<
                 typename TArg>
-            struct Acos<
-                AcosUniformSycl,
+            struct Log<
+                LogGenericSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto acos(
-                    AcosUniformSycl const&,
+                static auto log(
+                    LogGenericSycl const &,
                     TArg const & arg)
                 {
-                    return cl::sycl::acos(arg);
+                    return cl::sycl::log(arg);
                 }
             };
         }

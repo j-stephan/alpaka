@@ -21,7 +21,7 @@
 #include <alpaka/core/Sycl.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/dev/DevGpuSyclIntel.hpp>
-#include <alpaka/pltf/PltfUniformSycl.hpp>
+#include <alpaka/pltf/PltfGenericSycl.hpp>
 
 #include <CL/sycl.hpp>
 
@@ -47,7 +47,7 @@ namespace alpaka
 
     //#############################################################################
     //! The SYCL device manager.
-    class PltfGpuSyclIntel : public PltfUniformSycl
+    class PltfGpuSyclIntel : public PltfGenericSycl
                            , public concepts::Implements<ConceptPltf, PltfGpuSyclIntel>
     {
     public:

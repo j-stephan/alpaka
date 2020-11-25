@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/cbrt/Traits.hpp>
+#include <alpaka/math/tan/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,29 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library cbrt.
-        class CbrtUniformSycl : concepts::Implements<ConceptMathCbrt, CbrtUniformSycl>
+        //! The standard library tan.
+        class TanGenericSycl : public concepts::Implements<ConceptMathTan, TanGenericSycl>
         {
         public:
-            using CbrtBase = CbrtUniformSycl;
+            using TanBase = TanGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library cbrt trait specialization.
+            //! The standard library tan trait specialization.
             template<
                 typename TArg>
-            struct Cbrt<
-                CbrtUniformSycl,
+            struct Tan<
+                TanGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_arithmetic_v<TArg>>>
+                std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto cbrt(
-                    CbrtUniformSycl const &,
+                static auto tan(
+                    TanGenericSycl const &,
                     TArg const & arg)
                 {
-                    return cl::sycl::cbrt(arg);
+                    return cl::sycl::tan(arg);
                 }
             };
         }

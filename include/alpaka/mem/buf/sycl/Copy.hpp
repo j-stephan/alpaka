@@ -18,14 +18,12 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/dev/DevUniformSycl.hpp>
+#include <alpaka/dev/DevGenericSycl.hpp>
 #include <alpaka/dim/DimIntegralConst.hpp>
 #include <alpaka/elem/Traits.hpp>
 #include <alpaka/extent/Traits.hpp>
 #include <alpaka/mem/view/Traits.hpp>
-#include <alpaka/mem/buf/sycl/Utility.hpp>
-#include <alpaka/core/Assert.hpp>
-#include <alpaka/core/UniformSycl.hpp>
+#include <alpaka/core/Sycl.hpp>
 
 #include <CL/sycl.hpp>
 
@@ -63,14 +61,14 @@ namespace alpaka
     {
         //#############################################################################
         //! The SYCL memory copy trait specialization.
-        template<typename TDim, typename TDevDst, typename TDevSrc>
+        template<typename TDim, typename TDevDst, typename TDevSrc, typename TPltf>
         struct CreateTaskMemcpy<TDim, TDevDst, TDevSrc,
                                 // at least one of the partners has to be a SYCL device
-                                std::enable_if_t<std::is_base_of_v<DevUniformSycl, TDevDst> ||
-                                                 std::is_base_of_v<DevUniformSycl, TDevSrc>>>
+                                std::enable_if_t<std::is_same_v<DevGenericSycl<TPltf>, TDevDst> ||
+                                                 std::is_same_v<DevGenericSycl<TPltf>, TDevSrc>>>
         {
-            static_assert((std::is_base_of_v<DevUniformSycl, TDevDst> || std::is_same_v<DevCpu, TDevDst>) &&
-                          (std::is_base_of_v<DevUniformSycl, TDevSrc> || std::is_same_v<DevCpu, TDevSrc>),
+            static_assert((std::is_same_v<DevGenericSycl<TPltf>, TDevDst> || std::is_same_v<DevCpu, TDevDst>) &&
+                          (std::is_same_v<DevGenericSycl<TPltf>, TDevSrc> || std::is_same_v<DevCpu, TDevSrc>),
                           "Invalid device selected for copying. Only SYCL devices and CPU devices are supported.");
             //-----------------------------------------------------------------------------
             template<typename TExtent, typename TViewSrc, typename TViewDst>

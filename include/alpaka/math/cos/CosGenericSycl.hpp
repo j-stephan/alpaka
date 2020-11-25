@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/abs/Traits.hpp>
+#include <alpaka/math/cos/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,23 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library abs.
-        class AbsUniformSycl : public concepts::Implements<ConceptMathAbs, AbsUniformSycl>
+        //! The standard library cos.
+        class CosGenericSycl : public concepts::Implements<ConceptMathCos, CosGenericSycl>
         {
         public:
-            using AbsBase = AbsUniformSycl;
+            using CosBase = CosGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The SYCL built in abs trait specialization.
-            template<typename TArg>
-            struct Abs<AbsUniformSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+            //! The standard library cos trait specialization.
+            template<
+                typename TArg>
+            struct Cos<
+                CosGenericSycl,
+                TArg,
+                std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto abs(AbsUniformSycl const&, TArg const & arg)
+                static auto cos(
+                    CosGenericSycl const &,
+                    TArg const & arg)
                 {
-                    return cl::sycl::fabs(arg);
+                    return cl::sycl::cos(arg);
                 }
             };
         }

@@ -30,10 +30,10 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library max.
-        class MaxUniformSycl : public concepts::Implements<ConceptMathMax, MaxUniformSycl>
+        class MaxGenericSycl : public concepts::Implements<ConceptMathMax, MaxGenericSycl>
         {
         public:
-            using MaxBase = MaxUniformSycl;
+            using MaxBase = MaxGenericSycl;
         };
 
         namespace traits
@@ -44,7 +44,7 @@ namespace alpaka
                 typename Tx,
                 typename Ty>
             struct Max<
-                MaxUniformSycl,
+                MaxGenericSycl,
                 Tx,
                 Ty,
                 std::enable_if_t<
@@ -52,7 +52,7 @@ namespace alpaka
                     && std::is_integral_v<Ty>>>
             {
                 static auto max(
-                    MaxUniformSycl const &,
+                    MaxGenericSycl const &,
                     Tx const & x,
                     Ty const & y)
                 {
@@ -65,7 +65,7 @@ namespace alpaka
                 typename Tx,
                 typename Ty>
             struct Max<
-                MaxUniformSycl,
+                MaxGenericSycl,
                 Tx,
                 Ty,
                 std::enable_if_t<
@@ -73,7 +73,7 @@ namespace alpaka
                     && std::is_floating_point_v<Ty>>>
             {
                 static auto max(
-                    MaxUniformSycl const &,
+                    MaxGenericSycl const &,
                     Tx const & x,
                     Ty const & y)
                 {

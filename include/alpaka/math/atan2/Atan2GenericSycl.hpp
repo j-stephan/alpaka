@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/asin/Traits.hpp>
+#include <alpaka/math/atan2/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,29 +29,34 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library asin.
-        class AsinUniformSycl : concepts::Implements<ConceptMathAsin, AsinUniformSycl>
+        //! The standard library atan2.
+        class Atan2GenericSycl : concepts::Implements<ConceptMathAtan2, Atan2GenericSycl>
         {
         public:
-            using AsinBase = AsinUniformSycl;
+            using Atan2Base = Atan2GenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library asin trait specialization.
+            //! The standard library atan2 trait specialization.
             template<
-                typename TArg>
-            struct Asin<
-                AsinUniformSycl,
-                TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                typename Ty,
+                typename Tx>
+            struct Atan2<
+                Atan2GenericSycl,
+                Ty,
+                Tx,
+                std::enable_if_t<
+                    std::is_floating_point_v<Ty>
+                    && std::is_floating_point_v<Tx>>>
             {
-                static auto asin(
-                    AsinUniformSycl const&,
-                    TArg const & arg)
+                static auto atan2(
+                    Atan2GenericSycl const &,
+                    Ty const & y,
+                    Tx const & x)
                 {
-                    return cl::sycl::asin(arg);
+                    return cl::sycl::atan2(y, x);
                 }
             };
         }

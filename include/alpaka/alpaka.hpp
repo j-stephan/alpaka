@@ -34,7 +34,6 @@
 #include <alpaka/acc/AccGpuHipRt.hpp>
 #include <alpaka/acc/AccGpuSyclIntel.hpp>
 #include <alpaka/acc/AccDevProps.hpp>
-#include <alpaka/acc/AccUniformSycl.hpp>
 #include <alpaka/acc/Traits.hpp>
 //-----------------------------------------------------------------------------
 // atomic
@@ -42,7 +41,7 @@
 #include <alpaka/atomic/AtomicNoOp.hpp>
 #include <alpaka/atomic/AtomicOmpBuiltIn.hpp>
 #include <alpaka/atomic/AtomicStdLibLock.hpp>
-#include <alpaka/atomic/AtomicUniformSycl.hpp>
+#include <alpaka/atomic/AtomicGenericSycl.hpp>
 #include <alpaka/atomic/Op.hpp>
 #include <alpaka/atomic/Traits.hpp>
 //-----------------------------------------------------------------------------
@@ -54,7 +53,7 @@
         #include <alpaka/block/shared/dyn/BlockSharedMemDynUniformCudaHipBuiltIn.hpp>
         #include <alpaka/block/shared/dyn/BlockSharedMemDynAlignedAlloc.hpp>
         #include <alpaka/block/shared/dyn/BlockSharedMemDynMember.hpp>
-        #include <alpaka/block/shared/dyn/BlockSharedMemDynSycl.hpp>
+        #include <alpaka/block/shared/dyn/BlockSharedMemDynGenericSycl.hpp>
         #include <alpaka/block/shared/dyn/Traits.hpp>
         //-----------------------------------------------------------------------------
         // static
@@ -62,7 +61,6 @@
         #include <alpaka/block/shared/st/BlockSharedMemStMasterSync.hpp>
         #include <alpaka/block/shared/st/BlockSharedMemStNoSync.hpp>
         #include <alpaka/block/shared/st/BlockSharedMemStMember.hpp>
-        //#include <alpaka/block/shared/st/BlockSharedMemStSycl.hpp>
         #include <alpaka/block/shared/st/Traits.hpp>
     //-----------------------------------------------------------------------------
     // sync
@@ -98,7 +96,6 @@
 // dev
 #include <alpaka/dev/DevUniformCudaHipRt.hpp>
 #include <alpaka/dev/DevCpu.hpp>
-#include <alpaka/dev/DevUniformSycl.hpp>
 #include <alpaka/dev/DevFpgaSyclIntel.hpp>
 #include <alpaka/dev/DevFpgaSyclXilinx.hpp>
 #include <alpaka/dev/DevGpuSyclIntel.hpp>
@@ -115,7 +112,9 @@
 #include <alpaka/event/EventCpu.hpp>
 #include <alpaka/event/EventOmp5.hpp>
 #include <alpaka/event/EventOacc.hpp>
-#include <alpaka/event/EventSycl.hpp>
+#include <alpaka/event/EventFpgaSyclIntel.hpp>
+#include <alpaka/event/EventFpgaSyclXilinx.hpp>
+#include <alpaka/event/EventGpuSyclIntel.hpp>
 #include <alpaka/event/Traits.hpp>
 //-----------------------------------------------------------------------------
 // extent
@@ -127,10 +126,10 @@
 #include <alpaka/idx/bt/IdxBtRefFiberIdMap.hpp>
 #include <alpaka/idx/bt/IdxBtRefThreadIdMap.hpp>
 #include <alpaka/idx/bt/IdxBtZero.hpp>
-#include <alpaka/idx/bt/IdxBtSycl.hpp>
+#include <alpaka/idx/bt/IdxBtGenericSycl.hpp>
 #include <alpaka/idx/gb/IdxGbUniformCudaHipBuiltIn.hpp>
 #include <alpaka/idx/gb/IdxGbRef.hpp>
-#include <alpaka/idx/gb/IdxGbSycl.hpp>
+#include <alpaka/idx/gb/IdxGbGenericSycl.hpp>
 #include <alpaka/idx/Accessors.hpp>
 #include <alpaka/idx/Traits.hpp>
 #include <alpaka/idx/MapIdx.hpp>
@@ -145,13 +144,15 @@
 #include <alpaka/kernel/TaskKernelOmp5.hpp>
 #include <alpaka/kernel/TaskKernelOacc.hpp>
 #include <alpaka/kernel/TaskKernelGpuUniformCudaHipRt.hpp>
-#include <alpaka/kernel/TaskKernelSycl.hpp>
+#include <alpaka/kernel/TaskKernelFpgaSyclIntel.hpp>
+#include <alpaka/kernel/TaskKernelFpgaSyclXilinx.hpp>
+#include <alpaka/kernel/TaskKernelGpuSyclIntel.hpp>
 #include <alpaka/kernel/Traits.hpp>
 //-----------------------------------------------------------------------------
 // math
 #include <alpaka/math/MathUniformCudaHipBuiltIn.hpp>
 #include <alpaka/math/MathStdLib.hpp>
-#include <alpaka/math/MathSycl.hpp>
+#include <alpaka/math/MathGenericSycl.hpp>
 //-----------------------------------------------------------------------------
 // mem
 #include <alpaka/mem/alloc/AllocCpuAligned.hpp>
@@ -162,7 +163,9 @@
 #include <alpaka/mem/buf/BufUniformCudaHipRt.hpp>
 #include <alpaka/mem/buf/BufOmp5.hpp>
 #include <alpaka/mem/buf/BufOacc.hpp>
-#include <alpaka/mem/buf/BufSycl.hpp>
+#include <alpaka/mem/buf/BufFpgaSyclIntel.hpp>
+#include <alpaka/mem/buf/BufFpgaSyclXilinx.hpp>
+#include <alpaka/mem/buf/BufGpuSyclIntel.hpp>
 #include <alpaka/mem/buf/Traits.hpp>
 
 #include <alpaka/mem/view/ViewCompileTimeArray.hpp>
@@ -198,7 +201,6 @@
 #include <alpaka/pltf/PltfUniformCudaHipRt.hpp>
 #include <alpaka/pltf/PltfOmp5.hpp>
 #include <alpaka/pltf/PltfOacc.hpp>
-#include <alpaka/pltf/PltfUniformSycl.hpp>
 #include <alpaka/pltf/PltfFpgaSyclIntel.hpp>
 #include <alpaka/pltf/PltfFpgaSyclXilinx.hpp>
 #include <alpaka/pltf/PltfGpuSyclIntel.hpp>
@@ -206,7 +208,6 @@
 //-----------------------------------------------------------------------------
 // rand
 #include <alpaka/rand/RandUniformCudaHipRand.hpp>
-//#include <alpaka/rand/RandSycl.hpp>
 #include <alpaka/rand/Traits.hpp>
 //-----------------------------------------------------------------------------
 // idx
@@ -219,8 +220,12 @@
 #include <alpaka/queue/QueueCpuBlocking.hpp>
 #include <alpaka/queue/QueueOmp5Blocking.hpp>
 #include <alpaka/queue/QueueOaccBlocking.hpp>
-#include <alpaka/queue/QueueSyclNonBlocking.hpp>
-#include <alpaka/queue/QueueSyclBlocking.hpp>
+#include <alpaka/queue/QueueFpgaSyclIntelNonBlocking.hpp>
+#include <alpaka/queue/QueueFpgaSyclXilinxNonBlocking.hpp>
+#include <alpaka/queue/QueueGpuSyclIntelNonBlocking.hpp>
+#include <alpaka/queue/QueueFpgaSyclIntelBlocking.hpp>
+#include <alpaka/queue/QueueFpgaSyclXilinxBlocking.hpp>
+#include <alpaka/queue/QueueGpuSyclIntelBlocking.hpp>
 #include <alpaka/queue/Traits.hpp>
 #include <alpaka/queue/Properties.hpp>
 //-----------------------------------------------------------------------------

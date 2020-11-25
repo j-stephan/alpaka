@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/log/Traits.hpp>
+#include <alpaka/math/remainder/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,29 +29,34 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library log.
-        class LogUniformSycl : public concepts::Implements<ConceptMathLog, LogUniformSycl>
+        //! The standard library remainder.
+        class RemainderGenericSycl : concepts::Implements<ConceptMathRemainder, RemainderGenericSycl>
         {
         public:
-            using LogBase = LogUniformSycl;
+            using RemainderBase = RemainderGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library log trait specialization.
+            //! The standard library remainder trait specialization.
             template<
-                typename TArg>
-            struct Log<
-                LogUniformSycl,
-                TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                typename Tx,
+                typename Ty>
+            struct Remainder<
+                RemainderGenericSycl,
+                Tx,
+                Ty,
+                std::enable_if_t<
+                    std::is_floating_point_v<Tx>
+                    && std::is_floating_point_v<Ty>>>
             {
-                static auto log(
-                    LogUniformSycl const &,
-                    TArg const & arg)
+                static auto remainder(
+                    RemainderGenericSycl const &,
+                    Tx const & x,
+                    Ty const & y)
                 {
-                    return cl::sycl::log(arg);
+                    return cl::sycl::remainder(x, y);
                 }
             };
         }

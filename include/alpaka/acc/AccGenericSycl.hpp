@@ -19,17 +19,14 @@
 #endif
 
 // Base classes.
-#include <alpaka/workdiv/WorkDivSycl.hpp>
-#include <alpaka/idx/gb/IdxGbSycl.hpp>
-#include <alpaka/idx/bt/IdxBtSycl.hpp>
+#include <alpaka/workdiv/WorkDivGenericSycl.hpp>
+#include <alpaka/idx/gb/IdxGbGenericSycl.hpp>
+#include <alpaka/idx/bt/IdxBtGenericSycl.hpp>
 #include <alpaka/atomic/AtomicHierarchy.hpp>
-#include <alpaka/atomic/AtomicUniformSycl.hpp>
-#include <alpaka/math/MathSycl.hpp>
-#include <alpaka/block/shared/dyn/BlockSharedMemDynSycl.hpp>
-//#include <alpaka/block/shared/st/BlockSharedMemStSycl.hpp>
-#include <alpaka/block/sync/BlockSyncSycl.hpp>
-//#include <alpaka/rand/RandSycl.hpp>
-//#include <alpaka/time/TimeSycl.hpp>
+#include <alpaka/atomic/AtomicGenericSycl.hpp>
+#include <alpaka/math/MathGenericSycl.hpp>
+#include <alpaka/block/shared/dyn/BlockSharedMemDynGenericSycl.hpp>
+#include <alpaka/block/sync/BlockSyncGenericSycl.hpp>
 
 // Specialized traits.
 #include <alpaka/acc/Traits.hpp>
@@ -42,7 +39,6 @@
 #include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/ClipCast.hpp>
 #include <alpaka/core/Sycl.hpp>
-#include <alpaka/dev/DevSycl.hpp>
 
 #include <string>
 #include <type_traits>
@@ -55,16 +51,13 @@ namespace alpaka
     //! This accelerator allows parallel kernel execution on SYCL devices.
     template<typename TDim, typename TIdx>
     class AccGenericSycl :
-        public WorkDivUniformSycl<TDim, TIdx>,
-        public gb::IdxGbUniformSycl<TDim, TIdx>,
-        public bt::IdxBtUniformSycl<TDim, TIdx>,
-        public AtomicHierarchy<AtomicUniformSycl, AtomicUniformSycl, AtomicUniformSycl>,
-        public math::MathUniformSycl,
-        public BlockSharedMemDynUniformSycl,
-        //public BlockSharedMemStUniformSycl,
-        public BlockSyncUniformSycl<TDim>,
-        //public rand::RandUniformSycl,
-        //public TimeUniformSycl
+        public WorkDivGenericSycl<TDim, TIdx>,
+        public gb::IdxGbGenericSycl<TDim, TIdx>,
+        public bt::IdxBtGenericSycl<TDim, TIdx>,
+        public AtomicHierarchy<AtomicGenericSycl, AtomicGenericSycl, AtomicGenericSycl>,
+        public math::MathGenericSycl,
+        public BlockSharedMemDynGenericSycl,
+        public BlockSyncGenericSycl<TDim>,
         public concepts::Implements<ConceptAcc, AccGenericSycl<TDim, TIdx>>
     {
     public:
@@ -78,27 +71,27 @@ namespace alpaka
             cl::sycl::accessor<int, 0,
                                cl::sycl::access::mode::atomic,
                                cl::sycl::access::target::local> pred_counter) :
-                WorkDivUniformSycl<TDim, TIdx>{threadElemExtent, work_item},
-                gb::IdxGbUniformSycl<TDim, TIdx>{work_item},
-                bt::IdxBtUniformSycl<TDim, TIdx>{work_item},
-                AtomicHierarchy<AtomicUniformSycl, AtomicUniformSycl, AtomicUniformSycl>{},
-                math::MathUniformSycl(),
-                BlockSharedMemDynUniformSycl{shared_acc},
-                // BlockSharedMemStUniformSycl(),
-                BlockSyncUniformSycl<TDim>{work_item, pred_counter}
-                /*rand::RandUniformSycl(),
-                TimeUniformSycl()*/
+                WorkDivGenericSycl<TDim, TIdx>{threadElemExtent, work_item},
+                gb::IdxGbGenericSycl<TDim, TIdx>{work_item},
+                bt::IdxBtGenericSycl<TDim, TIdx>{work_item},
+                AtomicHierarchy<AtomicGenericSycl, AtomicGenericSycl, AtomicGenericSycl>{},
+                math::MathGenericSycl(),
+                BlockSharedMemDynGenericSycl{shared_acc},
+                // BlockSharedMemStGenericSycl(),
+                BlockSyncGenericSycl<TDim>{work_item, pred_counter}
+                /*rand::RandGenericSycl(),
+                TimeGenericSycl()*/
         {}
 
         //-----------------------------------------------------------------------------
         AccGenericSycl(AccGenericSycl const & rhs)
-        : WorkDivUniformSycl<TDim, TIdx>{rhs}
-        , gb::IdxGbUniformSycl<TDim, TIdx>{rhs}
-        , bt::IdxBtUniformSycl<TDim, TIdx>{rhs}
-        , AtomicHierarchy<AtomicUniformSycl, AtomicUniformSycl, AtomicUniformSycl>{rhs}
-        , math::MathUniformSycl{rhs}
-        , BlockSharedMemDynUniformSycl{rhs}
-        , BlockSyncUniformSycl<TDim>{rhs}
+        : WorkDivGenericSycl<TDim, TIdx>{rhs}
+        , gb::IdxGbGenericSycl<TDim, TIdx>{rhs}
+        , bt::IdxBtGenericSycl<TDim, TIdx>{rhs}
+        , AtomicHierarchy<AtomicGenericSycl, AtomicGenericSycl, AtomicGenericSycl>{rhs}
+        , math::MathGenericSycl{rhs}
+        , BlockSharedMemDynGenericSycl{rhs}
+        , BlockSyncGenericSycl<TDim>{rhs}
         {
         }
         //-----------------------------------------------------------------------------

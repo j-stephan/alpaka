@@ -23,7 +23,7 @@
 
 namespace alpaka
 {
-    using QueueFpgaSyclXilinxBlocking = QueueUniformSyclBlocking<DevFpgaSyclXilinx>;
+    using QueueFpgaSyclXilinxBlocking = QueueGenericSyclBlocking<DevFpgaSyclXilinx>;
 }
 
 #endif

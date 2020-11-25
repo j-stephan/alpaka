@@ -23,7 +23,7 @@
 
 namespace alpaka
 {
-    using QueueFpgaSyclIntelBlocking = QueueUniformSyclBlocking<DevFpgaSyclIntel>;
+    using QueueFpgaSyclIntelBlocking = QueueGenericSyclBlocking<DevFpgaSyclIntel>;
 }
 
 #endif

@@ -21,7 +21,7 @@
 #include <alpaka/core/Sycl.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/dev/DevFpgaSyclXilinx.hpp>
-#include <alpaka/pltf/PltfUniformSycl.hpp>
+#include <alpaka/pltf/PltfGenericSycl.hpp>
 
 #include <CL/sycl.hpp>
 
@@ -47,7 +47,7 @@ namespace alpaka
 
     //#############################################################################
     //! The SYCL device manager.
-    class PltfFpgaSyclXilinx : public PltfUniformSycl
+    class PltfFpgaSyclXilinx : public PltfGenericSycl
                              , public concepts::Implements<ConceptPltf, PltfFpgaSyclXilinx>
     {
     public:

@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/floor/Traits.hpp>
+#include <alpaka/math/acos/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,29 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library floor.
-        class FloorUniformSycl : public concepts::Implements<ConceptMathFloor, FloorUniformSycl>
+        //! The standard library acos.
+        class AcosGenericSycl : public concepts::Implements<ConceptMathAcos, AcosGenericSycl>
         {
         public:
-            using FloorBase = FloorUniformSycl;
+            using AcosBase = AcosGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library floor trait specialization.
+            //! The standard library acos trait specialization.
             template<
                 typename TArg>
-            struct Floor<
-                FloorUniformSycl,
+            struct Acos<
+                AcosGenericSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto floor(
-                    FloorUniformSycl const &,
+                static auto acos(
+                    AcosGenericSycl const&,
                     TArg const & arg)
                 {
-                    return cl::sycl::floor(arg);
+                    return cl::sycl::acos(arg);
                 }
             };
         }
