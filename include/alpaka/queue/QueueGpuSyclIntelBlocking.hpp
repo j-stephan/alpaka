@@ -23,7 +23,7 @@
 
 namespace alpaka
 {
-    using QueueGpuSyclIntelBlocking = QueueUniformSyclBlocking<DevGpuSyclIntel>;
+    using QueueGpuSyclIntelBlocking = QueueGenericSyclBlocking<DevGpuSyclIntel>;
 }
 
 #endif

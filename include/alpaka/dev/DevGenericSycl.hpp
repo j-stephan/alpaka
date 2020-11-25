@@ -32,40 +32,41 @@ namespace alpaka
 {
     //#############################################################################
     //! The SYCL device handle.
-    class DevUniformSycl : public concepts::Implements<ConceptCurrentThreadWaitFor, DevUniformSycl>
+    template <typename TPltf>
+    class DevGenericSycl : public concepts::Implements<ConceptCurrentThreadWaitFor, DevGenericSycl<TPltf>>
     {
-        friend struct traits::GetDevByIdx<PltfUniformSycl>;
-        friend struct traits::GetName<DevUniformSycl>;
-        friend struct traits::GetMemBytes<DevUniformSycl>;
+        friend struct traits::GetDevByIdx<TPltf>;
+        friend struct traits::GetName<DevGenericSycl<TPltf>>;
+        friend struct traits::GetMemBytes<DevGenericSycl<TPltf>>;
 
     protected:
         //-----------------------------------------------------------------------------
-        DevUniformSycl() = default;
+        DevGenericSycl() = default;
     public:
-        DevUniformSycl(cl::sycl::device device, cl::sycl::context context, cl::sycl::queue queue)
+        DevGenericSycl(cl::sycl::device device, cl::sycl::context context, cl::sycl::queue queue)
         : m_device{device}, m_context{context}, m_queue{queue}
         {}
 
         //-----------------------------------------------------------------------------
-        DevUniformSycl(DevUniformSycl const &) = default;
+        DevGenericSycl(DevGenericSycl const &) = default;
         //-----------------------------------------------------------------------------
-        DevUniformSycl(DevUniformSycl &&) = default;
+        DevGenericSycl(DevGenericSycl &&) = default;
         //-----------------------------------------------------------------------------
-        auto operator=(DevUniformSycl const &) -> DevUniformSycl & = default;
+        auto operator=(DevGenericSycl const &) -> DevGenericSycl & = default;
         //-----------------------------------------------------------------------------
-        auto operator=(DevUniformSycl &&) -> DevUniformSycl & = default;
+        auto operator=(DevGenericSycl &&) -> DevGenericSycl & = default;
         //-----------------------------------------------------------------------------
-        ALPAKA_FN_HOST auto operator==(DevUniformSycl const & rhs) const -> bool
+        ALPAKA_FN_HOST auto operator==(DevGenericSycl const & rhs) const -> bool
         {
             return (rhs.m_Device == m_Device) && (rhs.m_Queue == m_Queue);
         }
         //-----------------------------------------------------------------------------
-        ALPAKA_FN_HOST auto operator!=(DevUniformSycl const & rhs) const -> bool
+        ALPAKA_FN_HOST auto operator!=(DevGenericSycl const & rhs) const -> bool
         {
             return !operator==(rhs);
         }
         //-----------------------------------------------------------------------------
-        ~DevUniformSycl() = default;
+        ~DevGenericSycl() = default;
 
     protected:
         cl::sycl::device m_device;
@@ -79,11 +80,11 @@ namespace alpaka
     {
         //#############################################################################
         //! The SYCL device name get trait specialization.
-        template<typename TDev>
-        struct GetName<TDev, std::enable_if_t<std::is_base_of<DevUniformSycl, TDev>>>
+        template<typename TPltf>
+        struct GetName<DevGenericSycl<TPltf>>
         {
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto getName(TDev const& dev) -> std::string
+            ALPAKA_FN_HOST static auto getName(DevGenericSycl<TPltf> const& dev) -> std::string
             {
                 return dev.m_device.get_info<cl::sycl::info::device::name>();
             }
@@ -91,11 +92,11 @@ namespace alpaka
 
         //#############################################################################
         //! The SYCL device available memory get trait specialization.
-        template<typename TDev>
-        struct GetMemBytes<TDev, std::enable_if_t<std::is_base_of_v<DevUniformSycl, TDev>>>
+        template<typename TPltf>
+        struct GetMemBytes<DevGenericSycl<TPltf>>
         {
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto getMemBytes(TDev const& dev) -> std::size_t
+            ALPAKA_FN_HOST static auto getMemBytes(DevGenericSycl<TPltf> const& dev) -> std::size_t
             {
                 return dev.m_device.get_info<cl::sycl::info::device::global_mem_size>();
             }
@@ -105,11 +106,11 @@ namespace alpaka
         //! The SYCL device free memory get trait specialization. Note that
         //! this function will usually return the size of the device memory
         //! as there is no standard way in SYCL to query free memory.
-        template<typename TDev>
-        struct GetFreeMemBytes<TDev, std::enable_if_t<std::is_base_of_v<DevUniformSycl, TDev>>>
+        template<typename TPltf>
+        struct GetFreeMemBytes<DevGenericSycl<TPltf>>
         {
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto getFreeMemBytes(TDev const& dev) -> std::size_t
+            ALPAKA_FN_HOST static auto getFreeMemBytes(DevGenericSycl<TPltf> const& dev) -> std::size_t
             {
                 // There is no way in SYCL to query free memory. If you find a way be sure to update the
                 // documentation above.
@@ -122,8 +123,8 @@ namespace alpaka
         //! The SYCL device reset trait specialization. Note that this
         //! function won't actually do anything. If you need to reset your
         //! SYCL device its destructor must be called.
-        template<typename TDev>
-        struct Reset<TDev, std::enable_if_t<std::is_base_of_v<DevUniformSycl, TDev>>>
+        template<typename TPltf>
+        struct Reset<DevGenericSycl<TPltf>>
         {
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto reset(TDev const&) -> void
@@ -135,18 +136,18 @@ namespace alpaka
 
         //#############################################################################
         //! The SYCL device memory buffer type trait specialization.
-        template<typename TElem, typename TDim, typename TIdx>
-        struct BufType<DevUniformSycl, TElem, TDim, TIdx>
+        template<typename TElem, typename TDim, typename TIdx, typename TPltf>
+        struct BufType<DevGenericSycl<TPltf>, TElem, TDim, TIdx>
         {
-            using type = BufUniformSycl<TElem, TDim, TIdx>;
+            using type = BufGenericSycl<TElem, TDim, TIdx, DevGenericSycl<TPltf>>;
         };
 
         //#############################################################################
         //! The SYCL device platform type trait specialization.
-        template<>
-        struct PltfType<DevUniformSycl>
+        template<typename TPltf>
+        struct PltfType<DevGenericSycl<TPltf>>
         {
-            using type = PltfUniformSycl;
+            using type = TPltf;
         };
 
         //#############################################################################
@@ -154,10 +155,10 @@ namespace alpaka
         //!
         //! Blocks until the device has completed all preceding requested tasks.
         //! Tasks that are enqueued or queues that are created after this call is made are not waited for.
-        template<typename TDev>
-        struct CurrentThreadWaitFor<TDev, std::enable_if_t<std::is_base_of_v<DevUniformSycl, TDev>>>
+        template<typename TPltf>
+        struct CurrentThreadWaitFor<DevGenericSycl<TPltf>>
         {
-            ALPAKA_FN_HOST static auto currentThreadWaitFor(TDev const&) -> void
+            ALPAKA_FN_HOST static auto currentThreadWaitFor(DevGenericSycl<TPltf> const&) -> void
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
                 std::cerr << "[SYCL] Warning: You cannot wait for SYCL devices. Use the queue instead.\n";

@@ -24,13 +24,13 @@ namespace alpaka
     //#############################################################################
     //! The SYCL block synchronization.
     template <typename TDim>
-    class BlockSyncSycl : public concepts::Implements<ConceptBlockSync, BlockSyncSycl<TDim>>
+    class BlockSyncGenericSycl : public concepts::Implements<ConceptBlockSync, BlockSyncGenericSycl<TDim>>
     {
     public:
-        using BlockSyncBase = BlockSyncSycl<TDim>;
+        using BlockSyncBase = BlockSyncGenericSycl<TDim>;
 
         //-----------------------------------------------------------------------------
-        BlockSyncSycl(cl::sycl::nd_item<TDim::value> work_item,
+        BlockSyncGenericSycl(cl::sycl::nd_item<TDim::value> work_item,
                       cl::sycl::accessor<int, 0, cl::sycl::access::mode::atomic,
                                          cl::sycl::access::target::local> counter)
         : my_item{work_item}
@@ -38,15 +38,15 @@ namespace alpaka
         {
         }
         //-----------------------------------------------------------------------------
-        BlockSyncSycl(BlockSyncSycl const &) = default;
+        BlockSyncGenericSycl(BlockSyncGenericSycl const &) = default;
         //-----------------------------------------------------------------------------
-        BlockSyncSycl(BlockSyncSycl &&) = delete;
+        BlockSyncGenericSycl(BlockSyncGenericSycl &&) = delete;
         //-----------------------------------------------------------------------------
-        auto operator=(BlockSyncSycl const &) -> BlockSyncSycl & = delete;
+        auto operator=(BlockSyncGenericSycl const &) -> BlockSyncGenericSycl & = delete;
         //-----------------------------------------------------------------------------
-        auto operator=(BlockSyncSycl &&) -> BlockSyncSycl & = delete;
+        auto operator=(BlockSyncGenericSycl &&) -> BlockSyncGenericSycl & = delete;
         //-----------------------------------------------------------------------------
-        /*virtual*/ ~BlockSyncSycl() = default;
+        /*virtual*/ ~BlockSyncGenericSycl() = default;
 
         cl::sycl::nd_item<TDim::value> my_item;
         cl::sycl::accessor<int, 0,
@@ -58,10 +58,10 @@ namespace alpaka
     {
         //#############################################################################
         template<typename TDim>
-        struct SyncBlockThreads<BlockSyncSycl<TDim>>
+        struct SyncBlockThreads<BlockSyncGenericSycl<TDim>>
         {
             //-----------------------------------------------------------------------------
-            static auto syncBlockThreads(BlockSyncSycl<TDim> const & blockSync) -> void
+            static auto syncBlockThreads(BlockSyncGenericSycl<TDim> const & blockSync) -> void
             {
                 blockSync.my_item.barrier();
             }
@@ -69,70 +69,76 @@ namespace alpaka
 
         //#############################################################################
         template<typename TDim>
-        struct SyncBlockThreadsPredicate<BlockCount, BlockSyncSycl<TDim>>
+        struct SyncBlockThreadsPredicate<BlockCount, BlockSyncGenericSycl<TDim>>
         {
             //-----------------------------------------------------------------------------
-            static auto syncBlockThreadsPredicate(BlockSyncSycl<TDim> const & blockSync, int predicate) -> int
+            static auto syncBlockThreadsPredicate(BlockSyncGenericSycl<TDim> const & blockSync, int predicate) -> int
             {
+                using namespace cl::sycl;
+
                 // just copy the accessor, will refer to the same memory address
                 auto counter = blockSync.pred_counter;
                 blockSync.my_item.barrier();
                 
                 if(blockSync.my_item.get_local_linear_id(0) == 0)
-                    cl::sycl::atomic_store(counter, 0);
-                blockSync.my_item.barrier(cl::sycl::access::fence_space::local_space);
+                    atomic_store(counter, 0);
+                blockSync.my_item.barrier(access::fence_space::local_space);
 
                 if(predicate)
-                    cl::sycl::atomic_fetch_add(counter, 1);
-                blockSync.my_item.barrier(cl::sycl::access::fence_space::local_space);
+                    atomic_fetch_add(counter, 1);
+                blockSync.my_item.barrier(access::fence_space::local_space);
 
-                return cl::sycl::atomic_load(counter);
+                return atomic_load(counter);
             }
         };
 
         //#############################################################################
         template<typename TDim>
-        struct SyncBlockThreadsPredicate<BlockAnd, BlockSyncSycl<TDim>>
+        struct SyncBlockThreadsPredicate<BlockAnd, BlockSyncGenericSycl<TDim>>
         {
             //-----------------------------------------------------------------------------
-            static auto syncBlockThreadsPredicate(BlockSyncSycl<TDim> const & blockSync, int predicate) -> int
+            static auto syncBlockThreadsPredicate(BlockSyncGenericSycl<TDim> const & blockSync, int predicate) -> int
             {
+                using namespace cl::sycl;
+
                 // just copy the accessor, will refer to the same memory address
                 auto counter = blockSync.pred_counter;
                 blockSync.my_item.barrier();
 
                 if(blockSync.my_item.get_local_linear_id(0) == 0)
-                    cl::sycl::atomic_store(counter, 1);
-                blockSync.my_item.barrier(cl::sycl::access::fence_space::local_space);
+                    atomic_store(counter, 1);
+                blockSync.my_item.barrier(access::fence_space::local_space);
                 
                 if(!predicate)
-                    cl::sycl::atomic_fetch_and(counter, 0);
-                blockSync.my_item.barrier(cl::sycl::access::fence_space::local_space);
+                    atomic_fetch_and(counter, 0);
+                blockSync.my_item.barrier(access::fence_space::local_space);
 
-                return cl::sycl::atomic_load(counter);
+                return atomic_load(counter);
             }
         };
 
         //#############################################################################
         template<typename TDim>
-        struct SyncBlockThreadsPredicate<BlockOr, BlockSyncSycl<TDim>>
+        struct SyncBlockThreadsPredicate<BlockOr, BlockSyncGenericSycl<TDim>>
         {
             //-----------------------------------------------------------------------------
-            static auto syncBlockThreadsPredicate(BlockSyncSycl<TDim> const & blockSync, int predicate) -> int
+            static auto syncBlockThreadsPredicate(BlockSyncGenericSycl<TDim> const & blockSync, int predicate) -> int
             {
+                using namespace cl::sycl;
+
                 // just copy the accessor, will refer to the same memory address
                 auto counter = blockSync.pred_counter;
                 blockSync.my_item.barrier();
 
                 if(blockSync.my_item.get_local_linear_id(0) == 0)
-                    cl::sycl::atomic_store(counter, 0);
-                blockSync.my_item.barrier(cl::sycl::access::fence_space::local_space);
+                    atomic_store(counter, 0);
+                blockSync.my_item.barrier(access::fence_space::local_space);
 
                 if(predicate)
-                    cl::sycl::atomic_fetch_or(counter, 1);
-                blockSync.my_item.barrier(cl::sycl::access::fence_space::local_space);
+                    atomic_fetch_or(counter, 1);
+                blockSync.my_item.barrier(access::fence_space::local_space);
 
-                return cl::sycl::atomic_load(counter);
+                return atomic_load(counter);
             }
         };
     }

@@ -6,8 +6,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-
-
 #pragma once
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
@@ -19,7 +17,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/exp/Traits.hpp>
+#include <alpaka/math/sincos/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,29 +27,31 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library exp.
-        class ExpUniformSycl : public concepts::Implements<ConceptMathExp, ExpUniformSycl>
+        //! sincos.
+        class SinCosGenericSycl : public concepts::Implements<ConceptMathSinCos, SinCosGenericSycl>
         {
         public:
-            using ExpBase = ExpUniformSycl;
+            using SinCosBase = SinCosGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library exp trait specialization.
-            template<
-                typename TArg>
-            struct Exp<
-                ExpUniformSycl,
-                TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+
+            //! sincos trait specialization.
+            template<typename TArg>
+            struct SinCos<
+                SinCosGenericSycl,
+                TArg>
             {
-                static auto exp(
-                    ExpUniformSycl const &,
-                    TArg const & arg)
+                static auto sincos(
+                    SinCosGenericSycl const &,
+                    TArg const & arg,
+                    TArg & result_sin,
+                    TArg & result_cos)
+                -> void
                 {
-                    return cl::sycl::exp(arg);
+                    result_sin = cl::sycl::sincos(arg, &result_cos);
                 }
             };
         }

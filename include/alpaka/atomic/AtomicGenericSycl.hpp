@@ -35,22 +35,22 @@ namespace alpaka
     //
     //  Atomics can used in the hierarchy level grids, blocks and threads.
     //  Atomics are not guaranteed to be safe between devices
-    class AtomicUniformSycl
+    class AtomicGenericSycl
     {
     public:
 
         //-----------------------------------------------------------------------------
-        AtomicUniformSycl() = default;
+        AtomicGenericSycl() = default;
         //-----------------------------------------------------------------------------
-        AtomicUniformSycl(AtomicUniformSycl const &) = default;
+        AtomicGenericSycl(AtomicGenericSycl const &) = default;
         //-----------------------------------------------------------------------------
-        AtomicUniformSycl(AtomicUniformSycl &&) = delete;
+        AtomicGenericSycl(AtomicGenericSycl &&) = delete;
         //-----------------------------------------------------------------------------
-        auto operator=(AtomicUniformSycl const &) -> AtomicUniformSycl & = delete;
+        auto operator=(AtomicGenericSycl const &) -> AtomicGenericSycl & = delete;
         //-----------------------------------------------------------------------------
-        auto operator=(AtomicUniformSycl &&) -> AtomicUniformSycl & = delete;
+        auto operator=(AtomicGenericSycl &&) -> AtomicGenericSycl & = delete;
         //-----------------------------------------------------------------------------
-        /*virtual*/ ~AtomicUniformSycl() = default;
+        /*virtual*/ ~AtomicGenericSycl() = default;
     };
 
     namespace detail
@@ -85,14 +85,14 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! The SYCL accelerator atomic operation.
         template<typename T, typename THierarchy>
-        struct AtomicOp<AtomicAdd, AtomicUniformSycl, T, THierarchy>
+        struct AtomicOp<AtomicAdd, AtomicGenericSycl, T, THierarchy>
         {
             static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
                           "SYCL atomics do not support this type");
 
             //-----------------------------------------------------------------------------
             //
-            static auto atomicOp(AtomicUniformSycl const &, T * const addr, T const & value) -> T
+            static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
                 using namespace cl::sycl;
 
@@ -107,12 +107,12 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! The SYCL accelerator atomic operation.
         template<typename T, typename THierarchy>
-        struct AtomicOp<AtomicSub, AtomicUniformSycl, T, THierarchy>
+        struct AtomicOp<AtomicSub, AtomicGenericSycl, T, THierarchy>
         {
             static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
                           "SYCL atomics do not support this type");
             //-----------------------------------------------------------------------------
-            static auto atomicOp(AtomicUniformSycl const &, T * const addr, T const & value) -> T
+            static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
                 using namespace cl::sycl;
 
@@ -127,12 +127,12 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! The SYCL accelerator atomic operation.
         template<typename T, typename THierarchy>
-        struct AtomicOp<AtomicMin, AtomicUniformSycl, T, THierarchy>
+        struct AtomicOp<AtomicMin, AtomicGenericSycl, T, THierarchy>
         {
             static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
                           "SYCL atomics don't support this type");
             //-----------------------------------------------------------------------------
-            static auto atomicOp(AtomicUniformSycl const &, T * const addr, T const & value) -> T
+            static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
                 using namespace cl::sycl;
 
@@ -147,12 +147,12 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! The SYCL accelerator atomic operation.
         template<typename T, typename THierarchy>
-        struct AtomicOp<AtomicMax, AtomicUniformSycl, T, THierarchy>
+        struct AtomicOp<AtomicMax, AtomicGenericSycl, T, THierarchy>
         {
             static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
                           "SYCL atomics don't support this type");
             //-----------------------------------------------------------------------------
-            static auto atomicOp(AtomicUniformSycl const &, T * const addr, T const & value) -> T
+            static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
                 using namespace cl::sycl;
 
@@ -167,12 +167,12 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! The SYCL accelerator atomic operation.
         template<typename T, typename THierarchy>
-        struct AtomicOp<AtomicExch, AtomicUniformSycl, T, THierarchy>
+        struct AtomicOp<AtomicExch, AtomicGenericSycl, T, THierarchy>
         {
             static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
                           "SYCL atomics don't support this type");
             //-----------------------------------------------------------------------------
-            static auto atomicOp(AtomicUniformSycl const &, T * const addr, T const & value) -> T
+            static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
                 using namespace cl::sycl;
 
@@ -187,12 +187,12 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! The SYCL accelerator atomic operation.
         template<typename T, typename THierarchy>
-        struct AtomicOp<AtomicInc, AtomicUniformSycl, T, THierarchy>
+        struct AtomicOp<AtomicInc, AtomicGenericSycl, T, THierarchy>
         {
             static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
                           "SYCL atomics do not support this type");
             //-----------------------------------------------------------------------------
-            static auto atomicOp(AtomicUniformSycl const &, T * const addr, T const & value) -> T
+            static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
                 using namespace cl::sycl;
 
@@ -207,12 +207,12 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! The SYCL accelerator atomic operation.
         template<typename T, typename THierarchy>
-        struct AtomicOp<AtomicDec, AtomicUniformSycl, T, THierarchy>
+        struct AtomicOp<AtomicDec, AtomicGenericSycl, T, THierarchy>
         {
             static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
                           "SYCL atomics do not support this type");
             //-----------------------------------------------------------------------------
-            static auto atomicOp(AtomicUniformSycl const &, T * const addr, T const & value) -> T
+            static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
                 using namespace cl::sycl;
 
@@ -227,11 +227,11 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! The SYCL accelerator atomic operation.
         template<typename T, typename THierarchy>
-        struct AtomicOp<AtomicAnd, AtomicUniformSycl, T, THierarchy>
+        struct AtomicOp<AtomicAnd, AtomicGenericSycl, T, THierarchy>
         {
             static_assert(std::is_integral_v<T>, "Bitwise operations are not supported on non-integral types.");
             //-----------------------------------------------------------------------------
-            static auto atomicOp(AtomicUniformSycl const &, T * const addr, T const & value) -> T
+            static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
                 using namespace cl::sycl;
 
@@ -246,11 +246,11 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! The SYCL accelerator atomic operation.
         template<typename T, typename THierarchy>
-        struct AtomicOp<AtomicOr, AtomicUniformSycl, T, THierarchy>
+        struct AtomicOp<AtomicOr, AtomicGenericSycl, T, THierarchy>
         {
             static_assert(std::is_integral_v<T>, "Bitwise operations are not supported on non-integral types.");
             //-----------------------------------------------------------------------------
-            static auto atomicOp(AtomicUniformSycl const &, T * const addr, T const & value) -> T
+            static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
                 using namespace cl::sycl;
 
@@ -265,11 +265,11 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! The SYCL accelerator atomic operation.
         template<typename T, typename THierarchy>
-        struct AtomicOp<AtomicXor, AtomicUniformSycl, T, THierarchy>
+        struct AtomicOp<AtomicXor, AtomicGenericSycl, T, THierarchy>
         {
             static_assert(std::is_integral_v<T>, "Bitwise operations are not supported on non-integral types.");
             //-----------------------------------------------------------------------------
-            static auto atomicOp(AtomicUniformSycl const &, T * const addr, T const & value) -> T
+            static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
                 using namespace cl::sycl;
 
@@ -284,12 +284,12 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         //! The SYCL accelerator atomic operation.
         template<typename T, typename THierarchy>
-        struct AtomicOp<AtomicCas, AtomicUniformSycl, T, THierarchy>
+        struct AtomicOp<AtomicCas, AtomicGenericSycl, T, THierarchy>
         {
             static_assert(std::is_integral_v<T> || std::is_floating_point_v<T>,
                           "SYCL atomics don't support this type");
             //-----------------------------------------------------------------------------
-            static auto atomicOp(AtomicUniformSycl const &, T * const addr, T const & compare, T const & value) -> T
+            static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & compare, T const & value) -> T
             {
                 using namespace cl::sycl;
 

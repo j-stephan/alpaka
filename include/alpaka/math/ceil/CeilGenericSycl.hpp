@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/tan/Traits.hpp>
+#include <alpaka/math/ceil/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,29 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library tan.
-        class TanUniformSycl : public concepts::Implements<ConceptMathTan, TanUniformSycl>
+        //! The standard library ceil.
+        class CeilGenericSycl : public concepts::Implements<ConceptMathCeil, CeilGenericSycl>
         {
         public:
-            using TanBase = TanUniformSycl;
+            using CeilBase = CeilGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library tan trait specialization.
+            //! The standard library ceil trait specialization.
             template<
                 typename TArg>
-            struct Tan<
-                TanUniformSycl,
+            struct Ceil<
+                CeilGenericSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto tan(
-                    TanUniformSycl const &,
+                static auto ceil(
+                    CeilGenericSycl const &,
                     TArg const & arg)
                 {
-                    return cl::sycl::tan(arg);
+                    return cl::sycl::ceil(arg);
                 }
             };
         }

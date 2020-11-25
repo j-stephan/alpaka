@@ -19,9 +19,7 @@
 #endif
 
 #include <alpaka/dev/Traits.hpp>
-#include <alpaka/dev/DevUniformSycl.hpp>
-
-#include <alpaka/core/UniformSycl.hpp>
+#include <alpaka/core/Sycl.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -31,29 +29,19 @@ namespace alpaka
 {
     //#############################################################################
     //! The SYCL device manager.
-    class PltfUniformSycl : public concepts::Implements<ConceptPltf, PltfUniformSycl>
+    class PltfGenericSycl : public concepts::Implements<ConceptPltf, PltfGenericSycl>
     {
     public:
         //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST PltfSycl() = delete;
-
-        using selector = cl::sycl::default_selector;
     };
 
     namespace traits
     {
         //#############################################################################
-        //! The SYCL device manager device type trait specialization.
-        template<>
-        struct DevType<PltfUniformSycl>
-        {
-            using type = DevUniformSycl;
-        };
-
-        //#############################################################################
         //! The SYCL platform device count get trait specialization.
         template<typename TPltf>
-        struct GetDevCount<TPltf, std::enable_if_t<std::is_base_of_v<PltfUniformSycl, TPltf>>>
+        struct GetDevCount<TPltf, std::enable_if_t<std::is_base_of_v<PltfGenericSycl, TPltf>>>
         {
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getDevCount() -> std::size_t
@@ -69,7 +57,7 @@ namespace alpaka
         //#############################################################################
         //! The SYCL platform device get trait specialization.
         template<typename TPltf>
-        struct GetDevByIdx<TPltf, std::enable_if_t<std::is_base_of_v<PltfUniformSycl, TPltf>>>
+        struct GetDevByIdx<TPltf, std::enable_if_t<std::is_base_of_v<PltfGenericSycl, TPltf>>>
         {
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getDevByIdx(std::size_t const & devIdx)

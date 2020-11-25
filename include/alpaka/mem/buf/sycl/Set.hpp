@@ -19,18 +19,16 @@
 #endif
 
 #include <alpaka/dev/Traits.hpp>
-#include <alpaka/dev/DevUniformSycl.hpp>
+#include <alpaka/dev/DevGenericSycl.hpp>
 #include <alpaka/dim/DimIntegralConst.hpp>
 #include <alpaka/extent/Traits.hpp>
 #include <alpaka/mem/view/Traits.hpp>
-#include <alpaka/mem/buf/sycl/Utility.hpp>
 #include <alpaka/queue/Traits.hpp>
 #include <alpaka/core/Assert.hpp>
-#include <alpaka/core/UniformSycl.hpp>
+#include <alpaka/core/Sycl.hpp>
 
 #include <CL/sycl.hpp>
 
-#include <type_traits>
 #include <vector>
 
 namespace alpaka
@@ -61,8 +59,8 @@ namespace alpaka
     {
         //#############################################################################
         //! The SYCL device memory set trait specialization.
-        template<typename TDim, typename TDev>
-        struct CreateTaskMemset<TDim, TDev, std::enable_if_t<std::is_base_of_v<DevUniformSycl, TDev>>>
+        template<typename TDim, typename TPltf>
+        struct CreateTaskMemset<TDim, DevGenericSycl<TPltf>>
         {
             //-----------------------------------------------------------------------------
             template<typename TExtent, typename TView>

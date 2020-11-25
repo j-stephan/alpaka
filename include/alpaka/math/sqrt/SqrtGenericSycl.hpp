@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/ceil/Traits.hpp>
+#include <alpaka/math/sqrt/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,29 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library ceil.
-        class CeilUniformSycl : public concepts::Implements<ConceptMathCeil, CeilUniformSycl>
+        //! The standard library sqrt.
+        class SqrtGenericSycl : public concepts::Implements<ConceptMathSqrt, SqrtGenericSycl>
         {
         public:
-            using CeilBase = CeilUniformSycl;
+            using SqrtBase = SqrtGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library ceil trait specialization.
+            //! The standard library sqrt trait specialization.
             template<
                 typename TArg>
-            struct Ceil<
-                CeilUniformSycl,
+            struct Sqrt<
+                SqrtGenericSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto ceil(
-                    CeilUniformSycl const &,
+                static auto sqrt(
+                    SqrtGenericSycl const &,
                     TArg const & arg)
                 {
-                    return cl::sycl::ceil(arg);
+                    return cl::sycl::sqrt(arg);
                 }
             };
         }

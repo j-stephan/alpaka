@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/atan/Traits.hpp>
+#include <alpaka/math/floor/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,29 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library atan.
-        class AtanUniformSycl : concepts::Implements<ConceptMathAtan, AtanUniformSycl>
+        //! The standard library floor.
+        class FloorGenericSycl : public concepts::Implements<ConceptMathFloor, FloorGenericSycl>
         {
         public:
-            using AtanBase = AtanUniformSycl;
+            using FloorBase = FloorGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library atan trait specialization.
+            //! The standard library floor trait specialization.
             template<
                 typename TArg>
-            struct Atan<
-                AtanUniformSycl,
+            struct Floor<
+                FloorGenericSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto atan(
-                    AtanUniformSycl const&,
+                static auto floor(
+                    FloorGenericSycl const &,
                     TArg const & arg)
                 {
-                    return cl::sycl::atan(arg);
+                    return cl::sycl::floor(arg);
                 }
             };
         }

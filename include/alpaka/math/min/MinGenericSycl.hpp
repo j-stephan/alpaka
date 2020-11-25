@@ -32,10 +32,10 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library min.
-        class MinUniformSycl : public concepts::Implements<ConceptMathMin, MinUniformSycl>
+        class MinGenericSycl : public concepts::Implements<ConceptMathMin, MinGenericSycl>
         {
         public:
-            using MinBase = MinUniformSycl;
+            using MinBase = MinGenericSycl;
         };
 
         namespace traits
@@ -46,7 +46,7 @@ namespace alpaka
                 typename Tx,
                 typename Ty>
             struct Min<
-                MinUniformSycl,
+                MinGenericSycl,
                 Tx,
                 Ty,
                 std::enable_if_t<
@@ -54,7 +54,7 @@ namespace alpaka
                     && std::is_integral_v<Ty>>>
             {
                 static auto min(
-                    MinUniformSycl const &,
+                    MinGenericSycl const &,
                     Tx const & x,
                     Ty const & y)
                 {
@@ -67,7 +67,7 @@ namespace alpaka
                 typename Tx,
                 typename Ty>
             struct Min<
-                MinUniformSycl,
+                MinGenericSycl,
                 Tx,
                 Ty,
                 std::enable_if_t<
@@ -75,7 +75,7 @@ namespace alpaka
                     && std::is_floating_point_v<Ty>>>
             {
                 static auto min(
-                    MinUniformSycl const &,
+                    MinGenericSycl const &,
                     Tx const & x,
                     Ty const & y)
                 {

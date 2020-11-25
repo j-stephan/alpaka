@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/rsqrt/Traits.hpp>
+#include <alpaka/math/erf/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,29 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library rsqrt.
-        class RsqrtUniformSycl : public concepts::Implements<ConceptMathRsqrt, RsqrtUniformSycl>
+        //! The standard library erf.
+        class ErfGenericSycl : public concepts::Implements<ConceptMathErf, ErfGenericSycl>
         {
         public:
-            using RsqrtBase = RsqrtUniformSycl;
+            using ErfBase = ErfGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library rsqrt trait specialization.
+            //! The standard library erf trait specialization.
             template<
                 typename TArg>
-            struct Rsqrt<
-                RsqrtUniformSycl,
+            struct Erf<
+                ErfGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_arithmetic_v<TArg>>>
+                std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto rsqrt(
-                    RsqrtUniformSycl const &,
+                static auto erf(
+                    ErfGenericSycl const &,
                     TArg const & arg)
                 {
-                    return cl::sycl::rsqrt(arg);
+                    return cl::sycl::erf(arg);
                 }
             };
         }

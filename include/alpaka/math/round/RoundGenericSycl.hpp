@@ -30,10 +30,10 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library round.
-        class RoundUniformSycl : public concepts::Implements<ConceptMathRound, RoundUniformSycl>
+        class RoundGenericSycl : public concepts::Implements<ConceptMathRound, RoundGenericSycl>
         {
         public:
-            using RoundBase = RoundUniformSycl;
+            using RoundBase = RoundGenericSycl;
         };
 
         namespace traits
@@ -43,12 +43,12 @@ namespace alpaka
             template<
                 typename TArg>
             struct Round<
-                RoundUniformSycl,
+                RoundGenericSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
                 static auto round(
-                    RoundUniformSycl const &,
+                    RoundGenericSycl const &,
                     TArg const & arg)
                 {
                     return cl::sycl::round(arg);
@@ -59,12 +59,12 @@ namespace alpaka
             template<
                 typename TArg>
             struct Lround<
-                RoundUniformSycl,
+                RoundGenericSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
                 static auto lround(
-                    RoundUniformSycl const &,
+                    RoundGenericSycl const &,
                     TArg const & arg)
                 {
                     return static_cast<long int>(cl::sycl::round(arg));
@@ -75,12 +75,12 @@ namespace alpaka
             template<
                 typename TArg>
             struct Llround<
-                RoundUniformSycl,
+                RoundGenericSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
                 static auto llround(
-                    RoundUniformSycl const &,
+                    RoundGenericSycl const &,
                     TArg const & arg)
                 {
                     return static_cast<long long int>(cl::sycl::round(arg));

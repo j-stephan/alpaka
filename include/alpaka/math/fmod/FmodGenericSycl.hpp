@@ -30,10 +30,10 @@ namespace alpaka
     {
         //#############################################################################
         //! The standard library fmod.
-        class FmodUniformSycl : public concepts::Implements<ConceptMathFmod, FmodUniformSycl>
+        class FmodGenericSycl : public concepts::Implements<ConceptMathFmod, FmodGenericSycl>
         {
         public:
-            using FmodBase = FmodUniformSycl;
+            using FmodBase = FmodGenericSycl;
         };
 
         namespace traits
@@ -44,7 +44,7 @@ namespace alpaka
                 typename Tx,
                 typename Ty>
             struct Fmod<
-                FmodUniformSycl,
+                FmodGenericSycl,
                 Tx,
                 Ty,
                 std::enable_if_t<
@@ -52,7 +52,7 @@ namespace alpaka
                     && std::is_floating_point_v<Ty>>>
             {
                 static auto fmod(
-                    FmodUniformSycl const &,
+                    FmodGenericSycl const &,
                     Tx const & x,
                     Ty const & y)
                 {

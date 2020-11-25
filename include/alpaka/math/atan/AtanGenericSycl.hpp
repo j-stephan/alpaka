@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/sin/Traits.hpp>
+#include <alpaka/math/atan/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,29 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library sin.
-        class SinUniformSycl : public concepts::Implements<ConceptMathSin, SinUniformSycl>
+        //! The standard library atan.
+        class AtanGenericSycl : concepts::Implements<ConceptMathAtan, AtanGenericSycl>
         {
         public:
-            using SinBase = SinUniformSycl;
+            using AtanBase = AtanGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library sin trait specialization.
+            //! The standard library atan trait specialization.
             template<
                 typename TArg>
-            struct Sin<
-                SinUniformSycl,
+            struct Atan<
+                AtanGenericSycl,
                 TArg,
                 std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto sin(
-                    SinUniformSycl const &,
+                static auto atan(
+                    AtanGenericSycl const&,
                     TArg const & arg)
                 {
-                    return cl::sycl::sin(arg);
+                    return cl::sycl::atan(arg);
                 }
             };
         }

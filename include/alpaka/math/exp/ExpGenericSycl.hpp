@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/atan2/Traits.hpp>
+#include <alpaka/math/exp/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,34 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library atan2.
-        class Atan2UniformSycl : concepts::Implements<ConceptMathAtan2, Atan2UniformSycl>
+        //! The standard library exp.
+        class ExpGenericSycl : public concepts::Implements<ConceptMathExp, ExpGenericSycl>
         {
         public:
-            using Atan2Base = Atan2UniformSycl;
+            using ExpBase = ExpGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library atan2 trait specialization.
+            //! The standard library exp trait specialization.
             template<
-                typename Ty,
-                typename Tx>
-            struct Atan2<
-                Atan2UniformSycl,
-                Ty,
-                Tx,
-                std::enable_if_t<
-                    std::is_floating_point_v<Ty>
-                    && std::is_floating_point_v<Tx>>>
+                typename TArg>
+            struct Exp<
+                ExpGenericSycl,
+                TArg,
+                std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto atan2(
-                    Atan2UniformSycl const &,
-                    Ty const & y,
-                    Tx const & x)
+                static auto exp(
+                    ExpGenericSycl const &,
+                    TArg const & arg)
                 {
-                    return cl::sycl::atan2(y, x);
+                    return cl::sycl::exp(arg);
                 }
             };
         }

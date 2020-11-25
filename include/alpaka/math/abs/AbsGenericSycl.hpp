@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/sqrt/Traits.hpp>
+#include <alpaka/math/abs/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,29 +29,23 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library sqrt.
-        class SqrtUniformSycl : public concepts::Implements<ConceptMathSqrt, SqrtUniformSycl>
+        //! The standard library abs.
+        class AbsGenericSycl : public concepts::Implements<ConceptMathAbs, AbsGenericSycl>
         {
         public:
-            using SqrtBase = SqrtUniformSycl;
+            using AbsBase = AbsGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library sqrt trait specialization.
-            template<
-                typename TArg>
-            struct Sqrt<
-                SqrtUniformSycl,
-                TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+            //! The SYCL built in abs trait specialization.
+            template<typename TArg>
+            struct Abs<AbsGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto sqrt(
-                    SqrtUniformSycl const &,
-                    TArg const & arg)
+                static auto abs(AbsGenericSycl const&, TArg const & arg)
                 {
-                    return cl::sycl::sqrt(arg);
+                    return cl::sycl::fabs(arg);
                 }
             };
         }

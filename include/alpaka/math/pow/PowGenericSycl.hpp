@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/erf/Traits.hpp>
+#include <alpaka/math/pow/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,29 +29,34 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library erf.
-        class ErfUniformSycl : public concepts::Implements<ConceptMathErf, ErfUniformSycl>
+        //! The standard library pow.
+        class PowGenericSycl : concepts::Implements<ConceptMathPow, PowGenericSycl>
         {
         public:
-            using ErfBase = ErfUniformSycl;
+            using PowBase = PowGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library erf trait specialization.
+            //! The standard library pow trait specialization.
             template<
-                typename TArg>
-            struct Erf<
-                ErfUniformSycl,
-                TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                typename TBase,
+                typename TExp>
+            struct Pow<
+                PowGenericSycl,
+                TBase,
+                TExp,
+                std::enable_if_t<
+                    std::is_floating_point_v<TBase>
+                    && std::is_floating_point_v<TExp>>>
             {
-                static auto erf(
-                    ErfUniformSycl const &,
-                    TArg const & arg)
+                static auto pow(
+                    PowGenericSycl const &,
+                    TBase const & base,
+                    TExp const & exp)
                 {
-                    return cl::sycl::erf(arg);
+                    return cl::sycl::pow(base, exp);
                 }
             };
         }

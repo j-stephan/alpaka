@@ -19,7 +19,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/math/remainder/Traits.hpp>
+#include <alpaka/math/asin/Traits.hpp>
 
 #include <CL/sycl.hpp>
 #include <type_traits>
@@ -29,34 +29,29 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library remainder.
-        class RemainderUniformSycl : concepts::Implements<ConceptMathRemainder, RemainderUniformSycl>
+        //! The standard library asin.
+        class AsinGenericSycl : concepts::Implements<ConceptMathAsin, AsinGenericSycl>
         {
         public:
-            using RemainderBase = RemainderUniformSycl;
+            using AsinBase = AsinGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library remainder trait specialization.
+            //! The standard library asin trait specialization.
             template<
-                typename Tx,
-                typename Ty>
-            struct Remainder<
-                RemainderUniformSycl,
-                Tx,
-                Ty,
-                std::enable_if_t<
-                    std::is_floating_point_v<Tx>
-                    && std::is_floating_point_v<Ty>>>
+                typename TArg>
+            struct Asin<
+                AsinGenericSycl,
+                TArg,
+                std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto remainder(
-                    RemainderUniformSycl const &,
-                    Tx const & x,
-                    Ty const & y)
+                static auto asin(
+                    AsinGenericSycl const&,
+                    TArg const & arg)
                 {
-                    return cl::sycl::remainder(x, y);
+                    return cl::sycl::asin(arg);
                 }
             };
         }
