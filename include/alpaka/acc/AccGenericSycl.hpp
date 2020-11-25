@@ -54,7 +54,7 @@ namespace alpaka
     //!
     //! This accelerator allows parallel kernel execution on SYCL devices.
     template<typename TDim, typename TIdx>
-    class AccUniformSycl :
+    class AccGenericSycl :
         public WorkDivUniformSycl<TDim, TIdx>,
         public gb::IdxGbUniformSycl<TDim, TIdx>,
         public bt::IdxBtUniformSycl<TDim, TIdx>,
@@ -65,11 +65,11 @@ namespace alpaka
         public BlockSyncUniformSycl<TDim>,
         //public rand::RandUniformSycl,
         //public TimeUniformSycl
-        public concepts::Implements<ConceptAcc, AccUniformSycl<TDim, TIdx>>
+        public concepts::Implements<ConceptAcc, AccGenericSycl<TDim, TIdx>>
     {
     public:
         //-----------------------------------------------------------------------------
-        AccUniformSycl(
+        AccGenericSycl(
             Vec<TDim, TIdx> const & threadElemExtent,
             cl::sycl::nd_item<TDim::value> work_item,
             cl::sycl::accessor<unsigned char, 1,
@@ -91,7 +91,7 @@ namespace alpaka
         {}
 
         //-----------------------------------------------------------------------------
-        AccUniformSycl(AccUniformSycl const & rhs)
+        AccGenericSycl(AccGenericSycl const & rhs)
         : WorkDivUniformSycl<TDim, TIdx>{rhs}
         , gb::IdxGbUniformSycl<TDim, TIdx>{rhs}
         , bt::IdxBtUniformSycl<TDim, TIdx>{rhs}
@@ -102,13 +102,13 @@ namespace alpaka
         {
         }
         //-----------------------------------------------------------------------------
-        AccUniformSycl(AccUniformSycl &&) = delete;
+        AccGenericSycl(AccGenericSycl &&) = delete;
         //-----------------------------------------------------------------------------
-        auto operator=(AccUniformSycl const &) -> AccUniformSycl & = delete;
+        auto operator=(AccGenericSycl const &) -> AccGenericSycl & = delete;
         //-----------------------------------------------------------------------------
-        auto operator=(AccUniformSycl &&) -> AccUniformSycl & = delete;
+        auto operator=(AccGenericSycl &&) -> AccGenericSycl & = delete;
         //-----------------------------------------------------------------------------
-        ~AccUniformSycl() = default;
+        ~AccGenericSycl() = default;
     };
 
     namespace traits
@@ -116,7 +116,7 @@ namespace alpaka
         //#############################################################################
         //! The SYCL accelerator type trait specialization.
         template<typename TAcc, typename TDim, typename TIdx>
-        struct AccType<TAcc, std::enable_if_t<std::is_base_of_v<AccUniformSycl<TDim, TIdx>, TAcc>>>
+        struct AccType<TAcc, std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc>>>
         {
             using type = TAcc;
         };
@@ -124,7 +124,7 @@ namespace alpaka
         //#############################################################################
         //! The SYCL accelerator device properties get trait specialization.
         template<typename TAcc, typename TDim, typename TIdx>
-        struct GetAccDevProps<TAcc, std::enable_if_t<std::is_base_of_v<AccUniformSycl<TDim, TIdx>, TAcc>>>
+        struct GetAccDevProps<TAcc, std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc>>>
         {
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccDevProps(typename DevType<TAcc>::type const & dev) -> AccDevProps<TDim, TIdx>
@@ -166,19 +166,19 @@ namespace alpaka
         //#############################################################################
         //! The SYCL accelerator name trait specialization.
         template<typename TDim, typename TIdx>
-        struct GetAccName<AccUniformSycl<TDim, TIdx>>
+        struct GetAccName<AccGenericSycl<TDim, TIdx>>
         {
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccName() -> std::string
             {
-                return "AccUniformSycl<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
+                return "AccGenericSycl<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
             }
         };
 
         //#############################################################################
         //! The SYCL accelerator device type trait specialization.
         template<typename TDim, typename TIdx>
-        struct DevType<AccUniformSycl<TDim, TIdx>>
+        struct DevType<AccGenericSycl<TDim, TIdx>>
         {
             using type = DevUniformSycl;
         };
@@ -186,7 +186,7 @@ namespace alpaka
         //#############################################################################
         //! The SYCL accelerator dimension getter trait specialization.
         template<typename TAcc, typename TDim, typename TIdx>
-        struct DimType<TAcc, std::enable_if_t<std::is_base_of_v<AccUniformSycl<TDim, TIdx>, TAcc>>>
+        struct DimType<TAcc, std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc>>>
         {
             using type = TDim;
         };
@@ -194,7 +194,7 @@ namespace alpaka
         //#############################################################################
         //! The SYCL accelerator execution task type trait specialization.
         template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
-        struct CreateTaskKernel<AccUniformSycl<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
+        struct CreateTaskKernel<AccGenericSycl<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
         {
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto createTaskKernel(TWorkDiv const & workDiv, TKernelFnObj const & kernelFnObj,
@@ -207,7 +207,7 @@ namespace alpaka
         //#############################################################################
         //! The SYCL execution task platform type trait specialization.
         template<typename TDim, typename TIdx>
-        struct PltfType<AccUniformSycl<TDim, TIdx>>
+        struct PltfType<AccGenericSycl<TDim, TIdx>>
         {
             using type = PltfUniformSycl;
         };
@@ -215,7 +215,7 @@ namespace alpaka
         //#############################################################################
         //! The SYCL accelerator idx type trait specialization.
         template<typename TAcc, typename TDim, typename TIdx>
-        struct IdxType<TAcc, std::enable_if_t<std::is_base_of_v<AccUniformSycl<TDim, TIdx>, TAcc>>>
+        struct IdxType<TAcc, std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc>>>
         {
             using type = TIdx;
         };
