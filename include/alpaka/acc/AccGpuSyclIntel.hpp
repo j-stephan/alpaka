@@ -12,14 +12,14 @@
 
 #if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_BACKEND_ONEAPI)
 
-#include <alpaka/acc/AccUniformSycl.hpp>
+#include <alpaka/acc/AccGenericSycl.hpp>
 #include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/Sycl.hpp>
-#include <alpaka/dev/DevSycl.hpp>
+#include <alpaka/dev/DevGpuSyclIntel.hpp>
 #include <alpaka/dev/Traits.hpp>
-#include <alpaka/kernel/TaskKernelSycl.hpp>
+#include <alpaka/kernel/TaskKernelGpuSyclIntel.hpp>
 #include <alpaka/kernel/Traits.hpp>
-#include <alpaka/pltf/PltfSycl.hpp>
+#include <alpaka/pltf/PltfGpuSyclIntel.hpp>
 #include <alpaka/pltf/Traits.hpp>
 #include <alpaka/vec/Vec.hpp>
 
@@ -30,7 +30,7 @@
 namespace alpaka
 {
     template <typename TDim, typename TIdx>
-    class AccGpuSyclIntel : public AccUniformSycl<TDim, TIdx>
+    class AccGpuSyclIntel : public AccGenericSycl<TDim, TIdx>
                            , public concepts::Implements<ConceptAcc, AccGpuSyclIntel<TDim, TIdx>>
     {
     public:
@@ -39,11 +39,11 @@ namespace alpaka
                             cl::sycl::access::target::local> shared_acc,
                          cl::sycl::accessor<int, 0, cl::sycl::access::mode::atomic,
                             cl::sycl::access::target::local> pred_counter)
-        : AccUniformSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc, pred_counter)
+        : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc, pred_counter)
         {}
 
         AccGpuSyclIntel(AccGpuSyclIntel const& rhs)
-        : AccUniformSycl<TDim, TIdx>(rhs)
+        : AccGenericSycl<TDim, TIdx>(rhs)
         {}
         
         auto operator=(AccGpuSyclIntel const&) -> AccGpuSyclIntel& = delete;
@@ -85,7 +85,7 @@ namespace alpaka
             ALPAKA_FN_HOST static auto createTaskKernel(TWorkDiv const & workDiv, TKernelFnObj const & kernelFnObj,
                                                         TArgs const & ... args)
             {
-                return TaskKernelUniformSycl<TDim, TIdx, TKernelFnObj, TArgs...>(workDiv, kernelFnObj, args...);
+                return TaskKernelGpuSyclIntel<TDim, TIdx, TKernelFnObj, TArgs...>{workDiv, kernelFnObj, args...};
             }
         };
 
