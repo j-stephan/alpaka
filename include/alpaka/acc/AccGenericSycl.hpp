@@ -58,7 +58,7 @@ namespace alpaka
         public WorkDivUniformSycl<TDim, TIdx>,
         public gb::IdxGbUniformSycl<TDim, TIdx>,
         public bt::IdxBtUniformSycl<TDim, TIdx>,
-        public AtomicHierarchy<AtomicUniformSycl, AtomicUniformSycl, AtomicSycl>,
+        public AtomicHierarchy<AtomicUniformSycl, AtomicUniformSycl, AtomicUniformSycl>,
         public math::MathUniformSycl,
         public BlockSharedMemDynUniformSycl,
         //public BlockSharedMemStUniformSycl,
@@ -138,7 +138,7 @@ namespace alpaka
                     // m_gridBlockExtentMax
                     extent::getExtentVecEnd<TDim>(
                         Vec<DimInt<3u>, TIdx>(
-                            // FIXME: There is no SYCL way to determine these values
+                            // WARNING: There is no SYCL way to determine these values
                             std::numeric_limits<TIdx>::max(),
                             std::numeric_limits<TIdx>::max(),
                             std::numeric_limits<TIdx>::max())),
@@ -158,29 +158,9 @@ namespace alpaka
                     // m_threadElemCountMax
                     std::numeric_limits<TIdx>::max(),
                     // m_sharedMemSizeBytes
-                    dev.m_Device.get_info<info::device::local_mem_size>()
+                    dev.m_dev.get_info<info::device::local_mem_size>()
                 };
             }
-        };
-
-        //#############################################################################
-        //! The SYCL accelerator name trait specialization.
-        template<typename TDim, typename TIdx>
-        struct GetAccName<AccGenericSycl<TDim, TIdx>>
-        {
-            //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto getAccName() -> std::string
-            {
-                return "AccGenericSycl<" + std::to_string(TDim::value) + "," + typeid(TIdx).name() + ">";
-            }
-        };
-
-        //#############################################################################
-        //! The SYCL accelerator device type trait specialization.
-        template<typename TDim, typename TIdx>
-        struct DevType<AccGenericSycl<TDim, TIdx>>
-        {
-            using type = DevUniformSycl;
         };
 
         //#############################################################################
@@ -189,27 +169,6 @@ namespace alpaka
         struct DimType<TAcc, std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc>>>
         {
             using type = TDim;
-        };
-
-        //#############################################################################
-        //! The SYCL accelerator execution task type trait specialization.
-        template<typename TDim, typename TIdx, typename TWorkDiv, typename TKernelFnObj, typename... TArgs>
-        struct CreateTaskKernel<AccGenericSycl<TDim, TIdx>, TWorkDiv, TKernelFnObj, TArgs...>
-        {
-            //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto createTaskKernel(TWorkDiv const & workDiv, TKernelFnObj const & kernelFnObj,
-                                                        TArgs const & ... args)
-            {
-                return TaskKernelUniformSycl<TDim, TIdx, TKernelFnObj, TArgs...>(workDiv, kernelFnObj, args...);
-            }
-        };
-
-        //#############################################################################
-        //! The SYCL execution task platform type trait specialization.
-        template<typename TDim, typename TIdx>
-        struct PltfType<AccGenericSycl<TDim, TIdx>>
-        {
-            using type = PltfUniformSycl;
         };
 
         //#############################################################################
