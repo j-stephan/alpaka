@@ -18,101 +18,13 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-// Specialized traits.
-#include <alpaka/acc/Traits.hpp>
-#include <alpaka/dev/Traits.hpp>
-#include <alpaka/dim/Traits.hpp>
-#include <alpaka/pltf/Traits.hpp>
-#include <alpaka/idx/Traits.hpp>
-#include <alpaka/queue/Traits.hpp>
-
-// Implementation details.
-#include <alpaka/acc/AccUniformSycl.hpp>
-#include <alpaka/dev/DevUniformSycl.hpp>
-#include <alpaka/kernel/Traits.hpp>
-#include <alpaka/kernel/TaskKernelUniformSycl.hpp>
-#include <alpaka/queue/QueueSyclNonBlocking.hpp>
-#include <alpaka/queue/QueueSyclBlocking.hpp>
-#include <alpaka/workdiv/WorkDivMembers.hpp>
-
-#if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-    #include <alpaka/acc/Traits.hpp>
-    #include <alpaka/dev/Traits.hpp>
-    #include <alpaka/workdiv/WorkDivHelpers.hpp>
-#endif
-
-#include <alpaka/core/BoostPredef.hpp>
-#include <alpaka/core/Sycl.hpp>
-#include <alpaka/meta/ApplyTuple.hpp>
-#include <alpaka/meta/Metafunctions.hpp>
-
-#include <stdexcept>
-#include <tuple>
-#include <type_traits>
-#include <utility>
-#if ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
-    #include <iostream>
-#endif
-
-#include <stl-tuple/STLTuple.hpp> // computecpp-sdk
+#include <alpaka/acc/AccFpgaSyclXilinx.hpp>
+#include <alpaka/kernel/TaskKernelGenericSycl.hpp>
 
 namespace alpaka
 {
-    //#############################################################################
-    //! The SYCL accelerator execution task.
-    template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-    class TaskKernelFpgaSyclXilinx final : public detail::TaskKernelSyclImpl<AccFpgaSyclXilinx<TDim, TIdx>, TDim, TIdx, TKernelFnObj, TArgs...>
-    {
-    public:
-        //-----------------------------------------------------------------------------
-        template<typename TWorkDiv>
-        ALPAKA_FN_HOST TaskKernelFpgaSyclXilinx(TWorkDiv && workDiv, TKernelFnObj const & kernelFnObj, TArgs const & ... args)
-        : TaskKernelSyclImpl(std::forward<TWorkDiv>(workDiv), kernelFnObj, args...)
-        {
-            static_assert(
-                Dim<typename std::decay<TWorkDiv>::type>::value == TDim::value,
-                "The work division and the execution task have to be of the same dimensionality!");
-        }
-
-        //-----------------------------------------------------------------------------
-        TaskKernelFpgaSyclXilinx(TaskKernelFpgaSyclXilinx const &) = default;
-        //-----------------------------------------------------------------------------
-        TaskKernelFpgaSyclXilinx(TaskKernelFpgaSyclXilinx &&) = default;
-        //-----------------------------------------------------------------------------
-        auto operator=(TaskKernelFpgaSyclXilinx const &) -> TaskKernelFpgaSyclXilinx & = default;
-        //-----------------------------------------------------------------------------
-        auto operator=(TaskKernelFpgaSyclXilinx &&) -> TaskKernelFpgaSyclXilinx & = default;
-        //-----------------------------------------------------------------------------
-        ~TaskKernelFpgaSyclXilinx() = default;
-
-    };
-
-    namespace traits
-    {
-        //#############################################################################
-        //! The SYCL execution task accelerator type trait specialization.
-        template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-        struct AccType<TaskKernelFpgaSyclXilinx<TDim, TIdx, TKernelFnObj, TArgs...>>
-        {
-            using type = AccFpgaSyclXilinx<TDim, TIdx>;
-        };
-
-        //#############################################################################
-        //! The SYCL execution task device type trait specialization.
-        template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-        struct DevType<TaskKernelFpgaSyclXilinx<TDim, TIdx, TKernelFnObj, TArgs...>>
-        {
-            using type = DevFpgaSyclXilinx;
-        };
-
-        //#############################################################################
-        //! The SYCL execution task platform type trait specialization.
-        template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
-        struct PltfType<TaskKernelFpgaSyclXilinx<TDim, TIdx, TKernelFnObj, TArgs...>>
-        {
-            using type = PltfFpgaSyclXilinx;
-        };
-    }
+    template <typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
+    using TaskKernelFpgaSyclXilinx = TaskKernelGenericSycl<AccFpgaSyclXilinx<TDim, TIdx>, TDim, TIdx, TKernelFnObj, TArgs...>;
 }
 
 #endif
