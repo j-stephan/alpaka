@@ -38,7 +38,7 @@ namespace alpaka
             auto operator()(const cl::sycl::device& dev) const -> int override
             {
                 const auto vendor = dev.get_info<cl::sycl::info::device::vendor>();
-                const auto is_intel_gpu = (vendor.find("HD Graphics Neo") != std::string::npos) && dev.is_gpu();
+                const auto is_intel_gpu = (vendor.find("Intel(R) Corporation") != std::string::npos) && dev.is_gpu();
 
                 return is_intel_gpu ? 1 : -1;
             }
