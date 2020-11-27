@@ -192,6 +192,50 @@ namespace alpaka
                 typename TIdx>
             using AccGpuHipRtIfAvailableElseInt = int;
 #endif
+#if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_BACKEND_ONEAPI) && defined(ALPAKA_SYCL_TARGET_CPU)
+            template<
+                typename TDim,
+                typename TIdx>
+            using AccCpuSyclIntelIfAvailableElseInt = alpaka::AccCpuSyclIntel<TDim, TIdx>;
+#else
+            template<
+                typename TDim,
+                typename TIdx>
+            using AccCpuSyclIntelIfAvailableElseInt = int;
+#endif
+#if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_BACKEND_ONEAPI) && defined(ALPAKA_SYCL_TARGET_FPGA)
+            template<
+                typename TDim,
+                typename TIdx>
+            using AccFpgaSyclIntelIfAvailableElseInt = alpaka::AccFpgaSyclIntel<TDim, TIdx>;
+#else
+            template<
+                typename TDim,
+                typename TIdx>
+            using AccFpgaSyclIntelIfAvailableElseInt = int;
+#endif
+#if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_BACKEND_XILINX) && defined(ALPAKA_SYCL_TARGET_FPGA)
+            template<
+                typename TDim,
+                typename TIdx>
+            using AccFpgaSyclXilinxIfAvailableElseInt = alpaka::AccFpgaSyclXilinx<TDim, TIdx>;
+#else
+            template<
+                typename TDim,
+                typename TIdx>
+            using AccFpgaSyclXilinxIfAvailableElseInt = int;
+#endif
+#if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_BACKEND_ONEAPI) && defined(ALPAKA_SYCL_TARGET_GPU)
+            template<
+                typename TDim,
+                typename TIdx>
+            using AccGpuSyclIntelIfAvailableElseInt = alpaka::AccGpuSyclIntel<TDim, TIdx>;
+#else
+            template<
+                typename TDim,
+                typename TIdx>
+            using AccGpuSyclIntelIfAvailableElseInt = int;
+#endif
             //#############################################################################
             //! A vector containing all available accelerators and void's.
             template<
@@ -209,7 +253,11 @@ namespace alpaka
                     AccOaccIfAvailableElseInt<TDim, TIdx>,
                     AccGpuUniformCudaHipRtIfAvailableElseInt<TDim, TIdx>,
                     AccGpuCudaRtIfAvailableElseInt<TDim, TIdx>,
-                    AccGpuHipRtIfAvailableElseInt<TDim, TIdx>
+                    AccGpuHipRtIfAvailableElseInt<TDim, TIdx>,
+                    AccCpuSyclIntelIfAvailableElseInt<TDim, TIdx>,
+                    AccFpgaSyclIntelIfAvailableElseInt<TDim, TIdx>,
+                    AccFpgaSyclXilinxIfAvailableElseInt<TDim, TIdx>,
+                    AccGpuSyclIntelIfAvailableElseInt<TDim, TIdx>
                 >;
         }
 

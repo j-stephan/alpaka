@@ -18,11 +18,13 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
-#include <alpaka/acc/AccFpgaSyclXilinx.hpp>
 #include <alpaka/kernel/TaskKernelGenericSycl.hpp>
 
 namespace alpaka
 {
+    template <typename TDim, typename TIdx>
+    class AccFpgaSyclXilinx;
+
     template <typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
     using TaskKernelFpgaSyclXilinx = TaskKernelGenericSycl<AccFpgaSyclXilinx<TDim, TIdx>, TDim, TIdx, TKernelFnObj, TArgs...>;
 }

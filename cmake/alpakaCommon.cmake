@@ -727,6 +727,7 @@ if(ALPAKA_ACC_SYCL_ENABLE)
     endif()
 
     target_compile_options(alpaka INTERFACE "-fsycl")
+    target_link_options(alpaka INTERFACE "-fsycl")
     target_compile_options(alpaka INTERFACE "-sycl-std=2020")
 
     #-----------------------------------------------------------------------------------------------------------------
@@ -755,6 +756,7 @@ if(ALPAKA_ACC_SYCL_ENABLE)
 
     list(JOIN ALPAKA_SYCL_TARGETS "," ALPAKA_SYCL_TARGETS_CONCAT)
     target_compile_options(alpaka INTERFACE "-fsycl-targets=${ALPAKA_SYCL_TARGETS_CONCAT}")
+    target_link_options(alpaka INTERFACE "-fsycl-targets=${ALPAKA_SYCL_TARGETS_CONCAT}")
     
     # We can't use -fintelfpga because there might be multiple SYCL targets. Since we are relying on the alternative
     # (spir64_fpga-unknown-unknown-sycldevice) we need to manually provide the equivalent flags.
@@ -790,6 +792,8 @@ if(ALPAKA_ACC_SYCL_ENABLE)
                      PROPERTY STRINGS "gen8;gen9;gen10;gen11;gen12;bdw;bxt;cfl;glk;kbl;skl;ehl;icllp;lkf;adls;dg1;rkl;tgllp")
         string(REPLACE ALPAKA_SYCL_ONEAPI_GPU_TARGETS REPLACE ";" ",")
         
+        # The compiler seems to be buggy right now. The options below should work but they don't.
+        target_compile_options(alpaka INTERFACE -Xsycl-target-backend=spir64_gen-unknown-unknown-sycl-device "-device ${ALPAKA_SYCL_ONEAPI_GPU_TARGETS}")
         target_link_options(alpaka INTERFACE -Xsycl-target-backend=spir64_gen-unknown-unknown-sycl-device "-device ${ALPAKA_SYCL_ONEAPI_GPU_TARGETS}")
     endif()
 
@@ -800,6 +804,17 @@ if(ALPAKA_ACC_SYCL_ENABLE)
         message(FATAL_ERROR "Could not find <stl-tuple/STLTuple.hpp> in ${ALPAKA_COMPUTECPP_SDK_DIR}")
     endif()
     target_include_directories(alpaka INTERFACE ${ALPAKA_COMPUTECPP_SDK_DIR}/include)
+
+    #-----------------------------------------------------------------------------------------------------------------
+    # Intel's SYCL compiler generates some internal variables that are subsequently marked as "unused". This causes
+    # our test cases to fail because of -Werror. Silence these warnings!
+    if(BUILD_TESTING)
+        target_compile_options(alpaka INTERFACE "-Wno-unused-variable")
+        target_compile_options(alpaka INTERFACE "-Wno-unused-parameter")
+        target_compile_options(alpaka INTERFACE "-Wno-unused-command-line-argument")
+    endif()
+
+    target_link_libraries(alpaka INTERFACE "-lsycl")
 endif()
 
 #-------------------------------------------------------------------------------

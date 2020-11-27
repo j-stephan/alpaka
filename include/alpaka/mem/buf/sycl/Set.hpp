@@ -35,6 +35,26 @@ namespace alpaka
 {
     namespace detail
     {
+        template <typename TElem>
+        struct TaskSetSyclImpl
+        {
+            TaskSetSyclImpl(TElem* p, int val, std::size_t size)
+            : ptr{p}, value{val}, bytes{size}
+            {}
+
+            TaskSetSyclImpl(TaskSetSyclImpl const&) = delete;
+            auto operator=(TaskSetSyclImpl const&) -> TaskSetSyclImpl& = delete;
+            TaskSetSyclImpl(TaskSetSyclImpl&&) = default;
+            auto operator=(TaskSetSyclImpl&&) -> TaskSetSyclImpl& = default;
+            ~TaskSetSyclImpl() = default;
+
+            TElem* ptr;
+            int value;
+            std::size_t bytes;
+            std::vector<cl::sycl::event> m_dependencies = {};
+            std::shared_mutex mutex{};
+        };
+
         //#############################################################################
         //! The SYCL memory set trait.
         template<typename TElem>
@@ -43,15 +63,11 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             auto operator()(cl::sycl::handler& cgh) -> void
             {
-                cgh.depends_on(m_dependencies);
-                cgh.memset(ptr, value, bytes);
+                cgh.depends_on(pimpl->m_dependencies);
+                cgh.memset(pimpl->ptr, pimpl->value, pimpl->bytes);
             }
 
-            TElem* const ptr;
-            int value;
-            std::size_t bytes;
-            std::vector<cl::sycl::event> m_dependencies;
-            std::shared_ptr<std::shared_mutex> mutex_ptr{std::make_shared<std::shared_mutex>()};
+            std::shared_ptr<TaskSetSyclImpl<TElem>> pimpl;
         };
     }
 
@@ -77,7 +93,7 @@ namespace alpaka
                 else
                     bytes = extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext) * TypeBytes;
 
-                return detail::TaskSetSycl<TDim, Type>{getPtrNative(view), static_cast<int>(byte), bytes, {}};
+                return alpaka::detail::TaskSetSycl<Type>{std::make_shared<alpaka::detail::TaskSetSyclImpl<Type>>(getPtrNative(view), static_cast<int>(byte), bytes)};
             }
         };
     }

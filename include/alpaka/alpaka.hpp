@@ -69,7 +69,7 @@
     #include <alpaka/block/sync/BlockSyncBarrierThread.hpp>
     #include <alpaka/block/sync/BlockSyncUniformCudaHipBuiltIn.hpp>
     #include <alpaka/block/sync/BlockSyncNoOp.hpp>
-    #include <alpaka/block/sync/BlockSyncSycl.hpp>
+    #include <alpaka/block/sync/BlockSyncGenericSycl.hpp>
     #include <alpaka/block/sync/Traits.hpp>
 //-----------------------------------------------------------------------------
 // core

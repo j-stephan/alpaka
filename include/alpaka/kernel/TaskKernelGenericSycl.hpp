@@ -29,7 +29,13 @@
 #include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/Sycl.hpp>
 
+// Avoid clang warnings that refer to this header
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdocumentation"
+#pragma clang diagnostic ignored "-Wdocumentation-unknown-command"
+#pragma clang diagnostic ignored "-Wnewline-eof"
 #include <stl-tuple/STLTuple.hpp> // computecpp-sdk
+#pragma clang diagnostic pop
 
 #include <memory>
 #include <shared_mutex>
@@ -53,7 +59,13 @@ namespace alpaka
         }
 
         template <typename TKernelFnObj, typename... TArgs>
-        constexpr auto kernel_returns_void(TKernelFnObj, utility::tuple::Tuple<TArgs...> const &)
+        struct kernelReturnsVoid
+        {
+            static constexpr auto value = std::is_same_v<std::result_of_t<TKernelFnObj(TArgs const& ...)>, void>;
+        };
+
+        template <typename TKernelFnObj, typename... TArgs>
+        constexpr auto kernel_returns_void(TKernelFnObj, utility::tuple::Tuple<TArgs...> const &) -> bool
         {
             return std::is_same_v<std::result_of_t<TKernelFnObj(TArgs const & ...)>, void>;
         }
@@ -69,6 +81,12 @@ namespace alpaka
         {
             apply_impl(std::forward<TFunc>(f), t, std::make_index_sequence<sizeof...(TArgs)>{});
         }
+
+        struct TaskKernelGenericSyclImpl
+        {
+            std::vector<cl::sycl::event> dependencies = {};
+            std::shared_mutex mutex{};
+        };
     } // namespace detail
 
     //#############################################################################
@@ -76,12 +94,15 @@ namespace alpaka
     template<typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
     class TaskKernelGenericSycl final : public WorkDivMembers<TDim, TIdx>
     {
+        template<typename TDev, typename TTask, typename TSfinae>
+        friend struct traits::Enqueue;
+
     public:
         static_assert(TDim::value > 0 && TDim::value <= 3, "Invalid kernel dimensionality");
         //-----------------------------------------------------------------------------
         template<typename TWorkDiv>
         ALPAKA_FN_HOST TaskKernelGenericSycl(TWorkDiv && workDiv, TKernelFnObj const & kernelFnObj,
-                                          TArgs const & ... args)
+                                             TArgs const & ... args)
         : WorkDivMembers<TDim, TIdx>(std::forward<TWorkDiv>(workDiv))
         , m_kernelFnObj{kernelFnObj}
         , m_args{args...}
@@ -102,7 +123,7 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         ~TaskKernelGenericSycl() = default;
 
-        inline auto operator()(cl::sycl::handler& cgh)
+        auto operator()(cl::sycl::handler& cgh) -> void // Don't remove the trailing void or DPCPP will complain.
         { 
             using namespace cl::sycl;
 
@@ -111,7 +132,7 @@ namespace alpaka
 
             // transform to device tuple so we can copy the arguments into device code. We can't use std::tuple for
             // this step because it isn't standard layout and thus prohibited to be copied into SYCL device code.
-            auto device_args = make_device_args(m_args, std::make_index_sequence<sizeof...(TArgs)>{});
+            auto device_args = detail::make_device_args(m_args, std::make_index_sequence<sizeof...(TArgs)>{});
 
             const auto work_groups = WorkDivMembers<TDim, TIdx>::m_gridBlockExtent;
             const auto group_items = WorkDivMembers<TDim, TIdx>::m_blockThreadExtent;
@@ -133,12 +154,12 @@ namespace alpaka
             auto k_func = m_kernelFnObj;
 
             // wait for previous kernels to complete
-            cgh.depends_on(m_dependencies);
+            cgh.depends_on(pimpl->dependencies);
 
-            cgh.parallel_for<kernel<TKernelFnObj>>(nd_range<TDim::value>{global_size, local_size},
+            cgh.parallel_for<detail::kernel<TKernelFnObj>>(nd_range<TDim::value>{global_size, local_size},
             [=](nd_item<TDim::value> work_item)
             {
-                auto pred_counter = atomic_ref<int, memory_order::relaxed, memory_scope::work_group,
+                auto pred_counter = ONEAPI::atomic_ref<int, ONEAPI::memory_order::relaxed, ONEAPI::memory_scope::work_group,
                                                access::address_space::local_space>{pred_counter_acc};
 
                 // add alpaka accelerator to variadic arguments
@@ -147,8 +168,9 @@ namespace alpaka
                                     device_args);
 
                 // Now we can check for correctness.
-                static_assert(kernel_returns_void(k_func, kernel_args), "The TKernelFnObj must return void!");
-                apply(k_func, kernel_args);
+                static_assert(alpaka::detail::kernelReturnsVoid<TKernelFnObj, TAcc, TArgs...>::value, "The KernelFnObj must return void!");
+                //static_assert(alpaka::detail::kernel_returns_void(k_func, kernel_args), "The TKernelFnObj must return void!");
+                alpaka::detail::apply(k_func, kernel_args);
             });
         }
 
@@ -182,8 +204,7 @@ namespace alpaka
 
         TKernelFnObj m_kernelFnObj;
         std::tuple<TArgs...> m_args;
-        std::vector<cl::sycl::event> m_dependencies = {};
-        std::shared_ptr<std::shared_mutex> mutex_ptr{std::make_shared<std::shared_mutex>()};
+        std::shared_ptr<detail::TaskKernelGenericSyclImpl> pimpl{std::make_shared<detail::TaskKernelGenericSyclImpl>()};
     };
 
     namespace traits
@@ -201,7 +222,7 @@ namespace alpaka
         template<typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct DevType<TaskKernelGenericSycl<TAcc, TDim, TIdx, TKernelFnObj, TArgs...>>
         {
-            using type = DevType<TAcc>::type;
+            using type = typename DevType<TAcc>::type;
         };
 
         //#############################################################################
@@ -209,7 +230,7 @@ namespace alpaka
         template<typename TAcc, typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
         struct PltfType<TaskKernelGenericSycl<TAcc, TDim, TIdx, TKernelFnObj, TArgs...>>
         {
-            using type = PltfType<TAcc>::type;
+            using type = typename PltfType<TAcc>::type;
         };
 
         //#############################################################################

@@ -68,19 +68,16 @@ namespace alpaka
             cl::sycl::accessor<unsigned char, 1,
                                cl::sycl::access::mode::read_write,
                                cl::sycl::access::target::local> shared_acc,
-            cl::sycl::accessor<int, 0,
-                               cl::sycl::access::mode::atomic,
-                               cl::sycl::access::target::local> pred_counter) :
+            cl::sycl::ONEAPI::atomic_ref<int, cl::sycl::ONEAPI::memory_order::relaxed,
+                                         cl::sycl::ONEAPI::memory_scope::work_group,
+                                         cl::sycl::access::address_space::local_space> pred_counter) :
                 WorkDivGenericSycl<TDim, TIdx>{threadElemExtent, work_item},
                 gb::IdxGbGenericSycl<TDim, TIdx>{work_item},
                 bt::IdxBtGenericSycl<TDim, TIdx>{work_item},
                 AtomicHierarchy<AtomicGenericSycl, AtomicGenericSycl, AtomicGenericSycl>{},
                 math::MathGenericSycl(),
                 BlockSharedMemDynGenericSycl{shared_acc},
-                // BlockSharedMemStGenericSycl(),
                 BlockSyncGenericSycl<TDim>{work_item, pred_counter}
-                /*rand::RandGenericSycl(),
-                TimeGenericSycl()*/
         {}
 
         //-----------------------------------------------------------------------------
@@ -108,26 +105,26 @@ namespace alpaka
     {
         //#############################################################################
         //! The SYCL accelerator type trait specialization.
-        template<typename TAcc, typename TDim, typename TIdx>
-        struct AccType<TAcc, std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc>>>
+        template<template <typename, typename> typename TAcc, typename TDim, typename TIdx>
+        struct AccType<TAcc<TDim, TIdx>, std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc<TDim, TIdx>>>>
         {
-            using type = TAcc;
+            using type = TAcc<TDim, TIdx>;
         };
 
         //#############################################################################
         //! The SYCL accelerator device properties get trait specialization.
-        template<typename TAcc, typename TDim, typename TIdx>
-        struct GetAccDevProps<TAcc, std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc>>>
+        template<template <typename, typename> typename TAcc, typename TDim, typename TIdx>
+        struct GetAccDevProps<TAcc<TDim, TIdx>, std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc<TDim, TIdx>>>>
         {
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto getAccDevProps(typename DevType<TAcc>::type const & dev) -> AccDevProps<TDim, TIdx>
+            ALPAKA_FN_HOST static auto getAccDevProps(typename DevType<TAcc<TDim, TIdx>>::type const & dev) -> AccDevProps<TDim, TIdx>
             {
                 using namespace cl::sycl;
 
-                auto max_threads_dim = dev.m_device.get_info<info::device::max_work_item_sizes>();
+                auto max_threads_dim = dev.m_device.template get_info<info::device::max_work_item_sizes>();
                 return {
                     // m_multiProcessorCount
-                    alpaka::core::clipCast<TIdx>(dev.m_device.get_info<info::device::max_compute_units>()),
+                    alpaka::core::clipCast<TIdx>(dev.m_device.template get_info<info::device::max_compute_units>()),
                     // m_gridBlockExtentMax
                     extent::getExtentVecEnd<TDim>(
                         Vec<DimInt<3u>, TIdx>(
@@ -145,29 +142,29 @@ namespace alpaka
                             alpaka::core::clipCast<TIdx>(max_threads_dim[0u]))),
                     // m_blockThreadCountMax
                     alpaka::core::clipCast<TIdx>(
-                            dev.m_Device.get_info<info::device::max_work_group_size>()),
+                            dev.m_device.template get_info<info::device::max_work_group_size>()),
                     // m_threadElemExtentMax
                     Vec<TDim, TIdx>::all(std::numeric_limits<TIdx>::max()),
                     // m_threadElemCountMax
                     std::numeric_limits<TIdx>::max(),
                     // m_sharedMemSizeBytes
-                    dev.m_dev.get_info<info::device::local_mem_size>()
+                    dev.m_device.template get_info<info::device::local_mem_size>()
                 };
             }
         };
 
         //#############################################################################
         //! The SYCL accelerator dimension getter trait specialization.
-        template<typename TAcc, typename TDim, typename TIdx>
-        struct DimType<TAcc, std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc>>>
+        template<template <typename, typename> typename TAcc, typename TDim, typename TIdx>
+        struct DimType<TAcc<TDim, TIdx>, std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc<TDim, TIdx>>>>
         {
             using type = TDim;
         };
 
         //#############################################################################
         //! The SYCL accelerator idx type trait specialization.
-        template<typename TAcc, typename TDim, typename TIdx>
-        struct IdxType<TAcc, std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc>>>
+        template<template <typename, typename> typename TAcc, typename TDim, typename TIdx>
+        struct IdxType<TAcc<TDim, TIdx>, std::enable_if_t<std::is_base_of_v<AccGenericSycl<TDim, TIdx>, TAcc<TDim, TIdx>>>>
         {
             using type = TIdx;
         };

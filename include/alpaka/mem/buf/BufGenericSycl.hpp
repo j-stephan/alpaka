@@ -22,13 +22,16 @@
 #include <alpaka/vec/Vec.hpp>
 
 #include <alpaka/dev/Traits.hpp>
+#include <alpaka/dev/DevGenericSycl.hpp>
 #include <alpaka/dim/DimIntegralConst.hpp>
+#include <alpaka/dim/Traits.hpp>
 #include <alpaka/mem/buf/Traits.hpp>
 #include <alpaka/mem/buf/BufCpu.hpp>
 
 #include <CL/sycl.hpp>
 
 #include <memory>
+#include <type_traits>
 
 namespace alpaka
 {
@@ -39,19 +42,16 @@ namespace alpaka
     {
         friend struct traits::GetDev<BufGenericSycl<TElem, TDim, TIdx, TDev>>;
 
-        template <typename TIdxIntegralConst>
-        friend struct extent::traits::GetExtent<TIndexIntegralConst, BufGenericSycl<TElem, TDim, TIdx, TDev>>;
+        template <typename TIdxIntegralConst, typename TExtent, typename TSfinae>
+        friend struct extent::traits::GetExtent;
 
-        friend struct GetPitchBytes<DimInt<TDim::value - 1u>, BufGenericSycl<TElem, TDim, TIdx, TDev>>;
+        friend struct traits::GetPtrNative<BufGenericSycl<TElem, TDim, TIdx, TDev>>;
+        friend struct traits::GetPitchBytes<DimInt<TDim::value - 1u>, BufGenericSycl<TElem, TDim, TIdx, TDev>>;
 
-        static_assert(std::is_const<TElem>::value,
+        static_assert(!std::is_const_v<TElem>,
                       "The elem type of the buffer can not be const because the C++ Standard forbids containers of const elements!");
 
-        static_assert(!std::is_const<TIdx>::value, "The idx type of the buffer can not be const!");
-
-    private:
-        using Elem = TElem;
-        using Dim = TDim;
+        static_assert(!std::is_const_v<TIdx>, "The idx type of the buffer can not be const!");
 
     public:
         //-----------------------------------------------------------------------------
@@ -60,7 +60,7 @@ namespace alpaka
         ALPAKA_FN_HOST BufGenericSycl(TDev const & dev, TElem* ptr, TIdx const& pitchBytes, TExtent const& extent)
         : m_dev{dev}
         , m_extentElements{extent::getExtentVecEnd<TDim>(extent)}
-        , m_ptr{ptr, [m_dev](auto p) { cl::sycl::free(p, m_dev.m_context); }}
+        , m_ptr{ptr, [this](auto p) { cl::sycl::free(p, m_dev.m_context); }}
         , m_pitchBytes{pitchBytes}
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -68,7 +68,7 @@ namespace alpaka
             static_assert(TDim::value == Dim<TExtent>::value,
                           "The dimensionality of TExtent and the dimensionality of the TDim template parameter have to be identical!");
 
-            static_assert(std::is_same<TIdx, Idx<TExtent>>::value,
+            static_assert(std::is_same_v<TIdx, Idx<TExtent>>,
                           "The idx type of TExtent and the TIdx template parameter have to be identical!");
         }
 
@@ -76,7 +76,7 @@ namespace alpaka
         ALPAKA_FN_HOST BufGenericSycl(BufGenericSycl const&) = default;
         ALPAKA_FN_HOST auto operator=(BufGenericSycl const&) -> BufGenericSycl& = default;
         ALPAKA_FN_HOST BufGenericSycl(BufGenericSycl&&) = default;
-        ALPAKA_FN_HOST auto operator=(BufGenericSycl&&) -> BufGenericSycl = default;
+        ALPAKA_FN_HOST auto operator=(BufGenericSycl&&) -> BufGenericSycl& = default;
 
     private:
         TDev m_dev;
@@ -155,7 +155,7 @@ namespace alpaka
                 return buf.m_ptr.get();
             }
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto getPtrNative(BufGenericSycl<TDev, TEleme, TDim, TIdx>& buf) -> TElem*
+            ALPAKA_FN_HOST static auto getPtrNative(BufGenericSycl<TElem, TDim, TIdx, TDev>& buf) -> TElem*
             {
                 return buf.m_ptr.get();
             }
@@ -198,7 +198,7 @@ namespace alpaka
 
         //#############################################################################
         //! The SYCL memory allocation trait specialization.
-        template<typename TElem, typename TIdx, typename TDim, typename TPltf>
+        template<typename TElem, typename TDim, typename TIdx, typename TPltf>
         struct BufAlloc<TElem, TDim, TIdx, DevGenericSycl<TPltf>>
         {
             //-----------------------------------------------------------------------------
@@ -215,7 +215,7 @@ namespace alpaka
 #endif
 
                 auto memPtr = static_cast<TElem*>(nullptr);
-                auto pitchBytes = std::size_t{};
+                auto pitchBytes = TIdx{};
                 if constexpr(TDim::value == 1)
                 {
                     auto const width = extent::getWidth(ext);
@@ -273,7 +273,7 @@ namespace alpaka
 #endif
                 }
 
-                return typename BufType<TElem, TDim, TIdx, DevGenericSycl<TPltf>>::type{dev, memPtr, pitchBytes, extent};
+                return BufGenericSycl<TElem, TDim, TIdx, DevGenericSycl<TPltf>>{dev, memPtr, pitchBytes, ext};
             }
         };
 
@@ -300,7 +300,7 @@ namespace alpaka
         struct Unmap<BufGenericSycl<TElem, TDim, TIdx, DevGenericSycl<TPltf>>, DevGenericSycl<TPltf>>
         {
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto unmap(BufGenericSycl<TPltf> const& buf, DevGenericSycl<TPltf> const& dev) -> void
+            ALPAKA_FN_HOST static auto unmap(BufGenericSycl<TElem, TDim, TIdx, DevGenericSycl<TPltf>> const& buf, DevGenericSycl<TPltf> const& dev) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
