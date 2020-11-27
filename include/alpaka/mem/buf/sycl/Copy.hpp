@@ -36,6 +36,26 @@ namespace alpaka
 {
     namespace detail
     {
+        template <typename TElem>
+        struct TaskCopySyclImpl
+        {
+            TaskCopySyclImpl(TElem const* src, TElem* dst, std::size_t size)
+            : src_ptr{src}, dst_ptr{dst}, bytes{size}
+            {}
+
+            TaskCopySyclImpl(TaskCopySyclImpl const&) = delete;
+            auto operator=(TaskCopySyclImpl const&) -> TaskCopySyclImpl& = delete;
+            TaskCopySyclImpl(TaskCopySyclImpl&&) = default;
+            auto operator=(TaskCopySyclImpl&&) -> TaskCopySyclImpl& = default;
+            ~TaskCopySyclImpl() = default;
+
+            TElem const* src_ptr;
+            TElem* dst_ptr;
+            std::size_t bytes;
+            std::vector<cl::sycl::event> dependencies = {};
+            std::shared_mutex mutex{};
+        };
+
         //#############################################################################
         //! The SYCL memory copy trait.
         template <typename TElem>
@@ -43,15 +63,11 @@ namespace alpaka
         {
             auto operator()(cl::sycl::handler& cgh) -> void
             {
-                cgh.depends_on(m_dependencies);
-                cgh.memcpy(dst_ptr, src_ptr, bytes);
+                cgh.depends_on(pimpl->dependencies);
+                cgh.memcpy(pimpl->dst_ptr, pimpl->src_ptr, pimpl->bytes);
             }
 
-            TElem const* const src_ptr;
-            TElem* const dst_ptr;
-            std::size_t bytes;
-            std::vector<cl::sycl::event> m_dependencies;
-            std::shared_ptr<std::shared_mutex> mutex_ptr{std::make_shared<std::shared_mutex>()};
+            std::shared_ptr<TaskCopySyclImpl<TElem>> pimpl;
         };
     }
 
@@ -60,19 +76,13 @@ namespace alpaka
     namespace traits
     {
         //#############################################################################
-        //! The SYCL memory copy trait specialization.
-        template<typename TDim, typename TDevDst, typename TDevSrc, typename TPltf>
-        struct CreateTaskMemcpy<TDim, TDevDst, TDevSrc,
-                                // at least one of the partners has to be a SYCL device
-                                std::enable_if_t<std::is_same_v<DevGenericSycl<TPltf>, TDevDst> ||
-                                                 std::is_same_v<DevGenericSycl<TPltf>, TDevSrc>>>
+        //! The SYCL host-to-device memory copy trait specialization.
+        template<typename TDim, typename TPltf>
+        struct CreateTaskMemcpy<TDim, DevGenericSycl<TPltf>, DevCpu>
         {
-            static_assert((std::is_same_v<DevGenericSycl<TPltf>, TDevDst> || std::is_same_v<DevCpu, TDevDst>) &&
-                          (std::is_same_v<DevGenericSycl<TPltf>, TDevSrc> || std::is_same_v<DevCpu, TDevSrc>),
-                          "Invalid device selected for copying. Only SYCL devices and CPU devices are supported.");
             //-----------------------------------------------------------------------------
             template<typename TExtent, typename TViewSrc, typename TViewDst>
-            ALPAKA_FN_HOST static auto createTaskMemcpy(TViewDst & viewDst, TViewSrc & viewSrc, TExtent const & ext)
+            ALPAKA_FN_HOST static auto createTaskMemcpy(TViewDst & viewDst, TViewSrc const& viewSrc, TExtent const & ext)
             {
                 using SrcType = Elem<std::remove_const_t<TViewSrc>>;
                 constexpr auto SrcBytes = sizeof(SrcType);
@@ -99,7 +109,83 @@ namespace alpaka
                 else
                     bytes = extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext) * SrcBytes;
 
-                return detail::TaskCopySycl<SrcType>{getPtrNative(viewSrc), getPtrNative(viewDst), bytes, {}};
+                return alpaka::detail::TaskCopySycl<SrcType>{std::make_shared<alpaka::detail::TaskCopySyclImpl<SrcType>>(getPtrNative(viewSrc), getPtrNative(viewDst), bytes)};
+            }
+        };
+
+        //#############################################################################
+        //! The SYCL device-to-host memory copy trait specialization.
+        template<typename TDim, typename TPltf>
+        struct CreateTaskMemcpy<TDim, DevCpu, DevGenericSycl<TPltf>>
+        {
+            //-----------------------------------------------------------------------------
+            template<typename TExtent, typename TViewSrc, typename TViewDst>
+            ALPAKA_FN_HOST static auto createTaskMemcpy(TViewDst & viewDst, TViewSrc const& viewSrc, TExtent const & ext)
+            {
+                using SrcType = Elem<std::remove_const_t<TViewSrc>>;
+                constexpr auto SrcBytes = sizeof(SrcType);
+
+                static_assert(!std::is_const<TViewDst>::value, "The destination view cannot be const!");
+
+                static_assert(Dim<TViewDst>::value == Dim<std::remove_const_t<TViewSrc>>::value,
+                              "The source and the destination view are required to have the same dimensionality!");
+
+                static_assert(Dim<TViewDst>::value == Dim<TExtent>::value,
+                              "The views and the extent are required to have the same dimensionality!");
+
+                static_assert(std::is_same_v<Elem<TViewDst>, SrcType>,
+                              "The source and the destination view are required to have the same element type!");
+
+                ALPAKA_DEBUG_FULL_LOG_SCOPE;
+
+                auto bytes = std::size_t{};
+
+                if constexpr(Dim<TExtent>::value == 1)
+                    bytes = extent::getWidth(ext) * SrcBytes;
+                else if constexpr(Dim<TExtent>::value == 2)
+                    bytes = extent::getWidth(ext) * extent::getHeight(ext) * SrcBytes;
+                else
+                    bytes = extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext) * SrcBytes;
+
+                return alpaka::detail::TaskCopySycl<SrcType>{std::make_shared<alpaka::detail::TaskCopySyclImpl<SrcType>>(getPtrNative(viewSrc), getPtrNative(viewDst), bytes)};
+            }
+        };
+
+        //#############################################################################
+        //! The SYCL device-to-device memory copy trait specialization.
+        template<typename TDim, typename TPltfDst, typename TPltfSrc>
+        struct CreateTaskMemcpy<TDim, DevGenericSycl<TPltfDst>, DevGenericSycl<TPltfSrc>>
+        {
+            //-----------------------------------------------------------------------------
+            template<typename TExtent, typename TViewSrc, typename TViewDst>
+            ALPAKA_FN_HOST static auto createTaskMemcpy(TViewDst & viewDst, TViewSrc const& viewSrc, TExtent const & ext)
+            {
+                using SrcType = Elem<std::remove_const_t<TViewSrc>>;
+                constexpr auto SrcBytes = sizeof(SrcType);
+
+                static_assert(!std::is_const<TViewDst>::value, "The destination view cannot be const!");
+
+                static_assert(Dim<TViewDst>::value == Dim<std::remove_const_t<TViewSrc>>::value,
+                              "The source and the destination view are required to have the same dimensionality!");
+
+                static_assert(Dim<TViewDst>::value == Dim<TExtent>::value,
+                              "The views and the extent are required to have the same dimensionality!");
+
+                static_assert(std::is_same_v<Elem<TViewDst>, SrcType>,
+                              "The source and the destination view are required to have the same element type!");
+
+                ALPAKA_DEBUG_FULL_LOG_SCOPE;
+
+                auto bytes = std::size_t{};
+
+                if constexpr(Dim<TExtent>::value == 1)
+                    bytes = extent::getWidth(ext) * SrcBytes;
+                else if constexpr(Dim<TExtent>::value == 2)
+                    bytes = extent::getWidth(ext) * extent::getHeight(ext) * SrcBytes;
+                else
+                    bytes = extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext) * SrcBytes;
+
+                return alpaka::detail::TaskCopySycl<SrcType>{std::make_shared<alpaka::detail::TaskCopySyclImpl<SrcType>>(getPtrNative(viewSrc), getPtrNative(viewDst), bytes)};
             }
         };
     }

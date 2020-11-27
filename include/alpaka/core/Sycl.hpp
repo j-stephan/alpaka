@@ -74,15 +74,6 @@ namespace alpaka
                 // additional scalar types
                 cl::sycl::byte,
 
-                // OpenCL scalar types
-                cl::sycl::cl_bool, 
-                cl::sycl::cl_char, cl::sycl::cl_uchar,
-                cl::sycl::cl_short, cl::sycl::cl_ushort,
-                cl::sycl::cl_int, cl::sycl::cl_uint,
-                cl::sycl::cl_long, cl::sycl::cl_ulong,
-                cl::sycl::cl_float, cl::sycl::cl_double,
-                cl::sycl::cl_half,
-
                 // 2 component vector types
                 cl::sycl::char2, cl::sycl::schar2, cl::sycl::uchar2,
                 cl::sycl::short2, cl::sycl::ushort2,
@@ -153,15 +144,15 @@ namespace alpaka
         //##################################################################
         //! SYCL's types get trait specialization.
         template<typename T>
-        struct DimType<T, std::enable_if_t<sycl::traits::IsSyclBuiltInType<T>::value>>
+        struct DimType<T, std::enable_if_t<traits::IsSyclBuiltInType<T>::value>>
         {
-            using type = DimInt<sycl::detail::extract<T>>;
+            using type = DimInt<detail::extract<T>>;
         };
 
         //##################################################################
         //! The SYCL vectors' elem type trait specialization.
         template<typename T>
-        struct ElemType<T, std::enable_if_t<sycl::traits::IsSyclBuiltInType<T>::value>>
+        struct ElemType<T, std::enable_if_t<traits::IsSyclBuiltInType<T>::value>>
         {
             using type = std::conditional_t<std::is_scalar_v<T>, T, typename T::element_type>;
         };
@@ -175,7 +166,7 @@ namespace alpaka
             //! The SYCL vectors' extent get trait specialization.
             template<typename TExtent>
             struct GetExtent<DimInt<Dim<TExtent>::value>, TExtent,
-                             std::enable_if_t<sycl::traits::IsSyclBuiltInType<TExtent>::value>>
+                             std::enable_if_t<alpaka::traits::IsSyclBuiltInType<TExtent>::value>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto getExtent(
@@ -192,7 +183,7 @@ namespace alpaka
             //! The SYCL vectors' extent set trait specialization.
             template<typename TExtent, typename TExtentVal>
             struct SetExtent<DimInt<Dim<TExtent>::value>, TExtent, TExtentVal,
-                             std::enable_if_t<sycl::traits::IsSyclBuiltInType<TExtent>::value>>
+                             std::enable_if_t<alpaka::traits::IsSyclBuiltInType<TExtent>::value>>
             {
                 ALPAKA_NO_HOST_ACC_WARNING
                 ALPAKA_FN_HOST_ACC static auto setExtent(
@@ -214,7 +205,7 @@ namespace alpaka
         //! The SYCL vectors' offset get trait specialization.
         template<typename TOffsets>
         struct GetOffset<DimInt<Dim<TOffsets>::value>, TOffsets,
-                         std::enable_if_t<sycl::traits::IsSyclBuiltInType<TOffsets>::value>>
+                         std::enable_if_t<traits::IsSyclBuiltInType<TOffsets>::value>>
         {
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC static auto getOffset(TOffsets const & offsets)
@@ -230,7 +221,7 @@ namespace alpaka
         //! The SYCL vectors' offset set trait specialization.
         template<typename TOffsets, typename TOffset>
         struct SetOffset<DimInt<Dim<TOffsets>::value>, TOffsets, TOffset,
-                         std::enable_if_t<sycl::traits::IsSyclBuiltInType<TOffsets>::value>>
+                         std::enable_if_t<traits::IsSyclBuiltInType<TOffsets>::value>>
         {
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC static auto setOffset(TOffsets const & offsets, TOffset const & offset)
@@ -245,7 +236,7 @@ namespace alpaka
         //#############################################################################
         //! The SYCL vectors' idx type trait specialization.
         template<typename TIdx>
-        struct IdxType<TIdx, std::enable_if_t<sycl::traits::IsSyclBuiltInType<TIdx>::value>>
+        struct IdxType<TIdx, std::enable_if_t<traits::IsSyclBuiltInType<TIdx>::value>>
         {
             using type = std::size_t;
         };

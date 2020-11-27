@@ -31,10 +31,11 @@ namespace alpaka
 
         //-----------------------------------------------------------------------------
         BlockSyncGenericSycl(cl::sycl::nd_item<TDim::value> work_item,
-                      cl::sycl::accessor<int, 0, cl::sycl::access::mode::atomic,
-                                         cl::sycl::access::target::local> counter)
+                             cl::sycl::ONEAPI::atomic_ref<int, cl::sycl::ONEAPI::memory_order::relaxed,
+                                                          cl::sycl::ONEAPI::memory_scope::work_group,
+                                                          cl::sycl::access::address_space::local_space> pred_counter)
         : my_item{work_item}
-        , pred_counter{counter}
+        , counter{pred_counter}
         {
         }
         //-----------------------------------------------------------------------------
@@ -49,9 +50,9 @@ namespace alpaka
         /*virtual*/ ~BlockSyncGenericSycl() = default;
 
         cl::sycl::nd_item<TDim::value> my_item;
-        cl::sycl::accessor<int, 0,
-                           cl::sycl::access::mode::atomic,
-                           cl::sycl::access::target::local> pred_counter;
+        cl::sycl::ONEAPI::atomic_ref<int, cl::sycl::ONEAPI::memory_order::relaxed,
+                                     cl::sycl::ONEAPI::memory_scope::work_group,
+                                     cl::sycl::access::address_space::local_space> counter;
     };
 
     namespace traits
@@ -76,19 +77,17 @@ namespace alpaka
             {
                 using namespace cl::sycl;
 
-                // just copy the accessor, will refer to the same memory address
-                auto counter = blockSync.pred_counter;
                 blockSync.my_item.barrier();
                 
                 if(blockSync.my_item.get_local_linear_id(0) == 0)
-                    atomic_store(counter, 0);
+                    blockSync.counter.store(0);
                 blockSync.my_item.barrier(access::fence_space::local_space);
 
                 if(predicate)
-                    atomic_fetch_add(counter, 1);
+                    blockSync.counter.fetch_add(1);
                 blockSync.my_item.barrier(access::fence_space::local_space);
 
-                return atomic_load(counter);
+                return blockSync.counter.load();
             }
         };
 
@@ -101,19 +100,17 @@ namespace alpaka
             {
                 using namespace cl::sycl;
 
-                // just copy the accessor, will refer to the same memory address
-                auto counter = blockSync.pred_counter;
                 blockSync.my_item.barrier();
 
                 if(blockSync.my_item.get_local_linear_id(0) == 0)
-                    atomic_store(counter, 1);
+                    blockSync.counter.store(1);
                 blockSync.my_item.barrier(access::fence_space::local_space);
                 
                 if(!predicate)
-                    atomic_fetch_and(counter, 0);
+                    blockSync.counter.fetch_and(0);
                 blockSync.my_item.barrier(access::fence_space::local_space);
 
-                return atomic_load(counter);
+                return blockSync.counter.load();
             }
         };
 
@@ -126,19 +123,17 @@ namespace alpaka
             {
                 using namespace cl::sycl;
 
-                // just copy the accessor, will refer to the same memory address
-                auto counter = blockSync.pred_counter;
                 blockSync.my_item.barrier();
 
                 if(blockSync.my_item.get_local_linear_id(0) == 0)
-                    atomic_store(counter, 0);
+                    blockSync.counter.store(0);
                 blockSync.my_item.barrier(access::fence_space::local_space);
 
                 if(predicate)
-                    atomic_fetch_or(counter, 1);
+                    blockSync.counter.fetch_or(1);
                 blockSync.my_item.barrier(access::fence_space::local_space);
 
-                return atomic_load(counter);
+                return blockSync.counter.load();
             }
         };
     }

@@ -25,11 +25,20 @@
 
 #include <CL/sycl.hpp>
 
-#include <mutex>
+#include <shared_mutex>
 #include <vector>
 
 namespace alpaka
 {
+    template <typename TElem, typename TDim, typename TIdx, typename TDev>
+    class BufGenericSycl;
+
+    template <typename TDev>
+    class QueueGenericSyclBlocking;
+
+    template <typename TDev>
+    class QueueGenericSyclNonBlocking;
+
     //#############################################################################
     //! The SYCL device handle.
     template <typename TPltf>
@@ -38,13 +47,24 @@ namespace alpaka
         friend struct traits::GetDevByIdx<TPltf>;
         friend struct traits::GetName<DevGenericSycl<TPltf>>;
         friend struct traits::GetMemBytes<DevGenericSycl<TPltf>>;
+        
+        template<typename TElem, typename TIdx, typename TDim, typename TDev, typename TSfinae>
+        friend struct traits::BufAlloc;
 
-    protected:
-        //-----------------------------------------------------------------------------
-        DevGenericSycl() = default;
+        template<typename TAcc, typename TSfinae>
+        friend struct traits::GetAccDevProps;
+
+        template<typename TDev, typename TTask, typename TSfinae>
+        friend struct traits::Enqueue;
+
+        template<typename TElem, typename TIdx, typename TDim, typename TDev>
+        friend class BufGenericSycl;
+        friend class QueueGenericSyclBlocking<DevGenericSycl<TPltf>>;
+        friend class QueueGenericSyclNonBlocking<DevGenericSycl<TPltf>>;
+
     public:
-        DevGenericSycl(cl::sycl::device device, cl::sycl::context context, cl::sycl::queue queue)
-        : m_device{device}, m_context{context}, m_queue{queue}
+        DevGenericSycl(cl::sycl::device device, cl::sycl::context context)
+        : m_device{device}, m_context{context}
         {}
 
         //-----------------------------------------------------------------------------
@@ -58,7 +78,7 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator==(DevGenericSycl const & rhs) const -> bool
         {
-            return (rhs.m_Device == m_Device) && (rhs.m_Queue == m_Queue);
+            return (rhs.m_device == m_device);
         }
         //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator!=(DevGenericSycl const & rhs) const -> bool
@@ -68,10 +88,11 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         ~DevGenericSycl() = default;
 
-    protected:
+    private:
+        DevGenericSycl() = default;
+
         cl::sycl::device m_device;
         cl::sycl::context m_context;
-        cl::sycl::queue m_queue;
         std::vector<cl::sycl::event> m_dependencies = {};
         std::shared_ptr<std::shared_mutex> mutable mutex_ptr{std::make_shared<std::shared_mutex>()};
     };
@@ -86,7 +107,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getName(DevGenericSycl<TPltf> const& dev) -> std::string
             {
-                return dev.m_device.get_info<cl::sycl::info::device::name>();
+                return dev.m_device.template get_info<cl::sycl::info::device::name>();
             }
         };
 
@@ -98,7 +119,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getMemBytes(DevGenericSycl<TPltf> const& dev) -> std::size_t
             {
-                return dev.m_device.get_info<cl::sycl::info::device::global_mem_size>();
+                return dev.m_device.template get_info<cl::sycl::info::device::global_mem_size>();
             }
         };
 
@@ -127,7 +148,7 @@ namespace alpaka
         struct Reset<DevGenericSycl<TPltf>>
         {
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto reset(TDev const&) -> void
+            ALPAKA_FN_HOST static auto reset(DevGenericSycl<TPltf> const&) -> void
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
                 std::cerr << "[SYCL] Warning: Explicit device reset not supported for SYCL devices\n";

@@ -20,7 +20,6 @@
 
 #include <alpaka/core/Sycl.hpp>
 #include <alpaka/dev/Traits.hpp>
-#include <alpaka/dev/DevFpgaSyclXilinx.hpp>
 #include <alpaka/pltf/PltfGenericSycl.hpp>
 
 #include <CL/sycl.hpp>
@@ -33,6 +32,10 @@ namespace alpaka
 {
     namespace detail
     {
+        // Prevent clang from annoying us with warnings about emitting too many vtables. These are discarded by
+        // the linker anyway.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
         struct xilinx_fpga_selector : cl::sycl::device_selector
         {
             auto operator()(const cl::sycl::device& dev) const -> int override
@@ -43,12 +46,12 @@ namespace alpaka
                 return is_xilinx ? 1 : -1;
             }
         }; 
+#pragma clang diagnostic pop
     }
 
     //#############################################################################
     //! The SYCL device manager.
     class PltfFpgaSyclXilinx : public PltfGenericSycl
-                             , public concepts::Implements<ConceptPltf, PltfFpgaSyclXilinx>
     {
     public:
         //-----------------------------------------------------------------------------
@@ -64,7 +67,7 @@ namespace alpaka
         template<>
         struct DevType<PltfFpgaSyclXilinx>
         {
-            using type = DevFpgaSyclXilinx;
+            using type = DevGenericSycl<PltfFpgaSyclXilinx>; // = DevFpgaSyclXilinx
         };
     }
 }

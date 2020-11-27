@@ -20,7 +20,7 @@
 
 #include <alpaka/core/Sycl.hpp>
 #include <alpaka/dev/Traits.hpp>
-#include <alpaka/dev/DevGpuSyclIntel.hpp>
+#include <alpaka/dev/DevGenericSycl.hpp>
 #include <alpaka/pltf/PltfGenericSycl.hpp>
 
 #include <CL/sycl.hpp>
@@ -33,6 +33,10 @@ namespace alpaka
 {
     namespace detail
     {
+        // Prevent clang from annoying us with warnings about emitting too many vtables. These are discarded by
+        // the linker anyway.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wweak-vtables"
         struct intel_gpu_selector : cl::sycl::device_selector
         {
             auto operator()(const cl::sycl::device& dev) const -> int override
@@ -43,12 +47,12 @@ namespace alpaka
                 return is_intel_gpu ? 1 : -1;
             }
         };
+#pragma clang diagnostic pop
     }
 
     //#############################################################################
     //! The SYCL device manager.
     class PltfGpuSyclIntel : public PltfGenericSycl
-                           , public concepts::Implements<ConceptPltf, PltfGpuSyclIntel>
     {
     public:
         //-----------------------------------------------------------------------------
@@ -64,7 +68,7 @@ namespace alpaka
         template<>
         struct DevType<PltfGpuSyclIntel>
         {
-            using type = DevGpuSyclIntel;
+            using type = DevGenericSycl<PltfGpuSyclIntel>; // = DevGpuSyclIntel
         };
     }
 }

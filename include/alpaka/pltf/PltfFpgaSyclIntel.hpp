@@ -20,8 +20,8 @@
 
 #include <alpaka/core/Sycl.hpp>
 #include <alpaka/dev/Traits.hpp>
-#include <alpaka/dev/DevFpgaSyclIntel.hpp>
 #include <alpaka/pltf/PltfGenericSycl.hpp>
+#include <alpaka/dev/DevGenericSycl.hpp>
 
 #include <CL/sycl.hpp>
 #include <CL/sycl/INTEL/fpga_extensions.hpp>
@@ -35,13 +35,12 @@ namespace alpaka
     //#############################################################################
     //! The SYCL device manager.
     class PltfFpgaSyclIntel : public PltfGenericSycl
-                            , public concepts::Implements<ConceptPltf, PltfFpgaSyclIntel>
     {
     public:
         //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST PltfFpgaSyclIntel() = delete;
 
-#ifdef FPGA_EMULATOR
+#ifdef ALPAKA_FPGA_EMULATION
         using selector = cl::sycl::INTEL::fpga_emulator_selector;
 #else
         using selector = cl::sycl::INTEL::fpga_selector;
@@ -55,7 +54,7 @@ namespace alpaka
         template<>
         struct DevType<PltfFpgaSyclIntel>
         {
-            using type = DevFpgaSyclIntel;
+            using type = DevGenericSycl<PltfFpgaSyclIntel>; // = DevFpgaSyclIntel
         };
     }
 }

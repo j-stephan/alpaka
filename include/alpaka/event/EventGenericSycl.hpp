@@ -106,7 +106,7 @@ namespace alpaka
                 using namespace cl::sycl;
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                const auto status = event.m_event.get_info<info::event::command_execution_status>();
+                const auto status = event.m_event.template get_info<info::event::command_execution_status>();
                 return (status == info::event_command_status::complete);
             }
         };
@@ -174,7 +174,7 @@ namespace alpaka
         struct WaiterWaitFor<QueueGenericSyclBlocking<TDev>, EventGenericSycl<TDev>>
         {
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto waiterWaitFor(QueueSyclBlocking & queue, EventGenericSycl const & event) -> void
+            ALPAKA_FN_HOST static auto waiterWaitFor(QueueGenericSyclBlocking<TDev> & queue, EventGenericSycl<TDev> const & event) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 

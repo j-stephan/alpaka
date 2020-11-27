@@ -20,7 +20,6 @@
 
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/event/Traits.hpp>
-#include <alpaka/event/EventGenericSycl.hpp>
 #include <alpaka/queue/Traits.hpp>
 #include <alpaka/wait/Traits.hpp>
 #include <alpaka/core/Sycl.hpp>
@@ -36,6 +35,9 @@
 
 namespace alpaka
 {
+    template <typename TDev>
+    class EventGenericSycl;
+
     //#############################################################################
     //! The SYCL blocking queue.
     template <typename TDev>
@@ -43,14 +45,16 @@ namespace alpaka
     {
         friend struct traits::GetDev<QueueGenericSyclBlocking<TDev>>;
         friend struct traits::Empty<QueueGenericSyclBlocking<TDev>>;
-        template <typename TTask> friend struct traits::Enqueue<QueueGenericSyclBlocking<TDev>, TTask>;
+        template <typename TQueue, typename TTask, typename Sfinae> friend struct traits::Enqueue;
         friend struct traits::CurrentThreadWaitFor<QueueGenericSyclBlocking<TDev>>;
-        friend struct traits::Enqueue<QueueGenericSyclBlocking<TDev>, EventGenericSycl<TDev>>
+        friend struct traits::Enqueue<QueueGenericSyclBlocking<TDev>, EventGenericSycl<TDev>>;
         friend struct traits::WaiterWaitFor<QueueGenericSyclBlocking<TDev>, EventGenericSycl<TDev>>;
 
     public:
         //-----------------------------------------------------------------------------
-        ALPAKA_FN_HOST QueueGenericSyclBlocking(TDev& dev) : m_dev{dev}
+        ALPAKA_FN_HOST QueueGenericSyclBlocking(TDev const& dev)
+        : m_dev{dev}
+        , m_queue{dev.m_device, {cl::sycl::property::queue::enable_profiling{}, cl::sycl::property::queue::in_order{}}}
         {}
         //-----------------------------------------------------------------------------
         QueueGenericSyclBlocking(QueueGenericSyclBlocking const &) = delete;
@@ -75,6 +79,7 @@ namespace alpaka
 
     private:
         TDev m_dev; //!< The device this queue is bound to.
+        cl::sycl::queue m_queue; //!< The underlying SYCL queue.
         cl::sycl::event m_event{}; //!< The last event in the dependency graph.
         std::vector<cl::sycl::event> m_dependencies = {}; //!< A list of events this queue should wait for.
         std::shared_ptr<std::shared_mutex> mutex_ptr{std::make_shared<std::shared_mutex>()};
@@ -96,9 +101,9 @@ namespace alpaka
         struct GetDev<QueueGenericSyclBlocking<TDev>>
         {
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto getDev(TQueue const& queue)
+            ALPAKA_FN_HOST static auto getDev(QueueGenericSyclBlocking<TDev> const& queue)
             {
-                auto&& lock = std::shared_lock{*queue.mutex_ptr};
+                std::shared_lock<std::shared_mutex> lock{*queue.mutex_ptr};
                 return queue.m_dev;
             }
         };
@@ -117,21 +122,23 @@ namespace alpaka
         struct Enqueue<QueueGenericSyclBlocking<TDev>, TTask>
         {
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto enqueue(QueueGenericSyclBlocking<TDev>& queue, TTask& task) -> void
+            ALPAKA_FN_HOST static auto enqueue(QueueGenericSyclBlocking<TDev>& queue, TTask const& task) -> void
             {
-                auto remove_completed = [](std::vector<cl::sycl::event>& events)
+                using namespace cl::sycl;
+
+                auto remove_completed = [](std::vector<event>& events)
                 {
-                    std::remove_if(begin(events), end(events), [](cl::sycl::event const& ev)
+                    std::remove_if(begin(events), end(events), [](event const& ev)
                     {
                         return (ev.get_info<info::event::command_execution_status>() == info::event_command_status::complete);
                     });
                 };
 
-                auto&& lock = std::scoped_lock{*queue.mutex_ptr, , *queue.m_dev.mutex_ptr, *task.mutex_ptr};
+                std::scoped_lock<std::shared_mutex, std::shared_mutex, std::shared_mutex> lock{*queue.mutex_ptr, *queue.m_dev.mutex_ptr, task.pimpl->mutex};
 
                 // Remove any completed events from the task's dependencies
-                if(!task.m_dependencies.empty())
-                    remove_completed(task.m_dependencies);
+                if(!task.pimpl->dependencies.empty())
+                    remove_completed(task.pimpl->dependencies);
 
                 // Remove any completed events from the device's dependencies
                 if(!queue.m_dev.m_dependencies.empty())
@@ -139,23 +146,23 @@ namespace alpaka
                 
                 // Wait for the remaining uncompleted events the device is supposed to wait for
                 if(!queue.m_dev.m_dependencies.empty())
-                    std::copy(begin(queue.m_dev.m_dependencies), end(queue.m_dev.m_dependencies), std::back_inserter(task.m_dependencies));
+                    task.pimpl->dependencies.insert(end(task.pimpl->dependencies), begin(queue.m_dev.m_dependencies), end(queue.m_dev.m_dependencies));
                 
                 // Wait for any events this queue is supposed to wait for
                 if(!queue.m_dependencies.empty())
-                    task.m_dependencies.insert(end(task.m_dependencies), begin(queue.m_dependencies), end(queue.m_dependencies));
+                    task.pimpl->dependencies.insert(end(task.pimpl->dependencies), begin(queue.m_dependencies), end(queue.m_dependencies));
 
                 // Wait for any previous kernels running in this queue
-                task.m_dependencies.push_back(queue.m_event);
+                task.pimpl->dependencies.push_back(queue.m_event);
 
                 // Execute the kernel
-                queue.m_event = queue.m_dev.m_Queue.submit(task);
+                queue.m_event = queue.m_queue.submit(task);
 
                 // Remove queue dependencies
                 queue.m_dependencies.clear();
 
                 // Block calling thread until completion
-                queue.m_dev.m_queue.wait_and_throw();
+                queue.m_queue.wait_and_throw();
             }
         };
 
@@ -170,9 +177,9 @@ namespace alpaka
                 using namespace cl::sycl;
 
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-                auto&& lock = std::shared_lock{*queue.mutex_ptr};
+                std::shared_lock<std::shared_mutex> lock{*queue.mutex_ptr};
 
-                return queue.m_event.get_info<info::event::command_execution_status>() == info::event_command_status::complete;
+                return queue.m_event.template get_info<info::event::command_execution_status>() == info::event_command_status::complete;
             }
         };
 
@@ -187,11 +194,11 @@ namespace alpaka
             ALPAKA_FN_HOST static auto currentThreadWaitFor(QueueGenericSyclBlocking<TDev> const& queue) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-                auto&& lock = std::unique_lock{*queue.mutex_ptr};
+                std::unique_lock<std::shared_mutex> lock{*queue.mutex_ptr};
 
                 // SYCL objects are reference counted, so we can just copy the queue here
                 auto non_const_queue = queue;
-                non_const_queue.m_dev.m_queue.wait_and_throw();
+                non_const_queue.m_queue.wait_and_throw();
             }
         };
     }

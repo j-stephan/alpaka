@@ -33,7 +33,7 @@ namespace alpaka
     {
     public:
         //-----------------------------------------------------------------------------
-        ALPAKA_FN_HOST PltfSycl() = delete;
+        ALPAKA_FN_HOST PltfGenericSycl() = delete;
     };
 
     namespace traits
@@ -48,8 +48,11 @@ namespace alpaka
             {
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
-                static auto platform = cl::sycl::platform{TPltf::selector{}};
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+                static auto platform = cl::sycl::platform{typename TPltf::selector{}};
                 static auto devices = platform.get_devices();
+#pragma clang diagnostic pop
                 return devices.size();
             }
         };
@@ -85,9 +88,12 @@ namespace alpaka
                     }
                 };
 
-                static auto pf = platform{TPltf::selector{}};
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+                static auto pf = platform{typename TPltf::selector{}};
                 static auto devices = pf.get_devices();
                 static auto ctx = context{devices, exception_handler};
+#pragma clang diagnostic pop
                 
                 if(devIdx >= devices.size())
                 {
@@ -99,7 +105,6 @@ namespace alpaka
                 }
 
                 auto sycl_dev = devices.at(devIdx);
-                auto sycl_queue = queue{sycl_dev, exception_handler, property::queue::enable_profiling{}};
 
                 // Log this device.
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
@@ -107,7 +112,7 @@ namespace alpaka
 #elif ALPAKA_DEBUG >= ALPAKA_DEBUG_MINIMAL
                 std::cout << __func__ << sycl_dev.get_info<info::device::name>() << '\n';
 #endif
-                return typename DevType<TPltf>::type{sycl_dev, ctx, sycl_queue};
+                return typename DevType<TPltf>::type{sycl_dev, ctx};
             }
 
         private:
