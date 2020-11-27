@@ -10,6 +10,7 @@
 #
 
 include(CMakePrintHelpers) # for easier printing of variables and properties
+include(CMakeDependentOption) # Make options depend on other options
 
 #-------------------------------------------------------------------------------
 # Options.
@@ -51,6 +52,7 @@ option(ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE "Enable the OpenMP 2.0 CPU grid block 
 option(ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE "Enable the OpenMP 2.0 CPU block thread back-end" OFF)
 option(ALPAKA_ACC_ANY_BT_OMP5_ENABLE "Enable the OpenMP 5.0 CPU block and block thread back-end" OFF)
 option(ALPAKA_ACC_ANY_BT_OACC_ENABLE "Enable the OpenACC block and block thread back-end" OFF)
+option(ALPAKA_ACC_SYCL_ENABLE "Enable the SYCL back-end" OFF)
 
 if((ALPAKA_ACC_GPU_CUDA_ONLY_MODE OR ALPAKA_ACC_GPU_HIP_ONLY_MODE)
    AND
@@ -60,7 +62,8 @@ if((ALPAKA_ACC_GPU_CUDA_ONLY_MODE OR ALPAKA_ACC_GPU_HIP_ONLY_MODE)
     ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE OR
     ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLE OR
     ALPAKA_ACC_CPU_B_SEQ_T_OMP2_ENABLE OR
-    ALPAKA_ACC_ANY_BT_OMP5_ENABLE))
+    ALPAKA_ACC_ANY_BT_OMP5_ENABLE OR
+    ALPAKA_ACC_SYCL_ENABLE))
     if(ALPAKA_ACC_GPU_CUDA_ONLY_MODE)
         message(FATAL_ERROR "If ALPAKA_ACC_GPU_CUDA_ONLY_MODE is enabled, only back-ends using CUDA can be enabled! This allows to mix alpaka code with native CUDA code. However, this prevents any non-CUDA back-ends from being enabled.")
     endif()
@@ -701,6 +704,105 @@ if(ALPAKA_ACC_GPU_HIP_ENABLE)
 endif() # HIP
 
 #-------------------------------------------------------------------------------
+# SYCL settings
+if(ALPAKA_ACC_SYCL_ENABLE)
+    message(WARNING "The SYCL back-end is currently experimental. Use at your own risk.")
+
+    # Both Intel and Xilinx require their respective OpenCL runtimes
+    find_package(OpenCL REQUIRED)
+    target_link_libraries(alpaka INTERFACE OpenCL::OpenCL)
+
+    # Possible SYCL platforms
+    cmake_dependent_option(ALPAKA_SYCL_PLATFORM_ONEAPI "Enable Intel oneAPI platform for the SYCL back-end" ON "ALPAKA_ACC_SYCL_ENABLE" OFF)
+    cmake_dependent_option(ALPAKA_SYCL_PLATFORM_XILINX "Enable Xilinx platform for the SYCL back-end" OFF "ALPAKA_ACC_SYCL_ENABLE" OFF)
+    # Possible oneAPI targets
+    cmake_dependent_option(ALPAKA_SYCL_ONEAPI_CPU "Enable oneAPI CPU targets for the SYCL back-end" OFF "ALPAKA_SYCL_PLATFORM_ONEAPI" OFF)
+    cmake_dependent_option(ALPAKA_SYCL_ONEAPI_FPGA "Enable oneAPI FPGA targets for the SYCL back-end" OFF "ALPAKA_SYCL_PLATFORM_ONEAPI" OFF)
+    cmake_dependent_option(ALPAKA_SYCL_ONEAPI_GPU "Enable oneAPI GPU targets for the SYCL back-end" ON "ALPAKA_SYCL_PLATFORM_ONEAPI" OFF)
+    # Intel FPGA emulation
+    cmake_dependent_option(ALPAKA_SYCL_ONEAPI_FPGA_EMULATION "Enable oneAPI FPGA emulator" ON "ALPAKA_SYCL_ONEAPI_FPGA" OFF)
+
+    if(NOT ALPAKA_SYCL_PLATFORM_ONEAPI OR ALPAKA_SYCL_PLATFORM_XILINX)
+        message(FATAL_ERROR "You must specify at least one SYCL platform!")
+    endif()
+
+    target_compile_options(alpaka INTERFACE "-fsycl")
+    target_compile_options(alpaka INTERFACE "-sycl-std=2020")
+
+    #-----------------------------------------------------------------------------------------------------------------
+    # Determine SYCL targets
+    if(ALPAKA_SYCL_PLATFORM_ONEAPI)
+        if(ALPAKA_SYCL_ONEAPI_CPU)
+            list(APPEND ALPAKA_SYCL_TARGETS "spir64_x86_64-unknown-unknown-sycldevice")
+        endif()
+
+        if(ALPAKA_SYCL_ONEAPI_FPGA)
+            list(APPEND ALPAKA_SYCL_TARGETS "spir64_fpga-unknown-unknown-sycldevice")
+        endif()
+
+        if(ALPAKA_SYCL_ONEAPI_GPU)
+            list(APPEND ALPAKA_SYCL_TARGETS "spir64_gen-unknown-unknown-sycldevice")
+        endif()
+
+        if(NOT ALPAKA_SYCL_TARGETS)
+            message(FATAL_ERROR "You must specify at least one oneAPI hardware target!")
+        endif()
+    endif()
+
+    if(ALPAKA_SYCL_PLATFORM_XILINX)
+        list(APPEND ALPAKA_SYCL_TARGETS "fpga64-xilinx-unknown-sycldevice")
+    endif()
+
+    list(JOIN ALPAKA_SYCL_TARGETS "," ALPAKA_SYCL_TARGETS_CONCAT)
+    target_compile_options(alpaka INTERFACE "-fsycl-targets=${ALPAKA_SYCL_TARGETS_CONCAT}")
+    
+    # We can't use -fintelfpga because there might be multiple SYCL targets. Since we are relying on the alternative
+    # (spir64_fpga-unknown-unknown-sycldevice) we need to manually provide the equivalent flags.
+    if(ALPAKA_SYCL_ONEAPI_FPGA)
+        target_compile_options(alpaka INTERFACE "-g -MMD")
+    endif()
+
+    #-----------------------------------------------------------------------------------------------------------------
+    # Determine actual hardware to compile for 
+    if(ALPAKA_SYCL_ONEAPI_CPU)
+        set(ALPAKA_SYCL_ONEAPI_CPU_ISA "avx2" CACHE STRING "Intel ISA to compile for")
+        set_property(CACHE ALPAKA_SYCL_ONEAPI_CPU_ISA PROPERTY STRINGS "sse42;avx2;avx512")
+        target_compile_options(alpaka INTERFACE "-Xsycl-target-backend=spir64_x86_64-unknown-unknown-sycldevice \"-march=${ALPAKA_SYCL_ONEAPI_CPU_ISA}\"")
+    endif()
+
+    if(ALPAKA_SYCL_ONEAPI_FPGA)
+        if(ALPAKA_SYCL_ONEAPI_FPGA_EMULATION)
+            target_compile_definitions(alpaka INTERFACE "ALPAKA_FPGA_EMULATION")
+            target_compile_options(alpaka INTERFACE "-Xsemulator")
+        else()
+            target_compile_options(alpaka INTERFACE "-Xshardware")
+        endif()
+
+        set(ALPAKA_SYCL_ONEAPI_FPGA_BOARD "pac_a10" CACHE STRING "Intel FPGA board to compile for")
+        set_property(CACHE ALPAKA_SYCL_ONEAPI_FPGA_BOARD PROPERTY STRINGS "pac_a10;pac_s10;pac_s10_usm")
+
+        target_compile_options(alpaka INTERFACE "-Xsboard=${ALPAKA_SYCL_ONEAPI_FPGA_BOARD}")
+    endif()
+
+    if(ALPAKA_SYCL_ONEAPI_GPU)
+        set(ALPAKA_SYCL_ONEAPI_GPU_TARGETS "gen8;gen9;gen11;gen12" CACHE STRING "List of Intel GPU devices / generations to compile for")
+        set_property(CACHE ALPAKA_SYCL_ONEAPI_GPU_TARGETS
+                     PROPERTY STRINGS "gen8;gen9;gen10;gen11;gen12;bdw;bxt;cfl;glk;kbl;skl;ehl;icllp;lkf;adls;dg1;rkl;tgllp")
+        string(REPLACE ALPAKA_SYCL_ONEAPI_GPU_TARGETS REPLACE ";" ",")
+        
+        target_link_options(alpaka INTERFACE -Xsycl-target-backend=spir64_gen-unknown-unknown-sycl-device "-device ${ALPAKA_SYCL_ONEAPI_GPU_TARGETS}")
+    endif()
+
+    #-----------------------------------------------------------------------------------------------------------------
+    # Path to ComputeCpp SDK - required for device-side tuples
+    set(ALPAKA_COMPUTECPP_SDK_DIR "" CACHE PATH "Path to the ComputeCpp SDK (root directory)")
+    if(NOT EXISTS ${ALPAKA_COMPUTECPP_SDK_DIR}/include/stl-tuple/STLTuple.hpp)
+        message(FATAL_ERROR "Could not find <stl-tuple/STLTuple.hpp> in ${ALPAKA_COMPUTECPP_SDK_DIR}")
+    endif()
+    target_include_directories(alpaka INTERFACE ${ALPAKA_COMPUTECPP_SDK_DIR}/include)
+endif()
+
+#-------------------------------------------------------------------------------
 # alpaka.
 if(ALPAKA_ACC_GPU_CUDA_ONLY_MODE)
     target_compile_definitions(alpaka INTERFACE "ALPAKA_ACC_GPU_CUDA_ONLY_MODE")
@@ -760,6 +862,28 @@ endif()
 if(ALPAKA_ACC_GPU_HIP_ENABLE)
     target_compile_definitions(alpaka INTERFACE "ALPAKA_ACC_GPU_HIP_ENABLED")
     message(STATUS ALPAKA_ACC_GPU_HIP_ENABLED)
+endif()
+
+if(ALPAKA_ACC_SYCL_ENABLE)
+    target_compile_definitions(alpaka INTERFACE "ALPAKA_ACC_SYCL_ENABLED")
+    target_compile_definitions(alpaka INTERFACE "BOOST_LANG_SYCL")
+    if(ALPAKA_SYCL_PLATFORM_ONEAPI)
+        target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_BACKEND_ONEAPI")
+        if(ALPAKA_SYCL_ONEAPI_CPU)
+            target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_TARGET_CPU")
+        endif()
+        if(ALPAKA_SYCL_ONEAPI_FPGA)
+            target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_TARGET_FPGA")
+        endif()
+        if(ALPAKA_SYCL_ONEAPI_GPU)
+            target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_TARGET_GPU")
+        endif()
+    endif()
+
+    if(ALPAKA_SYCL_PLATFORM_XILINX)
+        target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_BACKEND_XILINX")
+        target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_TARGET_FPGA")
+    endif()
 endif()
 
 target_compile_definitions(alpaka INTERFACE "ALPAKA_DEBUG=${ALPAKA_DEBUG}")
