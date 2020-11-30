@@ -722,7 +722,7 @@ if(ALPAKA_ACC_SYCL_ENABLE)
     # Intel FPGA emulation
     cmake_dependent_option(ALPAKA_SYCL_ONEAPI_FPGA_EMULATION "Enable oneAPI FPGA emulator" ON "ALPAKA_SYCL_ONEAPI_FPGA" OFF)
 
-    if(NOT ALPAKA_SYCL_PLATFORM_ONEAPI OR ALPAKA_SYCL_PLATFORM_XILINX)
+    if(NOT (ALPAKA_SYCL_PLATFORM_ONEAPI OR ALPAKA_SYCL_PLATFORM_XILINX))
         message(FATAL_ERROR "You must specify at least one SYCL platform!")
     endif()
 
