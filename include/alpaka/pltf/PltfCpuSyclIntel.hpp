@@ -44,7 +44,7 @@ namespace alpaka
                 const auto vendor = dev.get_info<cl::sycl::info::device::vendor>();
                 const auto is_intel_cpu = (vendor.find("Intel(R) Corporation") != std::string::npos) && dev.is_cpu();
 
-                return is_intel_gpu ? 1 : -1;
+                return is_intel_cpu ? 1 : -1;
             }
         };
 #pragma clang diagnostic pop

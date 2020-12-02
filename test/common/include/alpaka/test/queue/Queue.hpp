@@ -137,7 +137,20 @@ namespace alpaka
                 using type = alpaka::QueueCpuSyclIntelNonBlocking;
 #           endif
             };
-#       elif defined(ALPAKA_SYCL_TARGET_FPGA)
+
+            template <>
+            struct IsBlockingQueue<alpaka::QueueCpuSyclIntelBlocking>
+            {
+                static constexpr auto value = true;
+            };
+
+            template <>
+            struct IsBlockingQueue<alpaka::QueueCpuSyclIntelNonBlocking>
+            {
+                static constexpr auto value = false;
+            };
+#       endif
+#       ifdef ALPAKA_SYCL_TARGET_FPGA
             //#############################################################################
             //! The default queue type trait specialization for the Xilinx SYCL device.
             template<>
@@ -150,7 +163,20 @@ namespace alpaka
                 using type = alpaka::QueueFpgaSyclIntelNonBlocking;
 #           endif
             };
-#       elif defined(ALPAKA_SYCL_TARGET_GPU)
+
+            template <>
+            struct IsBlockingQueue<alpaka::QueueFpgaSyclIntelBlocking>
+            {
+                static constexpr auto value = true;
+            };
+
+            template <>
+            struct IsBlockingQueue<alpaka::QueueFpgaSyclIntelNonBlocking>
+            {
+                static constexpr auto value = false;
+            };
+#       endif
+#       ifdef ALPAKA_SYCL_TARGET_GPU
             //#############################################################################
             //! The default queue type trait specialization for the Intel CPU device.
             template<>
@@ -163,8 +189,21 @@ namespace alpaka
                 using type = alpaka::QueueGpuSyclIntelNonBlocking;
 #           endif
             };
+
+            template <>
+            struct IsBlockingQueue<alpaka::QueueGpuSyclIntelBlocking>
+            {
+                static constexpr auto value = true;
+            };
+
+            template <>
+            struct IsBlockingQueue<alpaka::QueueGpuSyclIntelNonBlocking>
+            {
+                static constexpr auto value = false;
+            };
 #       endif
-#   elif defined(ALPAKA_SYCL_BACKEND_XILINX)
+#   endif
+#   ifdef ALPAKA_SYCL_BACKEND_XILINX
             //#############################################################################
             //! The default queue type trait specialization for the Xilinx SYCL device.
             template<>
@@ -176,6 +215,18 @@ namespace alpaka
 #       else
                 using type = alpaka::QueueFpgaSyclXilinxNonBlocking;
 #       endif
+            };
+
+            template <>
+            struct IsBlockingQueue<alpaka::QueueFpgaSyclXilinxBlocking>
+            {
+                static constexpr auto value = true;
+            };
+
+            template <>
+            struct IsBlockingQueue<alpaka::QueueFpgaSyclXilinxNonBlocking>
+            {
+                static constexpr auto value = false;
             };
 #   endif
 #endif

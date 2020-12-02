@@ -22,6 +22,8 @@
 
 #include <CL/sycl.hpp>
 
+#include <cstddef>
+
 namespace alpaka
 {
     //#############################################################################
@@ -32,7 +34,7 @@ namespace alpaka
         using BlockSharedMemDynBase = BlockSharedMemDynGenericSycl;
 
         //-----------------------------------------------------------------------------
-        BlockSharedMemDynGenericSycl(cl::sycl::accessor<unsigned char, 1,
+        BlockSharedMemDynGenericSycl(cl::sycl::accessor<std::byte, 1,
                                                         cl::sycl::access::mode::read_write,
                                                         cl::sycl::access::target::local> shared_acc)
         : acc{shared_acc}
@@ -49,7 +51,7 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         /*virtual*/ ~BlockSharedMemDynGenericSycl() = default;
 
-        cl::sycl::accessor<unsigned char, 1, cl::sycl::access::mode::read_write, cl::sycl::access::target::local> acc;
+        cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write, cl::sycl::access::target::local> acc;
     };
 
     namespace traits
@@ -59,10 +61,13 @@ namespace alpaka
         struct GetMem<T, BlockSharedMemDynGenericSycl>
         {
             //-----------------------------------------------------------------------------
-            static auto getMem(BlockSharedMemDynGenericSycl const & shared) -> T *
+            static auto getMem(BlockSharedMemDynGenericSycl const & shared) -> T*
             {
-                auto ptr = static_cast<unsigned char*>(shared.acc.get_pointer());
-                return reinterpret_cast<T*>(ptr);
+                using namespace cl::sycl;
+
+                auto void_ptr = multi_ptr<void, access::address_space::local_space>{shared.acc};
+                auto T_ptr = static_cast<multi_ptr<T, access::address_space::local_space>>(void_ptr);
+                return T_ptr.get();
             }
         };
     }

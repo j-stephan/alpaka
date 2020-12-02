@@ -25,6 +25,7 @@
 #include <alpaka/acc/AccCpuSerial.hpp>
 #include <alpaka/acc/AccCpuTbbBlocks.hpp>
 #include <alpaka/acc/AccCpuThreads.hpp>
+#include <alpaka/acc/AccCpuSyclIntel.hpp>
 #include <alpaka/acc/AccDevProps.hpp>
 #include <alpaka/acc/AccFpgaSyclIntel.hpp>
 #include <alpaka/acc/AccFpgaSyclXilinx.hpp>
@@ -35,7 +36,6 @@
 #include <alpaka/acc/AccGpuUniformCudaHipRt.hpp>
 #include <alpaka/acc/AccOacc.hpp>
 #include <alpaka/acc/AccOmp5.hpp>
-#include <alpaka/acc/AccDevProps.hpp>
 #include <alpaka/acc/Traits.hpp>
 //-----------------------------------------------------------------------------
 // atomic
@@ -98,6 +98,7 @@
 //-----------------------------------------------------------------------------
 // dev
 #include <alpaka/dev/DevCpu.hpp>
+#include <alpaka/dev/DevCpuSyclIntel.hpp>
 #include <alpaka/dev/DevFpgaSyclIntel.hpp>
 #include <alpaka/dev/DevFpgaSyclXilinx.hpp>
 #include <alpaka/dev/DevGenericSycl.hpp>
@@ -113,6 +114,7 @@
 //-----------------------------------------------------------------------------
 // event
 #include <alpaka/event/EventCpu.hpp>
+#include <alpaka/event/EventCpuSyclIntel.hpp>
 #include <alpaka/event/EventFpgaSyclIntel.hpp>
 #include <alpaka/event/EventFpgaSyclXilinx.hpp>
 #include <alpaka/event/EventGenericSycl.hpp>
@@ -144,6 +146,7 @@
 #include <alpaka/kernel/TaskKernelCpuOmp2Blocks.hpp>
 #include <alpaka/kernel/TaskKernelCpuOmp2Threads.hpp>
 #include <alpaka/kernel/TaskKernelCpuSerial.hpp>
+#include <alpaka/kernel/TaskKernelCpuSyclIntel.hpp>
 #include <alpaka/kernel/TaskKernelCpuTbbBlocks.hpp>
 #include <alpaka/kernel/TaskKernelCpuThreads.hpp>
 #include <alpaka/kernel/TaskKernelFpgaSyclIntel.hpp>
@@ -165,6 +168,7 @@
 #include <alpaka/mem/alloc/AllocCpuNew.hpp>
 #include <alpaka/mem/alloc/Traits.hpp>
 #include <alpaka/mem/buf/BufCpu.hpp>
+#include <alpaka/mem/buf/BufCpuSyclIntel.hpp>
 #include <alpaka/mem/buf/BufFpgaSyclIntel.hpp>
 #include <alpaka/mem/buf/BufFpgaSyclXilinx.hpp>
 #include <alpaka/mem/buf/BufGenericSycl.hpp>
@@ -204,12 +208,13 @@
 //-----------------------------------------------------------------------------
 // platform
 #include <alpaka/pltf/PltfCpu.hpp>
-#include <alpaka/pltf/PltfOacc.hpp>
-#include <alpaka/pltf/PltfOmp5.hpp>
-#include <alpaka/pltf/PltfUniformCudaHipRt.hpp>
+#include <alpaka/pltf/PltfCpuSyclIntel.hpp>
 #include <alpaka/pltf/PltfFpgaSyclIntel.hpp>
 #include <alpaka/pltf/PltfFpgaSyclXilinx.hpp>
 #include <alpaka/pltf/PltfGpuSyclIntel.hpp>
+#include <alpaka/pltf/PltfOacc.hpp>
+#include <alpaka/pltf/PltfOmp5.hpp>
+#include <alpaka/pltf/PltfUniformCudaHipRt.hpp>
 #include <alpaka/pltf/Traits.hpp>
 //-----------------------------------------------------------------------------
 // rand
@@ -223,6 +228,8 @@
 #include <alpaka/queue/Properties.hpp>
 #include <alpaka/queue/QueueCpuBlocking.hpp>
 #include <alpaka/queue/QueueCpuNonBlocking.hpp>
+#include <alpaka/queue/QueueCpuSyclIntelNonBlocking.hpp>
+#include <alpaka/queue/QueueCpuSyclIntelBlocking.hpp>
 #include <alpaka/queue/QueueOaccBlocking.hpp>
 #include <alpaka/queue/QueueOmp5Blocking.hpp>
 #include <alpaka/queue/QueueUniformCudaHipRtBlocking.hpp>

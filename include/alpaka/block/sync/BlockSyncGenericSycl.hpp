@@ -19,6 +19,8 @@
 
 #include <alpaka/block/sync/Traits.hpp>
 
+#include <CL/sycl.hpp>
+
 namespace alpaka
 {
     //#############################################################################

@@ -49,7 +49,7 @@ namespace alpaka
 {
     namespace detail
     {
-        template <typename TName>
+        template <typename TName, typename TAcc>
         struct kernel {}; // SYCL kernel names must be globally visible
 
         template <typename... TArgs, std::size_t... Is>
@@ -147,7 +147,7 @@ namespace alpaka
                 return getBlockSharedMemDynSizeBytes<TAcc>(m_kernelFnObj, group_items, item_elements, args...);
             }, m_args));
 
-            auto shared_accessor = accessor<unsigned char, 1, access::mode::read_write, access::target::local>{
+            auto shared_accessor = accessor<std::byte, 1, access::mode::read_write, access::target::local>{
                                                 range<1>{shared_mem_bytes}, cgh};
 
             // copy-by-value so we don't access 'this' on the device
@@ -156,7 +156,7 @@ namespace alpaka
             // wait for previous kernels to complete
             cgh.depends_on(pimpl->dependencies);
 
-            cgh.parallel_for<detail::kernel<TKernelFnObj>>(nd_range<TDim::value>{global_size, local_size},
+            cgh.parallel_for<detail::kernel<TKernelFnObj, TAcc>>(nd_range<TDim::value>{global_size, local_size},
             [=](nd_item<TDim::value> work_item)
             {
                 auto pred_counter = ONEAPI::atomic_ref<int, ONEAPI::memory_order::relaxed, ONEAPI::memory_scope::work_group,
@@ -180,13 +180,17 @@ namespace alpaka
             using namespace cl::sycl;
 
             if constexpr(TDim::value == 1)
-                return range<1>{work_groups[0] * group_items[0]};
+                return range<1>{static_cast<std::size_t>(work_groups[0] * group_items[0])};
             else if constexpr(TDim::value == 2)
-                return range<2>{work_groups[0] * group_items[0], work_groups[1] * group_items[1]};
+            {
+                return range<2>{static_cast<std::size_t>(work_groups[0] * group_items[0]),
+                                static_cast<std::size_t>(work_groups[1] * group_items[1])};
+            }
             else
             {
-                return range<3>{work_groups[0] * group_items[0], work_groups[1] * group_items[1],
-                                work_groups[2] * group_items[2]};
+                return range<3>{static_cast<std::size_t>(work_groups[0] * group_items[0]),
+                                static_cast<std::size_t>(work_groups[1] * group_items[1]),
+                                static_cast<std::size_t>(work_groups[2] * group_items[2])};
             }
         }
 
@@ -195,11 +199,14 @@ namespace alpaka
             using namespace cl::sycl;
 
             if constexpr(TDim::value == 1)
-                return range<1>{group_items[0]};
+                return range<1>{static_cast<std::size_t>(group_items[0])};
             else if constexpr(TDim::value == 2)
-                return range<2>{group_items[0], group_items[1]};
+                return range<2>{static_cast<std::size_t>(group_items[0]), static_cast<std::size_t>(group_items[1])};
             else
-                return range<3>{group_items[0], group_items[1], group_items[2]};
+            {
+                return range<3>{static_cast<std::size_t>(group_items[0]), static_cast<std::size_t>(group_items[1]),
+                                static_cast<std::size_t>(group_items[2])};
+            }
         }
 
         TKernelFnObj m_kernelFnObj;

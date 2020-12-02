@@ -23,7 +23,7 @@
 namespace alpaka
 {
     template <typename TDim, typename TIdx>
-    class AccCpuSyclIntel<TDim, TIdx>;
+    class AccCpuSyclIntel;
 
     template<typename TDim, typename TIdx, typename TKernelFnObj, typename... TArgs>
     using TaskKernelCpuSyclIntel = TaskKernelGenericSycl<AccCpuSyclIntel<TDim, TIdx>, TDim, TIdx, TKernelFnObj, TArgs...>;

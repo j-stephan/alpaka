@@ -10,14 +10,14 @@
 #include "mysqrt.hpp"
 
 // a square root calculation using simple operations
-ALPAKA_FN_HOST_ACC auto mysqrt(double x) -> double
+ALPAKA_FN_HOST_ACC auto mysqrt(float x) -> float
 {
     if(x <= 0)
     {
         return 0.0;
     }
 
-    double result = x;
+    float result = x;
 
     for(int i = 0; i < 100; ++i)
     {
@@ -25,7 +25,7 @@ ALPAKA_FN_HOST_ACC auto mysqrt(double x) -> double
         {
             result = 0.1;
         }
-        double delta = x - (result * result);
+        float delta = x - (result * result);
         result = result + 0.5 * delta / result;
     }
     return result;

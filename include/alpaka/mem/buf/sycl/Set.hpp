@@ -51,7 +51,7 @@ namespace alpaka
             TElem* ptr;
             int value;
             std::size_t bytes;
-            std::vector<cl::sycl::event> m_dependencies = {};
+            std::vector<cl::sycl::event> dependencies = {};
             std::shared_mutex mutex{};
         };
 
@@ -63,7 +63,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             auto operator()(cl::sycl::handler& cgh) -> void
             {
-                cgh.depends_on(pimpl->m_dependencies);
+                cgh.depends_on(pimpl->dependencies);
                 cgh.memset(pimpl->ptr, pimpl->value, pimpl->bytes);
             }
 
@@ -87,11 +87,11 @@ namespace alpaka
 
                 auto bytes = std::size_t{};
                 if constexpr(Dim<TExtent>::value == 1)
-                    bytes = extent::getWidth(ext) * TypeBytes;
+                    bytes = static_cast<std::size_t>(extent::getWidth(ext)) * TypeBytes;
                 else if constexpr(Dim<TExtent>::value == 2)
-                    bytes = extent::getWidth(ext) * extent::getHeight(ext) * TypeBytes;
+                    bytes = static_cast<std::size_t>(extent::getWidth(ext) * extent::getHeight(ext)) * TypeBytes;
                 else
-                    bytes = extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext) * TypeBytes;
+                    bytes = static_cast<std::size_t>(extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext)) * TypeBytes;
 
                 return alpaka::detail::TaskSetSycl<Type>{std::make_shared<alpaka::detail::TaskSetSyclImpl<Type>>(getPtrNative(view), static_cast<int>(byte), bytes)};
             }
