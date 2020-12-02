@@ -43,7 +43,7 @@ namespace alpaka
         typename TBlockSharedMemDyn>
     ALPAKA_FN_ACC auto getMem(
         TBlockSharedMemDyn const & blockSharedMemDyn)
-    -> T *
+    -> T*
     {
         using ImplementationBase = concepts::ImplementationBase<ConceptBlockSharedDyn, TBlockSharedMemDyn>;
         return

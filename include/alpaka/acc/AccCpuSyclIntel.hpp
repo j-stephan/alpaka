@@ -25,6 +25,7 @@
 
 #include <CL/sycl.hpp>
 
+#include <cstddef>
 #include <string>
 
 namespace alpaka
@@ -35,7 +36,7 @@ namespace alpaka
     {
     public:
         AccCpuSyclIntel(Vec<TDim, TIdx> const & threadElemExtent, cl::sycl::nd_item<TDim::value> work_item,
-                         cl::sycl::accessor<unsigned char, 1, cl::sycl::access::mode::read_write,
+                         cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write,
                                             cl::sycl::access::target::local> shared_acc,
                          cl::sycl::ONEAPI::atomic_ref<int, cl::sycl::ONEAPI::memory_order::relaxed,
                                                       cl::sycl::ONEAPI::memory_scope::work_group,

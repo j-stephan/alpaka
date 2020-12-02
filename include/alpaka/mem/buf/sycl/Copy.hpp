@@ -18,6 +18,7 @@
     #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
 #endif
 
+#include <alpaka/dev/DevCpu.hpp>
 #include <alpaka/dev/DevGenericSycl.hpp>
 #include <alpaka/dim/DimIntegralConst.hpp>
 #include <alpaka/elem/Traits.hpp>
@@ -103,11 +104,11 @@ namespace alpaka
                 auto bytes = std::size_t{};
 
                 if constexpr(Dim<TExtent>::value == 1)
-                    bytes = extent::getWidth(ext) * SrcBytes;
+                    bytes = static_cast<std::size_t>(extent::getWidth(ext)) * SrcBytes;
                 else if constexpr(Dim<TExtent>::value == 2)
-                    bytes = extent::getWidth(ext) * extent::getHeight(ext) * SrcBytes;
+                    bytes = static_cast<std::size_t>(extent::getWidth(ext) * extent::getHeight(ext)) * SrcBytes;
                 else
-                    bytes = extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext) * SrcBytes;
+                    bytes = static_cast<std::size_t>(extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext)) * SrcBytes;
 
                 return alpaka::detail::TaskCopySycl<SrcType>{std::make_shared<alpaka::detail::TaskCopySyclImpl<SrcType>>(getPtrNative(viewSrc), getPtrNative(viewDst), bytes)};
             }
@@ -141,11 +142,11 @@ namespace alpaka
                 auto bytes = std::size_t{};
 
                 if constexpr(Dim<TExtent>::value == 1)
-                    bytes = extent::getWidth(ext) * SrcBytes;
+                    bytes = static_cast<std::size_t>(extent::getWidth(ext)) * SrcBytes;
                 else if constexpr(Dim<TExtent>::value == 2)
-                    bytes = extent::getWidth(ext) * extent::getHeight(ext) * SrcBytes;
+                    bytes = static_cast<std::size_t>(extent::getWidth(ext) * extent::getHeight(ext)) * SrcBytes;
                 else
-                    bytes = extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext) * SrcBytes;
+                    bytes = static_cast<std::size_t>(extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext)) * SrcBytes;
 
                 return alpaka::detail::TaskCopySycl<SrcType>{std::make_shared<alpaka::detail::TaskCopySyclImpl<SrcType>>(getPtrNative(viewSrc), getPtrNative(viewDst), bytes)};
             }
@@ -179,11 +180,11 @@ namespace alpaka
                 auto bytes = std::size_t{};
 
                 if constexpr(Dim<TExtent>::value == 1)
-                    bytes = extent::getWidth(ext) * SrcBytes;
+                    bytes = static_cast<std::size_t>(extent::getWidth(ext)) * SrcBytes;
                 else if constexpr(Dim<TExtent>::value == 2)
-                    bytes = extent::getWidth(ext) * extent::getHeight(ext) * SrcBytes;
+                    bytes = static_cast<std::size_t>(extent::getWidth(ext) * extent::getHeight(ext)) * SrcBytes;
                 else
-                    bytes = extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext) * SrcBytes;
+                    bytes = static_cast<std::size_t>(extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext)) * SrcBytes;
 
                 return alpaka::detail::TaskCopySycl<SrcType>{std::make_shared<alpaka::detail::TaskCopySyclImpl<SrcType>>(getPtrNative(viewSrc), getPtrNative(viewDst), bytes)};
             }

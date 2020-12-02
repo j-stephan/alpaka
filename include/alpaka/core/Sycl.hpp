@@ -67,12 +67,9 @@ namespace alpaka
         //! here.
         template<typename T>
         struct IsSyclBuiltInType :
-            detail::is_any<T,
-                // built-in scalar types - these are the standard C++ built-in types, std::size_t and cl::sycl::half
+            alpaka::detail::is_any<T,
+                // built-in scalar types - these are the standard C++ built-in types, std::size_t, std::byte and cl::sycl::half
                 cl::sycl::half,
-
-                // additional scalar types
-                cl::sycl::byte,
 
                 // 2 component vector types
                 cl::sycl::char2, cl::sycl::schar2, cl::sycl::uchar2,
@@ -144,15 +141,15 @@ namespace alpaka
         //##################################################################
         //! SYCL's types get trait specialization.
         template<typename T>
-        struct DimType<T, std::enable_if_t<traits::IsSyclBuiltInType<T>::value>>
+        struct DimType<T, std::enable_if_t<IsSyclBuiltInType<T>::value>>
         {
-            using type = DimInt<detail::extract<T>>;
+            using type = DimInt<alpaka::detail::extract<T>>;
         };
 
         //##################################################################
         //! The SYCL vectors' elem type trait specialization.
         template<typename T>
-        struct ElemType<T, std::enable_if_t<traits::IsSyclBuiltInType<T>::value>>
+        struct ElemType<T, std::enable_if_t<IsSyclBuiltInType<T>::value>>
         {
             using type = std::conditional_t<std::is_scalar_v<T>, T, typename T::element_type>;
         };
@@ -205,7 +202,7 @@ namespace alpaka
         //! The SYCL vectors' offset get trait specialization.
         template<typename TOffsets>
         struct GetOffset<DimInt<Dim<TOffsets>::value>, TOffsets,
-                         std::enable_if_t<traits::IsSyclBuiltInType<TOffsets>::value>>
+                         std::enable_if_t<IsSyclBuiltInType<TOffsets>::value>>
         {
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC static auto getOffset(TOffsets const & offsets)
@@ -221,7 +218,7 @@ namespace alpaka
         //! The SYCL vectors' offset set trait specialization.
         template<typename TOffsets, typename TOffset>
         struct SetOffset<DimInt<Dim<TOffsets>::value>, TOffsets, TOffset,
-                         std::enable_if_t<traits::IsSyclBuiltInType<TOffsets>::value>>
+                         std::enable_if_t<IsSyclBuiltInType<TOffsets>::value>>
         {
             ALPAKA_NO_HOST_ACC_WARNING
             ALPAKA_FN_HOST_ACC static auto setOffset(TOffsets const & offsets, TOffset const & offset)
@@ -236,7 +233,7 @@ namespace alpaka
         //#############################################################################
         //! The SYCL vectors' idx type trait specialization.
         template<typename TIdx>
-        struct IdxType<TIdx, std::enable_if_t<traits::IsSyclBuiltInType<TIdx>::value>>
+        struct IdxType<TIdx, std::enable_if_t<IsSyclBuiltInType<TIdx>::value>>
         {
             using type = std::size_t;
         };

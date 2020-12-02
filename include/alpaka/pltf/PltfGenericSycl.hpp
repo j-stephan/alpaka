@@ -19,6 +19,8 @@
 #endif
 
 #include <alpaka/dev/Traits.hpp>
+#include <alpaka/pltf/Traits.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/Sycl.hpp>
 
 #include <iostream>
