@@ -21,6 +21,7 @@
 #include <alpaka/core/Sycl.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/pltf/PltfGenericSycl.hpp>
+#include <alpaka/dev/DevGenericSycl.hpp>
 
 #include <CL/sycl.hpp>
 
