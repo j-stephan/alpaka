@@ -744,7 +744,9 @@ if(ALPAKA_ACC_SYCL_ENABLE)
         endif()
 
         if(ALPAKA_SYCL_ONEAPI_FPGA)
-            list(APPEND ALPAKA_SYCL_TARGETS ${ALPAKA_ONEAPI_FPGA_TARGET})
+            target_compile_options(alpaka INTERFACE "-fintelfpga")
+            target_link_options(alpaka INTERFACE "-fintelfpga")
+            #list(APPEND ALPAKA_SYCL_TARGETS ${ALPAKA_ONEAPI_FPGA_TARGET})
         endif()
 
         if(ALPAKA_SYCL_ONEAPI_GPU)
@@ -764,15 +766,6 @@ if(ALPAKA_ACC_SYCL_ENABLE)
     target_compile_options(alpaka INTERFACE "-fsycl-targets=${ALPAKA_SYCL_TARGETS_CONCAT}")
     target_link_options(alpaka INTERFACE "-fsycl-targets=${ALPAKA_SYCL_TARGETS_CONCAT}")
     
-    # We can't use -fintelfpga because there might be multiple SYCL targets. Since we are relying on the alternative
-    # (spir64_fpga-unknown-unknown-sycldevice) we need to manually provide the equivalent flags.
-    if(ALPAKA_SYCL_ONEAPI_FPGA)
-        target_compile_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} -g")
-        target_link_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} -g")
-        target_compile_options(alpaka INTERFACE "-MMD")
-        target_link_options(alpaka INTERFACE "-MMD")
-    endif()
-
     #-----------------------------------------------------------------------------------------------------------------
     # Determine actual hardware to compile for 
     if(ALPAKA_SYCL_ONEAPI_CPU)
@@ -786,6 +779,7 @@ if(ALPAKA_ACC_SYCL_ENABLE)
 
     if(ALPAKA_SYCL_ONEAPI_FPGA)
         target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_FPGA")
+
         if(ALPAKA_SYCL_ONEAPI_FPGA_EMULATION)
             target_compile_definitions(alpaka INTERFACE "ALPAKA_FPGA_EMULATION")
             # No extra link flag needed because emulation is the default
