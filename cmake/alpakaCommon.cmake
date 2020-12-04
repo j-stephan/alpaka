@@ -767,10 +767,10 @@ if(ALPAKA_ACC_SYCL_ENABLE)
     # We can't use -fintelfpga because there might be multiple SYCL targets. Since we are relying on the alternative
     # (spir64_fpga-unknown-unknown-sycldevice) we need to manually provide the equivalent flags.
     if(ALPAKA_SYCL_ONEAPI_FPGA)
-        target_compile_options(alpaka INTERFACE -Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} "-g")
-        target_link_options(alpaka INTERFACE -Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} "-g")
-        target_compile_options(alpaka INTERFACE -MMD)
-        target_link_options(alpaka INTERFACE -MMD)
+        target_compile_options(alpaka INTERFACE "-Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} \"-g\"")
+        target_link_options(alpaka INTERFACE "-Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} \"-g\"")
+        target_compile_options(alpaka INTERFACE "-MMD")
+        target_link_options(alpaka INTERFACE "-MMD")
     endif()
 
     #-----------------------------------------------------------------------------------------------------------------
@@ -780,8 +780,8 @@ if(ALPAKA_ACC_SYCL_ENABLE)
         set_property(CACHE ALPAKA_SYCL_ONEAPI_CPU_ISA PROPERTY STRINGS "sse42;avx;avx2;avx512")
 
         target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_CPU")
-        target_compile_options(alpaka INTERFACE -Xsycl-target-backend=${ALPAKA_ONEAPI_CPU_TARGET} "-march=${ALPAKA_SYCL_ONEAPI_CPU_ISA}")
-        target_link_options(alpaka INTERFACE -Xsycl-target-backend=${ALPAKA_ONEAPI_CPU_TARGET} "-march=${ALPAKA_SYCL_ONEAPI_CPU_ISA}")
+        target_compile_options(alpaka INTERFACE "-Xsycl-target-backend=${ALPAKA_ONEAPI_CPU_TARGET} \"-march=${ALPAKA_SYCL_ONEAPI_CPU_ISA}\"")
+        target_link_options(alpaka INTERFACE "-Xsycl-target-backend=${ALPAKA_ONEAPI_CPU_TARGET} \"-march=${ALPAKA_SYCL_ONEAPI_CPU_ISA}\"")
     endif()
 
     if(ALPAKA_SYCL_ONEAPI_FPGA)
@@ -790,19 +790,19 @@ if(ALPAKA_ACC_SYCL_ENABLE)
             target_compile_definitions(alpaka INTERFACE "ALPAKA_FPGA_EMULATION")
             # No extra link flag needed because emulation is the default
         elseif(ALPAKA_SYCL_ONEAPI_FPGA_SIMULATION)
-            target_link_options(alpaka INTERFACE -Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} "-simulation")
+            target_link_options(alpaka INTERFACE "-Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} \"-simulation\"")
         else()
-            target_link_options(alpaka INTERFACE -Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} "-hardware")
+            target_link_options(alpaka INTERFACE "-Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} \"-hardware\"")
         endif()
 
         if(NOT ALPAKA_SYCL_ONEAPI_FPGA_EMULATION)
             set(ALPAKA_ONEAPI_FPGA_BOARD "pac_a10" CACHE STRING "Intel FPGA board to compile for")
             set_property(CACHE ALPAKA_ONEAPI_FPGA_BOARD PROPERTY STRINGS "pac_a10;pac_s10;pac_s10_usm")
-            target_link_options(alpaka INTERFACE -Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} "-board=${ALPAKA_ONEAPI_FPGA_BOARD}")
+            target_link_options(alpaka INTERFACE "-Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} \"-board=${ALPAKA_ONEAPI_FPGA_BOARD}\"")
 
             set(ALPAKA_ONEAPI_FPGA_BSP "intel_a10gx_pac" CACHE STRING "Path to or name of the Intel FPGA board support package")
             set_property(CACHE ALPAKA_ONEAPI_FPGA_BSP PROPERTY STRINGS "intel_a10gx_pac;intel_s10sx_pac")
-            target_link_options(alpaka INTERFACE -Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} "-board-package=${ALPAKA_ONEAPI_FPGA_BSP}")
+            target_link_options(alpaka INTERFACE "-Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} \"-board-package=${ALPAKA_ONEAPI_FPGA_BSP}\"")
         endif()
 
     endif()
@@ -814,8 +814,8 @@ if(ALPAKA_ACC_SYCL_ENABLE)
         string(REPLACE ALPAKA_ONEAPI_GPU_DEVICES REPLACE ";" ",")
         
         target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_GPU")
-        target_compile_options(alpaka INTERFACE -Xsycl-target-backend=${ALPAKA_ONEAPI_GPU_TARGET} "-device ${ALPAKA_ONEAPI_GPU_DEVICES}")
-        target_link_options(alpaka INTERFACE -Xsycl-target-backend=${ALPAKA_ONEAPI_GPU_TARGET} "-device ${ALPAKA_ONEAPI_GPU_DEVICES}")
+        target_compile_options(alpaka INTERFACE "-Xsycl-target-backend=${ALPAKA_ONEAPI_GPU_TARGET} \"-device ${ALPAKA_ONEAPI_GPU_DEVICES}\"")
+        target_link_options(alpaka INTERFACE "-Xsycl-target-backend=${ALPAKA_ONEAPI_GPU_TARGET} \"-device ${ALPAKA_ONEAPI_GPU_DEVICES}\"")
     endif()
 
     #-----------------------------------------------------------------------------------------------------------------
