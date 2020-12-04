@@ -801,7 +801,7 @@ if(ALPAKA_ACC_SYCL_ENABLE)
             target_link_options(alpaka INTERFACE -Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} "-board=${ALPAKA_ONEAPI_FPGA_BOARD}")
 
             set(ALPAKA_ONEAPI_FPGA_BSP "intel_a10gx_pac" CACHE STRING "Path to or name of the Intel FPGA board support package")
-            set_property(CACHE ALPAKA_ONEAPI_FPGA_BSP PROPERTY STRING "intel_a10gx_pac;intel_s10sx_pac")
+            set_property(CACHE ALPAKA_ONEAPI_FPGA_BSP PROPERTY STRINGS "intel_a10gx_pac;intel_s10sx_pac")
             target_link_options(alpaka INTERFACE -Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} "-board-package=${ALPAKA_ONEAPI_FPGA_BSP}")
         endif()
 
