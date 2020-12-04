@@ -753,7 +753,7 @@ if(ALPAKA_ACC_SYCL_ENABLE)
             list(APPEND ALPAKA_SYCL_TARGETS ${ALPAKA_ONEAPI_GPU_TARGET})
         endif()
 
-        if(NOT ALPAKA_SYCL_TARGETS)
+        if(NOT ALPAKA_SYCL_TARGETS AND NOT ALPAKA_SYCL_ONEAPI_FPGA)
             message(FATAL_ERROR "You must specify at least one oneAPI hardware target!")
         endif()
     endif()
@@ -763,8 +763,12 @@ if(ALPAKA_ACC_SYCL_ENABLE)
     endif()
 
     list(JOIN ALPAKA_SYCL_TARGETS "," ALPAKA_SYCL_TARGETS_CONCAT)
-    target_compile_options(alpaka INTERFACE "-fsycl-targets=${ALPAKA_SYCL_TARGETS_CONCAT}")
-    target_link_options(alpaka INTERFACE "-fsycl-targets=${ALPAKA_SYCL_TARGETS_CONCAT}")
+    if(NOT ALPAKA_SYCL_ONEAPI_FPGA)
+        target_compile_options(alpaka INTERFACE "-fsycl-targets=${ALPAKA_SYCL_TARGETS_CONCAT}")
+        target_link_options(alpaka INTERFACE "-fsycl-targets=${ALPAKA_SYCL_TARGETS_CONCAT}")
+    else()
+        message(WARNING "You have enabled compilation for Intel FPGAs. Disabling other backends.")
+    endif()
     
     #-----------------------------------------------------------------------------------------------------------------
     # Determine actual hardware to compile for 
