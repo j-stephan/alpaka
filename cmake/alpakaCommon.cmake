@@ -818,8 +818,8 @@ if(ALPAKA_ACC_SYCL_ENABLE)
         string(REPLACE ALPAKA_ONEAPI_GPU_DEVICES REPLACE ";" ",")
         
         target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_GPU")
-        target_compile_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_ONEAPI_GPU_TARGET} -device ${ALPAKA_ONEAPI_GPU_DEVICES}")
-        target_link_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_ONEAPI_GPU_TARGET} -device ${ALPAKA_ONEAPI_GPU_DEVICES}")
+        target_compile_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_ONEAPI_GPU_TARGET} \"-device ${ALPAKA_ONEAPI_GPU_DEVICES}\"")
+        target_link_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_ONEAPI_GPU_TARGET} \"-device ${ALPAKA_ONEAPI_GPU_DEVICES}\"")
     endif()
 
     #-----------------------------------------------------------------------------------------------------------------
@@ -838,8 +838,6 @@ if(ALPAKA_ACC_SYCL_ENABLE)
         target_compile_options(alpaka INTERFACE "-Wno-unused-parameter")
         target_compile_options(alpaka INTERFACE "-Wno-unused-command-line-argument")
     endif()
-
-    target_link_libraries(alpaka INTERFACE "-lsycl")
 endif()
 
 #-------------------------------------------------------------------------------
