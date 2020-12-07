@@ -72,5 +72,5 @@ if(ALPAKA_ACC_SYCL_ENABLE AND ALPAKA_SYCL_ONEAPI_FPGA)
                        COMMENT "Packaging FPGA static library..."
                        MAIN_DEPENDENCY ${_COMMON_FPGA_OBJ_TARGET_NAME}
                        USES_TERMINAL)
-    add_custom_target(${ALPAKA_COMMON_FPGA_TARGET_NAME} DEPENDS ${ALPAKA_COMMON_FPGA_TARGET_LIB})
+    add_custom_target(${ALPAKA_COMMON_FPGA_TARGET} DEPENDS ${ALPAKA_COMMON_FPGA_TARGET_LIB})
 endif()
