@@ -16,7 +16,8 @@ alpaka_add_executable(
     ${_TARGET_NAME}
     ${_FILES_SOURCE})
 if(ALPAKA_ACC_SYCL_ENABLE AND ALPAKA_SYCL_ONEAPI_FPGA)
-    target_link_libraries(${_TARGET_NAME} PRIVATE common_intelfpga)
+    target_link_libraries(${_TARGET_NAME} PRIVATE $<TARGET_FILE:common_intelfpga>)
+    add_dependencies(${_TARGET_NAME} common_intelfpga)
 else()
     target_link_libraries(${_TARGET_NAME} PRIVATE common)
 endif()
