@@ -15,12 +15,9 @@ append_recursive_files_add_to_src_group("src/" "src/" "cpp" _FILES_SOURCE)
 alpaka_add_executable(
     ${_TARGET_NAME}
     ${_FILES_SOURCE})
-if(ALPAKA_ACC_SYCL_ENABLE AND ALPAKA_SYCL_ONEAPI_FPGA)
-    target_link_libraries(${_TARGET_NAME} PRIVATE ${ALPAKA_COMMON_FPGA_TARGET_LIB})
-    add_dependencies(${_TARGET_NAME} ${ALPAKA_COMMON_FPGA_TARGET})
-else()
-    target_link_libraries(${_TARGET_NAME} PRIVATE common)
-endif()
+target_link_libraries(
+    ${_TARGET_NAME}
+    PRIVATE common)
 
 set_target_properties(${_TARGET_NAME} PROPERTIES FOLDER "test/integ")
 
