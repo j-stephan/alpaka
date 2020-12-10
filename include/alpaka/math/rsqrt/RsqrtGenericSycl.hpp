@@ -29,17 +29,15 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library rsqrt.
+        //! The SYCL rsqrt.
         class RsqrtGenericSycl : public concepts::Implements<ConceptMathRsqrt, RsqrtGenericSycl>
         {
-        public:
-            using RsqrtBase = RsqrtGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library rsqrt trait specialization.
+            //! The SYCL rsqrt trait specialization.
             template<
                 typename TArg>
             struct Rsqrt<

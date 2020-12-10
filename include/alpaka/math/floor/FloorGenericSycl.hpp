@@ -29,7 +29,7 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library floor.
+        //! The SYCL floor.
         class FloorGenericSycl : public concepts::Implements<ConceptMathFloor, FloorGenericSycl>
         {
         public:
@@ -39,13 +39,13 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The standard library floor trait specialization.
+            //! The SYCL floor trait specialization.
             template<
                 typename TArg>
             struct Floor<
                 FloorGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto floor(
                     FloorGenericSycl const &,

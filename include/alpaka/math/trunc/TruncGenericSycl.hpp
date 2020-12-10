@@ -29,23 +29,21 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library trunc.
-        class TruncGenericSycl : concepts::Implements<ConceptMathTrunc, TruncGenericSycl>
+        //! The SYCL trunc.
+        class TruncGenericSycl : public concepts::Implements<ConceptMathTrunc, TruncGenericSycl>
         {
-        public:
-            using TruncBase = TruncGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library trunc trait specialization.
+            //! The SYCL trunc trait specialization.
             template<
                 typename TArg>
             struct Trunc<
                 TruncGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto trunc(
                     TruncGenericSycl const &,

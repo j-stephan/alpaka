@@ -29,19 +29,17 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library abs.
+        //! The SYCL library abs.
         class AbsGenericSycl : public concepts::Implements<ConceptMathAbs, AbsGenericSycl>
         {
-        public:
-            using AbsBase = AbsGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The SYCL built in abs trait specialization.
+            //! The SYCL abs trait specialization.
             template<typename TArg>
-            struct Abs<AbsGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
+            struct Abs<AbsGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg> && std::is_signed_v<TArg>>>
             {
                 static auto abs(AbsGenericSycl const&, TArg const & arg)
                 {

@@ -24,9 +24,11 @@
 #include <alpaka/idx/bt/IdxBtGenericSycl.hpp>
 #include <alpaka/atomic/AtomicHierarchy.hpp>
 #include <alpaka/atomic/AtomicGenericSycl.hpp>
+#include <alpaka/intrinsic/IntrinsicGenericSycl.hpp>
 #include <alpaka/math/MathGenericSycl.hpp>
 #include <alpaka/block/shared/dyn/BlockSharedMemDynGenericSycl.hpp>
 #include <alpaka/block/sync/BlockSyncGenericSycl.hpp>
+#include <alpaka/warp/WarpGenericSycl.hpp>
 
 // Specialized traits.
 #include <alpaka/acc/Traits.hpp>
@@ -59,7 +61,8 @@ namespace alpaka
         public math::MathGenericSycl,
         public BlockSharedMemDynGenericSycl,
         public BlockSyncGenericSycl<TDim>,
-        public concepts::Implements<ConceptAcc, AccGenericSycl<TDim, TIdx>>
+        public IntrinsicGenericSycl,
+        public warp::WarpGenericSycl<TDim>
     {
     public:
         //-----------------------------------------------------------------------------
@@ -68,21 +71,20 @@ namespace alpaka
             cl::sycl::nd_item<TDim::value> work_item,
             cl::sycl::accessor<std::byte, 1,
                                cl::sycl::access::mode::read_write,
-                               cl::sycl::access::target::local> shared_acc,
-            cl::sycl::ONEAPI::atomic_ref<int, cl::sycl::ONEAPI::memory_order::relaxed,
-                                         cl::sycl::ONEAPI::memory_scope::work_group,
-                                         cl::sycl::access::address_space::local_space> pred_counter) :
+                               cl::sycl::access::target::local> shared_acc) :
                 WorkDivGenericSycl<TDim, TIdx>{threadElemExtent, work_item},
                 gb::IdxGbGenericSycl<TDim, TIdx>{work_item},
                 bt::IdxBtGenericSycl<TDim, TIdx>{work_item},
                 AtomicHierarchy<AtomicGenericSycl, AtomicGenericSycl, AtomicGenericSycl>{},
-                math::MathGenericSycl(),
+                math::MathGenericSycl{},
                 BlockSharedMemDynGenericSycl{shared_acc},
-                BlockSyncGenericSycl<TDim>{work_item, pred_counter}
+                BlockSyncGenericSycl<TDim>{work_item},
+                IntrinsicGenericSycl{},
+                warp::WarpGenericSycl<TDim>{work_item}
         {}
 
         //-----------------------------------------------------------------------------
-        AccGenericSycl(AccGenericSycl const & rhs)
+       /* AccGenericSycl(AccGenericSycl const & rhs)
         : WorkDivGenericSycl<TDim, TIdx>{rhs}
         , gb::IdxGbGenericSycl<TDim, TIdx>{rhs}
         , bt::IdxBtGenericSycl<TDim, TIdx>{rhs}
@@ -90,8 +92,11 @@ namespace alpaka
         , math::MathGenericSycl{rhs}
         , BlockSharedMemDynGenericSycl{rhs}
         , BlockSyncGenericSycl<TDim>{rhs}
+        , IntrinsicGenericSycl{rhs}
+        , warp::WarpGenericSycl<TDim>{rhs}
         {
-        }
+        }*/
+        AccGenericSycl(AccGenericSycl const &) = delete;
         //-----------------------------------------------------------------------------
         AccGenericSycl(AccGenericSycl &&) = delete;
         //-----------------------------------------------------------------------------

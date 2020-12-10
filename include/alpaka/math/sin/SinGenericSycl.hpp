@@ -32,8 +32,6 @@ namespace alpaka
         //! The standard library sin.
         class SinGenericSycl : public concepts::Implements<ConceptMathSin, SinGenericSycl>
         {
-        public:
-            using SinBase = SinGenericSycl;
         };
 
         namespace traits
@@ -45,7 +43,7 @@ namespace alpaka
             struct Sin<
                 SinGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto sin(
                     SinGenericSycl const &,

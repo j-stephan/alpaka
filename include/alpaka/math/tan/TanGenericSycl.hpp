@@ -32,8 +32,6 @@ namespace alpaka
         //! The standard library tan.
         class TanGenericSycl : public concepts::Implements<ConceptMathTan, TanGenericSycl>
         {
-        public:
-            using TanBase = TanGenericSycl;
         };
 
         namespace traits
@@ -45,7 +43,7 @@ namespace alpaka
             struct Tan<
                 TanGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto tan(
                     TanGenericSycl const &,

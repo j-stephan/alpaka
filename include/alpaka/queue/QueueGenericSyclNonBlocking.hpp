@@ -13,14 +13,10 @@
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
 #include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/event/Traits.hpp>
 #include <alpaka/queue/Traits.hpp>
+#include <alpaka/queue/sycl/Utility.hpp>
 #include <alpaka/wait/Traits.hpp>
 #include <alpaka/core/Sycl.hpp>
 
@@ -119,30 +115,22 @@ namespace alpaka
         //#############################################################################
         //! The SYCL non-blocking queue enqueue trait specialization.
         template<typename TDev, typename TTask>
-        struct Enqueue<QueueGenericSyclNonBlocking<TDev>, TTask>
+        struct Enqueue<QueueGenericSyclNonBlocking<TDev>, TTask, std::enable_if_t<std::is_invocable_v<TTask, cl::sycl::handler&>>>
         {
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto enqueue(QueueGenericSyclNonBlocking<TDev>& queue, TTask const& task) -> void
             {
                 using namespace cl::sycl;
 
-                auto remove_completed = [](std::vector<event>& events)
-                {
-                    std::remove_if(begin(events), end(events), [](event const& ev)
-                    {
-                        return (ev.get_info<info::event::command_execution_status>() == info::event_command_status::complete);
-                    });
-                };
-
                 std::scoped_lock<std::shared_mutex, std::shared_mutex, std::shared_mutex> lock{*queue.mutex_ptr, *queue.m_dev.mutex_ptr, task.pimpl->mutex};
 
                 // Remove any completed events from the task's dependencies
                 if(!task.pimpl->dependencies.empty())
-                    remove_completed(task.pimpl->dependencies);
+                    detail::remove_completed(task.pimpl->dependencies);
 
                 // Remove any completed events from the device's dependencies
                 if(!queue.m_dev.m_dependencies.empty())
-                    remove_completed(queue.m_dev.m_dependencies);
+                    detail::remove_completed(queue.m_dev.m_dependencies);
                 
                 // Wait for the remaining uncompleted events the device is supposed to wait for
                 if(!queue.m_dev.m_dependencies.empty())
@@ -152,11 +140,38 @@ namespace alpaka
                 if(!queue.m_dependencies.empty())
                     task.pimpl->dependencies.insert(end(task.pimpl->dependencies), begin(queue.m_dependencies), end(queue.m_dependencies));
 
-                // Wait for any previous kernels running in this queue
-                task.pimpl->dependencies.push_back(queue.m_event);
-
                 // Execute the kernel
                 queue.m_event = queue.m_queue.submit(task);
+
+                // Remove queue dependencies
+                queue.m_dependencies.clear();
+            }
+        };
+
+        //#############################################################################
+        //! The SYCL blocking queue enqueue trait specialization.
+        template <typename TDev, typename TTask>
+        struct Enqueue<QueueGenericSyclNonBlocking<TDev>, TTask, std::enable_if_t<!std::is_invocable_v<TTask, cl::sycl::handler&>>>
+        {
+            ALPAKA_FN_HOST static auto enqueue(QueueGenericSyclNonBlocking<TDev>& queue, TTask const& task) -> void
+            {
+                // The task passed to this queue is neither a kernel nor one of the memory transfer/set functions.
+                // We assume that we received a host task, such as a callback.
+                
+                // Remove any completed events from the device's dependencies
+                if(!queue.m_dev.m_dependencies.empty())
+                    detail::remove_completed(queue.m_dev.m_dependencies);
+                
+                // Wait for the remaining uncompleted events the device is supposed to wait for
+                if(!queue.m_dev.m_dependencies.empty())
+                    queue.m_dependencies.insert(end(queue.m_dependencies), begin(queue.m_dev.m_dependencies), end(queue.m_dev.m_dependencies));
+                
+                // Execute host task
+                queue.m_event = queue.m_queue.submit([&queue, task](cl::sycl::handler& cgh)
+                {
+                    cgh.depends_on(queue.m_dependencies);
+                    cgh.codeplay_host_task(task);
+                });
 
                 // Remove queue dependencies
                 queue.m_dependencies.clear();

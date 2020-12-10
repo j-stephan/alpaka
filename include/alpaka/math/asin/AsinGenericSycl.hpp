@@ -29,23 +29,21 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library asin.
-        class AsinGenericSycl : concepts::Implements<ConceptMathAsin, AsinGenericSycl>
+        //! The SYCL asin.
+        class AsinGenericSycl : public concepts::Implements<ConceptMathAsin, AsinGenericSycl>
         {
-        public:
-            using AsinBase = AsinGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library asin trait specialization.
+            //! The SYCL asin trait specialization.
             template<
                 typename TArg>
             struct Asin<
                 AsinGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto asin(
                     AsinGenericSycl const&,

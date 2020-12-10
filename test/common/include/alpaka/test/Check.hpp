@@ -11,7 +11,8 @@
 
 #include <cstdio>
 
-#define ALPAKA_CHECK(success, expression)                                                                             \
+#ifndef ALPAKA_ACC_SYCL_ENABLED
+#   define ALPAKA_CHECK(success, expression)                                                                          \
     do                                                                                                                \
     {                                                                                                                 \
         if(!(expression))                                                                                             \
@@ -19,4 +20,14 @@
             printf("ALPAKA_CHECK failed because '!(%s)'\n", #expression);                                             \
             success = false;                                                                                          \
         }                                                                                                             \
-    } while(0)
+    } while ( 0 )
+#else
+#   define ALPAKA_CHECK(success, expression)                                                                          \
+    do                                                                                                                \
+    {                                                                                                                 \
+        if(!(expression))                                                                                             \
+        {                                                                                                             \
+            success = false;                                                                                          \
+        }                                                                                                             \
+    } while ( 0 )
+#endif

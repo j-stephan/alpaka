@@ -29,17 +29,15 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library remainder.
-        class RemainderGenericSycl : concepts::Implements<ConceptMathRemainder, RemainderGenericSycl>
+        //! The SYCL remainder.
+        class RemainderGenericSycl : public concepts::Implements<ConceptMathRemainder, RemainderGenericSycl>
         {
-        public:
-            using RemainderBase = RemainderGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library remainder trait specialization.
+            //! The SYCL remainder trait specialization.
             template<
                 typename Tx,
                 typename Ty>

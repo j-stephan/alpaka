@@ -29,23 +29,21 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library round.
+        //! The SYCL round.
         class RoundGenericSycl : public concepts::Implements<ConceptMathRound, RoundGenericSycl>
         {
-        public:
-            using RoundBase = RoundGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library round trait specialization.
+            //! The SYCL round trait specialization.
             template<
                 typename TArg>
             struct Round<
                 RoundGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto round(
                     RoundGenericSycl const &,
@@ -61,7 +59,7 @@ namespace alpaka
             struct Lround<
                 RoundGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto lround(
                     RoundGenericSycl const &,
@@ -77,7 +75,7 @@ namespace alpaka
             struct Llround<
                 RoundGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto llround(
                     RoundGenericSycl const &,

@@ -36,17 +36,14 @@ namespace alpaka
     public:
         AccFpgaSyclIntel(Vec<TDim, TIdx> const & threadElemExtent, cl::sycl::nd_item<TDim::value> work_item,
                          cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write,
-                                            cl::sycl::access::target::local> shared_acc,
-                         cl::sycl::ONEAPI::atomic_ref<int, cl::sycl::ONEAPI::memory_order::relaxed,
-                                                      cl::sycl::ONEAPI::memory_scope::work_group,
-                                                      cl::sycl::access::address_space::local_space> pred_counter)
-        : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc, pred_counter)
+                                            cl::sycl::access::target::local> shared_acc)
+        : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc)
         {}
 
-        AccFpgaSyclIntel(AccFpgaSyclIntel const& rhs)
+        /*AccFpgaSyclIntel(AccFpgaSyclIntel const& rhs)
         : AccGenericSycl<TDim, TIdx>(rhs)
-        {}
-        
+        {}*/
+        AccFpgaSyclIntel(AccFpgaSyclIntel const&) = delete;
         auto operator=(AccFpgaSyclIntel const&) -> AccFpgaSyclIntel& = delete;
 
         AccFpgaSyclIntel(AccFpgaSyclIntel&&) = delete;
@@ -69,13 +66,13 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
+        /*//#############################################################################
         //! The SYCL accelerator device type trait specialization.
         template<typename TDim, typename TIdx>
         struct DevType<AccFpgaSyclIntel<TDim, TIdx>>
         {
             using type = DevFpgaSyclIntel;
-        };
+        };*/
 
         //#############################################################################
         //! The SYCL accelerator execution task type trait specialization.

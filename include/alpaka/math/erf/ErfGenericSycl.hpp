@@ -29,23 +29,21 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library erf.
+        //! The SYCL erf.
         class ErfGenericSycl : public concepts::Implements<ConceptMathErf, ErfGenericSycl>
         {
-        public:
-            using ErfBase = ErfGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library erf trait specialization.
+            //! The SYCL erf trait specialization.
             template<
                 typename TArg>
             struct Erf<
                 ErfGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto erf(
                     ErfGenericSycl const &,

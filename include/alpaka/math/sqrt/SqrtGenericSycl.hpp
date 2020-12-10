@@ -32,8 +32,6 @@ namespace alpaka
         //! The standard library sqrt.
         class SqrtGenericSycl : public concepts::Implements<ConceptMathSqrt, SqrtGenericSycl>
         {
-        public:
-            using SqrtBase = SqrtGenericSycl;
         };
 
         namespace traits
@@ -45,7 +43,7 @@ namespace alpaka
             struct Sqrt<
                 SqrtGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto sqrt(
                     SqrtGenericSycl const &,

@@ -31,22 +31,19 @@ namespace alpaka
 {
     template <typename TDim, typename TIdx>
     class AccGpuSyclIntel : public AccGenericSycl<TDim, TIdx>
-                           , public concepts::Implements<ConceptAcc, AccGpuSyclIntel<TDim, TIdx>>
+                          , public concepts::Implements<ConceptAcc, AccGpuSyclIntel<TDim, TIdx>>
     {
     public:
         AccGpuSyclIntel(Vec<TDim, TIdx> const & threadElemExtent, cl::sycl::nd_item<TDim::value> work_item,
                          cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write,
-                                            cl::sycl::access::target::local> shared_acc,
-                         cl::sycl::ONEAPI::atomic_ref<int, cl::sycl::ONEAPI::memory_order::relaxed,
-                                                      cl::sycl::ONEAPI::memory_scope::work_group,
-                                                      cl::sycl::access::address_space::local_space> pred_counter)
-        : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc, pred_counter)
+                                            cl::sycl::access::target::local> shared_acc)
+        : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc)
         {}
 
-        AccGpuSyclIntel(AccGpuSyclIntel const& rhs)
+        /*AccGpuSyclIntel(AccGpuSyclIntel const& rhs)
         : AccGenericSycl<TDim, TIdx>(rhs)
-        {}
-        
+        {}*/
+        AccGpuSyclIntel(AccGpuSyclIntel const&) = delete;        
         auto operator=(AccGpuSyclIntel const&) -> AccGpuSyclIntel& = delete;
 
         AccGpuSyclIntel(AccGpuSyclIntel&&) = delete;

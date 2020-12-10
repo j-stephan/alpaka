@@ -24,24 +24,21 @@
 #include <CL/sycl.hpp>
 
 #include <type_traits>
-#include <algorithm>
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library min.
+        //! The SYCL library min.
         class MinGenericSycl : public concepts::Implements<ConceptMathMin, MinGenericSycl>
         {
-        public:
-            using MinBase = MinGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library integral min trait specialization.
+            //! The SYCL integral min trait specialization.
             template<
                 typename Tx,
                 typename Ty>
@@ -62,7 +59,7 @@ namespace alpaka
                 }
             };
             //#############################################################################
-            //! The standard library mixed integral floating point min trait specialization.
+            //! The SYCL mixed integral floating point min trait specialization.
             template<
                 typename Tx,
                 typename Ty>
@@ -71,8 +68,10 @@ namespace alpaka
                 Tx,
                 Ty,
                 std::enable_if_t<
-                    std::is_floating_point_v<Tx>
-                    && std::is_floating_point_v<Ty>>>
+                    std::is_arithmetic_v<Tx>
+                    && std::is_arithmetic_v<Ty>
+                    && !(std::is_integral_v<Tx>
+                            && std::is_integral_v<Ty>)>>
             {
                 static auto min(
                     MinGenericSycl const &,

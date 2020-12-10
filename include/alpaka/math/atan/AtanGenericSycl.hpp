@@ -29,23 +29,21 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library atan.
-        class AtanGenericSycl : concepts::Implements<ConceptMathAtan, AtanGenericSycl>
+        //! The SYCL atan.
+        class AtanGenericSycl : public concepts::Implements<ConceptMathAtan, AtanGenericSycl>
         {
-        public:
-            using AtanBase = AtanGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library atan trait specialization.
+            //! The SYCL atan trait specialization.
             template<
                 typename TArg>
             struct Atan<
                 AtanGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto atan(
                     AtanGenericSycl const&,

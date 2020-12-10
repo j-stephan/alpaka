@@ -7,7 +7,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
- #pragma once
+#pragma once
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
@@ -21,6 +21,8 @@
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/mem/buf/Traits.hpp>
 #include <alpaka/pltf/Traits.hpp>
+#include <alpaka/queue/Properties.hpp>
+#include <alpaka/queue/Traits.hpp>
 #include <alpaka/wait/Traits.hpp>
 #include <alpaka/core/Sycl.hpp>
 
@@ -44,10 +46,12 @@ namespace alpaka
     //! The SYCL device handle.
     template <typename TPltf>
     class DevGenericSycl : public concepts::Implements<ConceptCurrentThreadWaitFor, DevGenericSycl<TPltf>>
+                         , public concepts::Implements<ConceptDev, DevGenericSycl<TPltf>>
     {
         friend struct traits::GetDevByIdx<TPltf>;
         friend struct traits::GetName<DevGenericSycl<TPltf>>;
         friend struct traits::GetMemBytes<DevGenericSycl<TPltf>>;
+        friend struct traits::GetWarpSize<DevGenericSycl<TPltf>>;
         
         template<typename TElem, typename TIdx, typename TDim, typename TDev, typename TSfinae>
         friend struct traits::BufAlloc;
@@ -142,6 +146,22 @@ namespace alpaka
         };
 
         //#############################################################################
+        //! The SYCL device warp size get trait specialization.
+        template<typename TPltf>
+        struct GetWarpSize<
+            DevGenericSycl<TPltf>>
+        {
+            //-----------------------------------------------------------------------------
+            ALPAKA_FN_HOST static auto getWarpSize(
+                DevGenericSycl<TPltf> const & dev)
+            -> std::size_t
+            {
+                const auto sizes = dev.m_device.template get_info<cl::sycl::info::device::sub_group_sizes>();
+                return *(std::min_element(std::begin(sizes), std::end(sizes)));
+            }
+        };
+
+        //#############################################################################
         //! The SYCL device reset trait specialization. Note that this
         //! function won't actually do anything. If you need to reset your
         //! SYCL device its destructor must be called.
@@ -185,6 +205,24 @@ namespace alpaka
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
                 std::cerr << "[SYCL] Warning: You cannot wait for SYCL devices. Use the queue instead.\n";
             }
+        };
+
+        template<typename TPltf>
+        struct QueueType<
+            DevGenericSycl<TPltf>,
+            Blocking
+        >
+        {
+            using type = QueueGenericSyclBlocking<DevGenericSycl<TPltf>>;
+        };
+
+        template<typename TPltf>
+        struct QueueType<
+            DevGenericSycl<TPltf>,
+            NonBlocking
+        >
+        {
+            using type = QueueGenericSyclNonBlocking<TPltf>;
         };
     }
 }

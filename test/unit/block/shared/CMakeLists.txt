@@ -8,23 +8,18 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
-# Disable this test for the SYCL backend since it uses static shared memory.
-if(NOT ALPAKA_ACC_SYCL_ENABLE)
+set(_TARGET_NAME "blockShared")
 
-    set(_TARGET_NAME "blockShared")
+append_recursive_files_add_to_src_group("src/" "src/" "cpp" _FILES_SOURCE)
 
-    append_recursive_files_add_to_src_group("src/" "src/" "cpp" _FILES_SOURCE)
+alpaka_add_executable(
+    ${_TARGET_NAME}
+    ${_FILES_SOURCE})
+target_link_libraries(
+    ${_TARGET_NAME}
+    PRIVATE common)
 
-    alpaka_add_executable(
-        ${_TARGET_NAME}
-        ${_FILES_SOURCE})
-    target_link_libraries(
-        ${_TARGET_NAME}
-        PRIVATE common)
+set_target_properties(${_TARGET_NAME} PROPERTIES FOLDER "test/unit")
+target_compile_definitions(${_TARGET_NAME} PRIVATE "-DTEST_UNIT_BLOCK_SHARED")
 
-    set_target_properties(${_TARGET_NAME} PROPERTIES FOLDER "test/unit")
-    target_compile_definitions(${_TARGET_NAME} PRIVATE "-DTEST_UNIT_BLOCK_SHARED")
-
-    add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME} ${_ALPAKA_TEST_OPTIONS})
-
-endif()
+add_test(NAME ${_TARGET_NAME} COMMAND ${_TARGET_NAME} ${_ALPAKA_TEST_OPTIONS})

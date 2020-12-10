@@ -29,23 +29,21 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library acos.
+        //! The SYCL acos.
         class AcosGenericSycl : public concepts::Implements<ConceptMathAcos, AcosGenericSycl>
         {
-        public:
-            using AcosBase = AcosGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library acos trait specialization.
+            //! The SYCL acos trait specialization.
             template<
                 typename TArg>
             struct Acos<
                 AcosGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto acos(
                     AcosGenericSycl const&,

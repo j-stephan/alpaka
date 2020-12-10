@@ -29,23 +29,21 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library exp.
+        //! The SYCL exp.
         class ExpGenericSycl : public concepts::Implements<ConceptMathExp, ExpGenericSycl>
         {
-        public:
-            using ExpBase = ExpGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library exp trait specialization.
+            //! The SYCL exp trait specialization.
             template<
                 typename TArg>
             struct Exp<
                 ExpGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto exp(
                     ExpGenericSycl const &,

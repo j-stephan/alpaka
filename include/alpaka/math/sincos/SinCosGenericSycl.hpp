@@ -30,8 +30,6 @@ namespace alpaka
         //! sincos.
         class SinCosGenericSycl : public concepts::Implements<ConceptMathSinCos, SinCosGenericSycl>
         {
-        public:
-            using SinCosBase = SinCosGenericSycl;
         };
 
         namespace traits
@@ -42,7 +40,8 @@ namespace alpaka
             template<typename TArg>
             struct SinCos<
                 SinCosGenericSycl,
-                TArg>
+                TArg,
+                std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
                 static auto sincos(
                     SinCosGenericSycl const &,

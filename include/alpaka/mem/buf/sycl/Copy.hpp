@@ -96,7 +96,7 @@ namespace alpaka
                 static_assert(Dim<TViewDst>::value == Dim<TExtent>::value,
                               "The views and the extent are required to have the same dimensionality!");
 
-                static_assert(std::is_same_v<Elem<TViewDst>, SrcType>,
+                static_assert(std::is_same_v<Elem<TViewDst>, std::remove_const_t<SrcType>>,
                               "The source and the destination view are required to have the same element type!");
 
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;

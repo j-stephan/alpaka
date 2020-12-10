@@ -29,23 +29,21 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library log.
+        //! The SYCL log.
         class LogGenericSycl : public concepts::Implements<ConceptMathLog, LogGenericSycl>
         {
-        public:
-            using LogBase = LogGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library log trait specialization.
+            //! The SYCL log trait specialization.
             template<
                 typename TArg>
             struct Log<
                 LogGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto log(
                     LogGenericSycl const &,

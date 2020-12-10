@@ -120,7 +120,7 @@ namespace alpaka
             //
             static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
-                auto ref = detail::atomic_ref<T, THierarchy>{*addr};
+                auto ref = alpaka::detail::atomic_ref<T, THierarchy>{*addr};
                 return ref.fetch_add(value);
             }
         };
@@ -138,7 +138,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
-                auto ref = detail::atomic_ref<T, THierarchy>{*addr};
+                auto ref = alpaka::detail::atomic_ref<T, THierarchy>{*addr};
                 return ref.fetch_sub(value);
             }
         };
@@ -156,7 +156,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
-                auto ref = detail::atomic_ref<T, THierarchy>{*addr};
+                auto ref = alpaka::detail::atomic_ref<T, THierarchy>{*addr};
                 return ref.fetch_min(value);
             }
         };
@@ -174,7 +174,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
-                auto ref = detail::atomic_ref<T, THierarchy>{*addr};
+                auto ref = alpaka::detail::atomic_ref<T, THierarchy>{*addr};
                 return ref.fetch_max(value);
             }
         };
@@ -192,7 +192,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
-                auto ref = detail::atomic_ref<T, THierarchy>{*addr};
+                auto ref = alpaka::detail::atomic_ref<T, THierarchy>{*addr};
                 return ref.exchange(value);
             }
         };
@@ -215,7 +215,7 @@ namespace alpaka
                                                     std::conditional_t<std::is_same_v<float, T>, unsigned int,
                                                     std::conditional_t<std::is_same_v<cl::sycl::half, T>, unsigned short, void>>>>;
                 
-                auto ref = detail::atomic_ref<Integral, THierarchy>{reinterpret_cast<Integral*>(*addr)};
+                auto ref = alpaka::detail::atomic_ref<Integral, THierarchy>{reinterpret_cast<Integral*>(*addr)};
 
                 auto old = ref.load();
                 auto assumed = Integral{};
@@ -251,7 +251,7 @@ namespace alpaka
                                                     std::conditional_t<std::is_same_v<float, T>, unsigned int,
                                                     std::conditional_t<std::is_same_v<cl::sycl::half, T>, unsigned short, void>>>>;
                 
-                auto ref = detail::atomic_ref<Integral, THierarchy>{reinterpret_cast<Integral*>(*addr)};
+                auto ref = alpaka::detail::atomic_ref<Integral, THierarchy>{reinterpret_cast<Integral*>(*addr)};
 
                 auto old = ref.load();
                 auto assumed = Integral{};
@@ -281,7 +281,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
-                auto ref = detail::atomic_ref<T, THierarchy>{*addr};
+                auto ref = alpaka::detail::atomic_ref<T, THierarchy>{*addr};
                 return ref.fetch_and(value);
             }
         };
@@ -298,7 +298,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
-                auto ref = detail::atomic_ref<T, THierarchy>{*addr};
+                auto ref = alpaka::detail::atomic_ref<T, THierarchy>{*addr};
                 return ref.fetch_or(value);
             }
         };
@@ -315,7 +315,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & value) -> T
             {
-                auto ref = detail::atomic_ref<T, THierarchy>{*addr};
+                auto ref = alpaka::detail::atomic_ref<T, THierarchy>{*addr};
                 return ref.fetch_xor(value);
             }
         };
@@ -333,7 +333,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             static auto atomicOp(AtomicGenericSycl const &, T * const addr, T const & compare, T const & value) -> T
             {
-                auto ref = detail::atomic_ref<T, THierarchy>{*addr};
+                auto ref = alpaka::detail::atomic_ref<T, THierarchy>{*addr};
 
                 // SYCL stores the value in *addr to the "compare" parameter if the values are not equal. Since
                 // alpaka's interface does not expect this we need to copy "compare" to this function and forget it

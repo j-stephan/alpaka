@@ -29,17 +29,15 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library cbrt.
-        class CbrtGenericSycl : concepts::Implements<ConceptMathCbrt, CbrtGenericSycl>
+        //! The SYCL cbrt.
+        class CbrtGenericSycl : public concepts::Implements<ConceptMathCbrt, CbrtGenericSycl>
         {
-        public:
-            using CbrtBase = CbrtGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library cbrt trait specialization.
+            //! The SYCL cbrt trait specialization.
             template<
                 typename TArg>
             struct Cbrt<

@@ -29,11 +29,9 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library cos.
+        //! The SYCL cos.
         class CosGenericSycl : public concepts::Implements<ConceptMathCos, CosGenericSycl>
         {
-        public:
-            using CosBase = CosGenericSycl;
         };
 
         namespace traits
@@ -45,7 +43,7 @@ namespace alpaka
             struct Cos<
                 CosGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto cos(
                     CosGenericSycl const &,

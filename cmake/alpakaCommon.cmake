@@ -831,6 +831,10 @@ if(ALPAKA_ACC_SYCL_ENABLE)
     target_include_directories(alpaka INTERFACE ${ALPAKA_COMPUTECPP_SDK_DIR}/include)
 
     #-----------------------------------------------------------------------------------------------------------------
+    # Generic SYCL options
+    target_compile_options(alpaka INTERFACE "-fsycl-unnamed-lambda")
+
+    #-----------------------------------------------------------------------------------------------------------------
     # Intel's SYCL compiler generates some internal variables that are subsequently marked as "unused". This causes
     # our test cases to fail because of -Werror. Silence these warnings!
     if(BUILD_TESTING)

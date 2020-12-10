@@ -71,6 +71,7 @@ namespace alpaka
             public RoundGenericSycl,
             public RsqrtGenericSycl,
             public SinGenericSycl,
+            public SinCosGenericSycl,
             public SqrtGenericSycl,
             public TanGenericSycl,
             public TruncGenericSycl

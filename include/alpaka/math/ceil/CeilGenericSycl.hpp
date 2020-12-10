@@ -29,11 +29,9 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library ceil.
+        //! The SYCL ceil.
         class CeilGenericSycl : public concepts::Implements<ConceptMathCeil, CeilGenericSycl>
         {
-        public:
-            using CeilBase = CeilGenericSycl;
         };
 
         namespace traits
@@ -45,7 +43,7 @@ namespace alpaka
             struct Ceil<
                 CeilGenericSycl,
                 TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+                std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto ceil(
                     CeilGenericSycl const &,

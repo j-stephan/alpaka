@@ -29,17 +29,15 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library fmod.
+        //! The SYCL fmod.
         class FmodGenericSycl : public concepts::Implements<ConceptMathFmod, FmodGenericSycl>
         {
-        public:
-            using FmodBase = FmodGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library fmod trait specialization.
+            //! The SYCL fmod trait specialization.
             template<
                 typename Tx,
                 typename Ty>
@@ -48,8 +46,8 @@ namespace alpaka
                 Tx,
                 Ty,
                 std::enable_if_t<
-                    std::is_floating_point_v<Tx>
-                    && std::is_floating_point_v<Ty>>>
+                    std::is_arithmetic_v<Tx>
+                    && std::is_arithmetic_v<Ty>>>
             {
                 static auto fmod(
                     FmodGenericSycl const &,
