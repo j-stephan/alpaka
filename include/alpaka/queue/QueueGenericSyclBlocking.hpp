@@ -115,72 +115,67 @@ namespace alpaka
         //#############################################################################
         //! The SYCL blocking queue enqueue trait specialization.
         template<typename TDev, typename TTask>
-        struct Enqueue<QueueGenericSyclBlocking<TDev>, TTask, std::enable_if_t<std::is_invocable_v<TTask, cl::sycl::handler&>>>
+        struct Enqueue<QueueGenericSyclBlocking<TDev>, TTask>
         {
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto enqueue(QueueGenericSyclBlocking<TDev>& queue, TTask const& task) -> void
             {
                 using namespace cl::sycl;
 
-                std::scoped_lock<std::shared_mutex, std::shared_mutex, std::shared_mutex> lock{*queue.mutex_ptr, *queue.m_dev.mutex_ptr, task.pimpl->mutex};
-
-                // Remove any completed events from the task's dependencies
-                if(!task.pimpl->dependencies.empty())
-                    detail::remove_completed(task.pimpl->dependencies);
-
-                // Remove any completed events from the device's dependencies
-                if(!queue.m_dev.m_dependencies.empty())
-                    detail::remove_completed(queue.m_dev.m_dependencies);
-                
-                // Wait for the remaining uncompleted events the device is supposed to wait for
-                if(!queue.m_dev.m_dependencies.empty())
-                    task.pimpl->dependencies.insert(end(task.pimpl->dependencies), begin(queue.m_dev.m_dependencies), end(queue.m_dev.m_dependencies));
-                
-                // Wait for any events this queue is supposed to wait for
-                if(!queue.m_dependencies.empty())
-                    task.pimpl->dependencies.insert(end(task.pimpl->dependencies), begin(queue.m_dependencies), end(queue.m_dependencies));
-
-                // Execute the kernel
-                queue.m_event = queue.m_queue.submit(task);
-
-                // Remove queue dependencies
-                queue.m_dependencies.clear();
-
-                // Block calling thread until completion
-                queue.m_queue.wait_and_throw();
-            }
-        };
-
-        //#############################################################################
-        //! The SYCL blocking queue enqueue trait specialization.
-        template <typename TDev, typename TTask>
-        struct Enqueue<QueueGenericSyclBlocking<TDev>, TTask, std::enable_if_t<!std::is_invocable_v<TTask, cl::sycl::handler&>>>
-        {
-            ALPAKA_FN_HOST static auto enqueue(QueueGenericSyclBlocking<TDev>& queue, TTask const& task) -> void
-            {
-                // The task passed to this queue is neither a kernel nor one of the memory transfer/set functions.
-                // We assume that we received a host task, such as a callback.
-                
-                // Remove any completed events from the device's dependencies
-                if(!queue.m_dev.m_dependencies.empty())
-                    detail::remove_completed(queue.m_dev.m_dependencies);
-                
-                // Wait for the remaining uncompleted events the device is supposed to wait for
-                if(!queue.m_dev.m_dependencies.empty())
-                    queue.m_dependencies.insert(end(queue.m_dependencies), begin(queue.m_dev.m_dependencies), end(queue.m_dev.m_dependencies));
-                
-                // Execute host task
-                queue.m_event = queue.m_queue.submit([&queue, task](cl::sycl::handler& cgh)
+                if constexpr(detail::is_sycl_enqueueable<TTask>::value) // Device task
                 {
-                    cgh.depends_on(queue.m_dependencies);
-                    cgh.codeplay_host_task(task);
-                });
+                    std::scoped_lock<std::shared_mutex, std::shared_mutex, std::shared_mutex> lock{*queue.mutex_ptr, *queue.m_dev.mutex_ptr, task.pimpl->mutex};
 
-                // Remove queue dependencies
-                queue.m_dependencies.clear();
+                    // Remove any completed events from the task's dependencies
+                    if(!task.pimpl->dependencies.empty())
+                        detail::remove_completed(task.pimpl->dependencies);
 
-                // Block calling thread until completion
-                queue.m_queue.wait_and_throw();
+                    // Remove any completed events from the device's dependencies
+                    if(!queue.m_dev.m_dependencies.empty())
+                        detail::remove_completed(queue.m_dev.m_dependencies);
+                    
+                    // Wait for the remaining uncompleted events the device is supposed to wait for
+                    if(!queue.m_dev.m_dependencies.empty())
+                        task.pimpl->dependencies.insert(end(task.pimpl->dependencies), begin(queue.m_dev.m_dependencies), end(queue.m_dev.m_dependencies));
+                    
+                    // Wait for any events this queue is supposed to wait for
+                    if(!queue.m_dependencies.empty())
+                        task.pimpl->dependencies.insert(end(task.pimpl->dependencies), begin(queue.m_dependencies), end(queue.m_dependencies));
+
+                    // Execute the kernel
+                    queue.m_event = queue.m_queue.submit(task);
+
+                    // Remove queue dependencies
+                    queue.m_dependencies.clear();
+
+                    // Block calling thread until completion
+                    queue.m_queue.wait_and_throw();
+                }
+                else // Host task
+                {
+                    std::scoped_lock<std::shared_mutex, std::shared_mutex> lock{*queue.mutex_ptr, *queue.m_dev.mutex_ptr};
+
+                    // Remove any completed events from the device's dependencies
+                    if(!queue.m_dev.m_dependencies.empty())
+                        detail::remove_completed(queue.m_dev.m_dependencies);
+                    
+                    // Wait for the remaining uncompleted events the device is supposed to wait for
+                    if(!queue.m_dev.m_dependencies.empty())
+                        queue.m_dependencies.insert(end(queue.m_dependencies), begin(queue.m_dev.m_dependencies), end(queue.m_dev.m_dependencies));
+                    
+                    // Execute host task
+                    queue.m_event = queue.m_queue.submit([&queue, task](cl::sycl::handler& cgh)
+                    {
+                        cgh.depends_on(queue.m_dependencies);
+                        cgh.codeplay_host_task(task);
+                    });
+
+                    // Remove queue dependencies
+                    queue.m_dependencies.clear();
+
+                    // Block calling thread until completion
+                    queue.m_queue.wait_and_throw();
+                }
             }
         };
 

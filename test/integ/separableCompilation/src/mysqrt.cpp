@@ -14,7 +14,7 @@ ALPAKA_FN_HOST_ACC auto mysqrt(float x) -> float
 {
     if(x <= 0)
     {
-        return 0.0;
+        return 0.f;
     }
 
     float result = x;
@@ -23,10 +23,10 @@ ALPAKA_FN_HOST_ACC auto mysqrt(float x) -> float
     {
         if(result <= 0)
         {
-            result = 0.1;
+            result = 0.1f;
         }
         float delta = x - (result * result);
-        result = result + 0.5 * delta / result;
+        result = result + 0.5f * delta / result;
     }
     return result;
 }

@@ -28,6 +28,10 @@ namespace alpaka
         class WarpGenericSycl : public concepts::Implements<ConceptWarp, WarpGenericSycl<TDim>>
         {
             friend struct traits::GetSize<WarpGenericSycl<TDim>>;
+            friend struct traits::Activemask<WarpGenericSycl<TDim>>;
+            friend struct traits::All<WarpGenericSycl<TDim>>;
+            friend struct traits::Any<WarpGenericSycl<TDim>>;
+            friend struct traits::Ballot<WarpGenericSycl<TDim>>;
         public:
             //-----------------------------------------------------------------------------
             WarpGenericSycl(cl::sycl::nd_item<TDim::value> my_item)
@@ -59,7 +63,7 @@ namespace alpaka
                 static auto getSize(warp::WarpGenericSycl<TDim> const & warp) -> std::int32_t
                 {
                     const auto sub_group = warp.m_item.get_sub_group();
-                    return sub_group.get_local_linear_range();
+                    return static_cast<std::int32_t>(sub_group.get_local_range()[0]);
                 }
             };
 

@@ -164,17 +164,13 @@ namespace alpaka
             {
                 // add alpaka accelerator to variadic arguments
                 auto acc = TAcc{item_elements, work_item, shared_accessor};
-                /*auto kernel_args = utility::tuple::append(utility::tuple::make_tuple(
-                                    TAcc{item_elements, work_item, shared_accessor}),
-                                    device_args);
 
-                alpaka::detail::apply(k_func, kernel_args);*/
-                /*alpaka::detail::apply(k_func, utility::tuple::append(utility::tuple::make_tuple(
-                                    TAcc{item_elements, work_item, shared_accessor}),
-                                    device_args));*/
                 alpaka::detail::apply(k_func, acc, device_args);
             });
         }
+
+        // Distinguish from non-alpaka types (= host tasks)
+        static constexpr auto is_sycl_enqueueable = true;
 
     private:
         auto get_global_size(const Vec<TDim, TIdx>& work_groups, const Vec<TDim, TIdx>& group_items)

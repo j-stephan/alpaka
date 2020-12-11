@@ -68,6 +68,8 @@ namespace alpaka
             }
 
             std::shared_ptr<TaskSetSyclImpl<TElem>> pimpl;
+            // Distinguish from non-alpaka types (= host tasks)
+            static constexpr auto is_sycl_enqueueable = true;
         };
     }
 
