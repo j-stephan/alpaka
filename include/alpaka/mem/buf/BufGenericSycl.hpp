@@ -208,11 +208,6 @@ namespace alpaka
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                 using namespace cl::sycl;
-#if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                std::cout << __func__;
-                // buffer allocation prints the values, keeping this
-                // here for consistency
-#endif
 
                 auto memPtr = static_cast<TElem*>(nullptr);
                 auto pitchBytes = TIdx{};
