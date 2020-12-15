@@ -27,6 +27,7 @@
     {                                                                                                                 \
         if(!(expression))                                                                                             \
         {                                                                                                             \
+            acc.stream << "ALPAKA_CHECK failed because '!(" << #expression << ")'\n";                                 \
             success = false;                                                                                          \
         }                                                                                                             \
     } while ( 0 )

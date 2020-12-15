@@ -73,7 +73,7 @@ namespace alpaka
             -> std::int32_t
             {
                 // There is no FFS operation in SYCL but we can emulate it using popcount.
-                return static_cast<std::int32_t>(cl::sycl::popcount(value ^ ~(-value)));
+                return (value == 0) ? 0 : cl::sycl::popcount(value ^ ~(-value));
             }
 
             //-----------------------------------------------------------------------------
@@ -82,7 +82,8 @@ namespace alpaka
                 std::int64_t value)
             -> std::int32_t
             {
-                return static_cast<std::int32_t>(cl::sycl::popcount(value ^ ~(-value)));
+                // There is no FFS operation in SYCL but we can emulate it using popcount.
+                return (value == 0l) ? 0 : static_cast<std::int32_t>(cl::sycl::popcount(value ^ ~(-value)));
             }
         };
     }
