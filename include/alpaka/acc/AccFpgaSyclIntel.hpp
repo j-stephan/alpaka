@@ -34,15 +34,21 @@ namespace alpaka
                            , public concepts::Implements<ConceptAcc, AccFpgaSyclIntel<TDim, TIdx>>
     {
     public:
+#ifdef ALPAKA_SYCL_STREAM_ENABLED
+        AccFpgaSyclIntel(Vec<TDim, TIdx> const & threadElemExtent, cl::sycl::nd_item<TDim::value> work_item,
+                         cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write,
+                                            cl::sycl::access::target::local> shared_acc,
+                         cl::sycl::stream output_stream)
+        : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc, output_stream)
+        {}
+#else
         AccFpgaSyclIntel(Vec<TDim, TIdx> const & threadElemExtent, cl::sycl::nd_item<TDim::value> work_item,
                          cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write,
                                             cl::sycl::access::target::local> shared_acc)
         : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc)
         {}
+#endif
 
-        /*AccFpgaSyclIntel(AccFpgaSyclIntel const& rhs)
-        : AccGenericSycl<TDim, TIdx>(rhs)
-        {}*/
         AccFpgaSyclIntel(AccFpgaSyclIntel const&) = delete;
         auto operator=(AccFpgaSyclIntel const&) -> AccFpgaSyclIntel& = delete;
 

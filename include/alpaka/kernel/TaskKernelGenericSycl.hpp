@@ -132,8 +132,12 @@ namespace alpaka
         { 
             using namespace cl::sycl;
 
-            // transform to device tuple so we can copy the arguments into device code. We can't use std::tuple for
-            // this step because it isn't standard layout and thus prohibited to be copied into SYCL device code.
+            // wait for previous kernels to complete
+            cgh.depends_on(pimpl->dependencies);
+
+            // transform arguments to device tuple so we can copy the arguments into device code. We can't use
+            // std::tuple for this step because it isn't standard layout and thus prohibited to be copied into SYCL
+            // device code.
             auto device_args = detail::make_device_args(m_args, std::make_index_sequence<sizeof...(TArgs)>{});
 
             const auto work_groups = WorkDivMembers<TDim, TIdx>::m_gridBlockExtent;
@@ -155,15 +159,30 @@ namespace alpaka
             // copy-by-value so we don't access 'this' on the device
             auto k_func = m_kernelFnObj;
 
+#ifdef ALPAKA_SYCL_STREAM_ENABLED
+            // set up device-side printing
+            constexpr auto buf_size = std::size_t{65535}; // 64 KiB for the output buffer
+            auto buf_per_work_item = std::size_t{};
+            if constexpr(TDim::value == 1)
+                buf_per_work_item = buf_size / static_cast<std::size_t>(group_items[0]);
+            else if constexpr(TDim::value == 2)
+                buf_per_work_item = buf_size / static_cast<std::size_t>(group_items[0] * group_items[1]);
+            else
+                buf_per_work_item = buf_size / static_cast<std::size_t>(group_items[0] * group_items[1] * group_items[2]);
 
-            // wait for previous kernels to complete
-            cgh.depends_on(pimpl->dependencies);
+            auto output_stream = stream{buf_size, // 1 MiB for the output buffer
+                                        buf_per_work_item,
+                                        cgh};
+#endif
 
             cgh.parallel_for<detail::kernel<TAcc, TKernelFnObj, TArgs...>>(nd_range<TDim::value>{global_size, local_size},
             [=](nd_item<TDim::value> work_item)
             {
-                // add alpaka accelerator to variadic arguments
+#ifdef ALPAKA_SYCL_STREAM_ENABLED
+                auto acc = TAcc{item_elements, work_item, shared_accessor, output_stream};
+#else
                 auto acc = TAcc{item_elements, work_item, shared_accessor};
+#endif
 
                 alpaka::detail::apply(k_func, acc, device_args);
             });

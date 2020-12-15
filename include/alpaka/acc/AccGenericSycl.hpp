@@ -65,6 +65,29 @@ namespace alpaka
         public warp::WarpGenericSycl<TDim>
     {
     public:
+#ifdef ALPAKA_SYCL_STREAM_ENABLED
+        //-----------------------------------------------------------------------------
+        AccGenericSycl(
+            Vec<TDim, TIdx> const & threadElemExtent,
+            cl::sycl::nd_item<TDim::value> work_item,
+            cl::sycl::accessor<std::byte, 1,
+                               cl::sycl::access::mode::read_write,
+                               cl::sycl::access::target::local> shared_acc,
+            cl::sycl::stream output_stream) :
+                WorkDivGenericSycl<TDim, TIdx>{threadElemExtent, work_item},
+                gb::IdxGbGenericSycl<TDim, TIdx>{work_item},
+                bt::IdxBtGenericSycl<TDim, TIdx>{work_item},
+                AtomicHierarchy<AtomicGenericSycl, AtomicGenericSycl, AtomicGenericSycl>{},
+                math::MathGenericSycl{},
+                BlockSharedMemDynGenericSycl{shared_acc},
+                BlockSyncGenericSycl<TDim>{work_item},
+                IntrinsicGenericSycl{},
+                warp::WarpGenericSycl<TDim>{work_item},
+                stream{output_stream}
+        {}
+
+        cl::sycl::stream stream;
+#else
         //-----------------------------------------------------------------------------
         AccGenericSycl(
             Vec<TDim, TIdx> const & threadElemExtent,
@@ -82,20 +105,8 @@ namespace alpaka
                 IntrinsicGenericSycl{},
                 warp::WarpGenericSycl<TDim>{work_item}
         {}
+#endif
 
-        //-----------------------------------------------------------------------------
-       /* AccGenericSycl(AccGenericSycl const & rhs)
-        : WorkDivGenericSycl<TDim, TIdx>{rhs}
-        , gb::IdxGbGenericSycl<TDim, TIdx>{rhs}
-        , bt::IdxBtGenericSycl<TDim, TIdx>{rhs}
-        , AtomicHierarchy<AtomicGenericSycl, AtomicGenericSycl, AtomicGenericSycl>{rhs}
-        , math::MathGenericSycl{rhs}
-        , BlockSharedMemDynGenericSycl{rhs}
-        , BlockSyncGenericSycl<TDim>{rhs}
-        , IntrinsicGenericSycl{rhs}
-        , warp::WarpGenericSycl<TDim>{rhs}
-        {
-        }*/
         AccGenericSycl(AccGenericSycl const &) = delete;
         //-----------------------------------------------------------------------------
         AccGenericSycl(AccGenericSycl &&) = delete;

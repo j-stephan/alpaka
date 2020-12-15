@@ -34,15 +34,21 @@ namespace alpaka
                           , public concepts::Implements<ConceptAcc, AccGpuSyclIntel<TDim, TIdx>>
     {
     public:
+#ifdef ALPAKA_SYCL_STREAM_ENABLED
         AccGpuSyclIntel(Vec<TDim, TIdx> const & threadElemExtent, cl::sycl::nd_item<TDim::value> work_item,
-                         cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write,
-                                            cl::sycl::access::target::local> shared_acc)
+                        cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write,
+                                           cl::sycl::access::target::local> shared_acc,
+                        cl::sycl::stream output_stream)
+        : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc, output_stream)
+        {}
+#else
+        AccGpuSyclIntel(Vec<TDim, TIdx> const & threadElemExtent, cl::sycl::nd_item<TDim::value> work_item,
+                        cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write,
+                                           cl::sycl::access::target::local> shared_acc)
         : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc)
         {}
+#endif
 
-        /*AccGpuSyclIntel(AccGpuSyclIntel const& rhs)
-        : AccGenericSycl<TDim, TIdx>(rhs)
-        {}*/
         AccGpuSyclIntel(AccGpuSyclIntel const&) = delete;        
         auto operator=(AccGpuSyclIntel const&) -> AccGpuSyclIntel& = delete;
 

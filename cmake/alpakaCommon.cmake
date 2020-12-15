@@ -723,6 +723,12 @@ if(ALPAKA_ACC_SYCL_ENABLE)
     cmake_dependent_option(ALPAKA_SYCL_ONEAPI_FPGA_EMULATION "Enable oneAPI FPGA emulator" ON "ALPAKA_SYCL_ONEAPI_FPGA" OFF)
     cmake_dependent_option(ALPAKA_SYCL_ONEAPI_FPGA_SIMULATION "Enable oneAPI FPGA simulator" OFF "ALPAKA_SYCL_ONEAPI_FPGA" OFF)
 
+    # Enable device-side printing to stdout
+    cmake_dependent_option(ALPAKA_SYCL_ENABLE_STREAM "Enable device-side printing to stdout" OFF "ALPAKA_ACC_SYCL_ENABLE" OFF)
+    if(BUILD_TESTING)
+        set(ALPAKA_SYCL_ENABLE_STREAM ON CACHE BOOL "Enable device-side printing to stdout" FORCE)
+    endif()
+
     if(NOT (ALPAKA_SYCL_PLATFORM_ONEAPI OR ALPAKA_SYCL_PLATFORM_XILINX))
         message(FATAL_ERROR "You must specify at least one SYCL platform!")
     endif()
@@ -768,6 +774,9 @@ if(ALPAKA_ACC_SYCL_ENABLE)
         target_link_options(alpaka INTERFACE "-fsycl-targets=${ALPAKA_SYCL_TARGETS_CONCAT}")
     else()
         message(WARNING "You have enabled compilation for Intel FPGAs. Disabling other backends.")
+        set(ALPAKA_SYCL_ONEAPI_CPU OFF CACHE BOOL "Enable oneAPI CPU targets for the SYCL back-end" FORCE)
+        set(ALPAKA_SYCL_ONEAPI_GPU OFF CACHE BOOL "Enable oneAPI GPU targets for the SYCL back-end" FORCE)
+        set(ALPAKA_SYCL_PLATFORM_XILINX OFF CACHE BOOL "Enable Xilinx platform for the SYCL back-end" FORCE)
     endif()
     
     #-----------------------------------------------------------------------------------------------------------------
@@ -788,11 +797,9 @@ if(ALPAKA_ACC_SYCL_ENABLE)
             target_compile_definitions(alpaka INTERFACE "ALPAKA_FPGA_EMULATION")
             # No extra link flag needed because emulation is the default
         elseif(ALPAKA_SYCL_ONEAPI_FPGA_SIMULATION)
-            #target_link_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} -simulation")
             target_compile_options(alpaka INTERFACE "-Xssimulation")
             target_link_options(alpaka INTERFACE "-Xssimulation")
         else()
-            #target_link_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} -hardware")
             target_compile_options(alpaka INTERFACE "-Xshardware")
             target_link_options(alpaka INTERFACE "-Xshardware")
         endif()
@@ -800,13 +807,11 @@ if(ALPAKA_ACC_SYCL_ENABLE)
         if(NOT ALPAKA_SYCL_ONEAPI_FPGA_EMULATION)
             set(ALPAKA_ONEAPI_FPGA_BOARD "pac_a10" CACHE STRING "Intel FPGA board to compile for")
             set_property(CACHE ALPAKA_ONEAPI_FPGA_BOARD PROPERTY STRINGS "pac_a10;pac_s10;pac_s10_usm")
-            #target_link_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} -board=${ALPAKA_ONEAPI_FPGA_BOARD}")
 
             set(ALPAKA_ONEAPI_FPGA_BSP "intel_a10gx_pac" CACHE STRING "Path to or name of the Intel FPGA board support package")
             set_property(CACHE ALPAKA_ONEAPI_FPGA_BSP PROPERTY STRINGS "intel_a10gx_pac;intel_s10sx_pac")
-            #target_link_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_ONEAPI_FPGA_TARGET} -board-package=${ALPAKA_ONEAPI_FPGA_BSP}")
-            target_compile_options(alpaka INTERFACE "-Xsboard:${ALPAKA_ONEAPI_FPGA_BSP}:${ALPAKA_ONEAPI_FPGA_BOARD}")
-            target_link_options(alpaka INTERFACE "-Xsboard:${ALPAKA_ONEAPI_FPGA_BSP}:${ALPAKA_ONEAPI_FPGA_BOARD}")
+            target_compile_options(alpaka INTERFACE "-Xsboard=${ALPAKA_ONEAPI_FPGA_BSP}:${ALPAKA_ONEAPI_FPGA_BOARD}")
+            target_link_options(alpaka INTERFACE "-Xsboard=${ALPAKA_ONEAPI_FPGA_BSP}:${ALPAKA_ONEAPI_FPGA_BOARD}")
         endif()
 
     endif()
@@ -832,6 +837,9 @@ if(ALPAKA_ACC_SYCL_ENABLE)
 
     #-----------------------------------------------------------------------------------------------------------------
     # Generic SYCL options
+    if(ALPAKA_SYCL_ENABLE_STREAM)
+        target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_STREAM_ENABLED")
+    endif()
     target_compile_options(alpaka INTERFACE "-fsycl-unnamed-lambda")
 
     #-----------------------------------------------------------------------------------------------------------------
