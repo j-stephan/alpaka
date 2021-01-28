@@ -52,6 +52,23 @@ struct PrintBufferKernel
     }
 };
 
+//#############################################################################
+//! Prints all elements of the buffer.
+struct PrintBufferKernel3D
+{
+    //-----------------------------------------------------------------------------
+    template<typename TAcc, typename TAccessor>
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, TAccessor const data) const -> void
+    {
+        auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
+        auto const gridSize = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
+
+        for(size_t z = idx[0]; z < data.extents[0]; z += gridSize[0])
+            for(size_t y = idx[1]; y < data.extents[1]; y += gridSize[1])
+                for(size_t x = idx[2]; x < data.extents[2]; x += gridSize[2])
+                    printf("%zu,%zu,%zu:%u ", z, y, x, static_cast<uint32_t>(data[{z, y, x}]));
+    }
+};
 
 //! Tests if the value of the buffer on index i is equal to i.
 struct TestBufferKernel
@@ -307,6 +324,11 @@ auto main() -> int
         pDeviceBuffer1, // 1st kernel argument
         extents, // 2nd kernel argument
         deviceBuffer1Pitch); // 3rd kernel argument
+    alpaka::wait(devQueue);
+    std::cout << std::endl;
+
+    PrintBufferKernel3D printBufferKernel3D;
+    alpaka::exec<Acc>(devQueue, devWorkDiv, printBufferKernel3D, alpaka::access(deviceBuffer1));
     alpaka::wait(devQueue);
     std::cout << std::endl;
 
