@@ -208,9 +208,9 @@ namespace alpaka
                 std::cout << "Maximum number of work items per dimension: ";
                 auto item_dims = device.get_info<cl::sycl::info::device::max_work_item_sizes>(); 
                 std::cout << "(";
-                for(auto i = 0u; i < dims - 1; ++i)
-                    std::cout << item_dims[i] << ", ";
-                std::cout << item_dims[dims - 1] << ")" << std::endl;
+                for(auto i = 0u; i < dims - 1u; ++i)
+                    std::cout << item_dims[static_cast<int>(i)] << ", ";
+                std::cout << item_dims[static_cast<int>(dims - 1u)] << ")" << std::endl;
 
                 std::cout << "Maximum number of work items per work group: "
                     << device.get_info<cl::sycl::info::device::max_work_group_size>()
