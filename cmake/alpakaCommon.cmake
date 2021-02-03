@@ -147,10 +147,7 @@ else()
 
     if(NOT APPLE)
         # librt: undefined reference to `clock_gettime'
-        find_library(RT_LIBRARY rt)
-        if(RT_LIBRARY)
-            target_link_libraries(alpaka INTERFACE ${RT_LIBRARY})
-        endif()
+        target_link_options(alpaka INTERFACE "-lrt")
     endif()
 endif()
 
