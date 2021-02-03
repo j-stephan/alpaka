@@ -1,4 +1,4 @@
-/* Copyright 2019 Benjamin Worpitz
+/* Copyright 2021 Benjamin Worpitz, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -10,21 +10,23 @@
 #include "mysqrt.hpp"
 
 // a square root calculation using simple operations
-ALPAKA_FN_HOST_ACC ALPAKA_FN_EXTERN auto mysqrt(float x)
--> float
+ALPAKA_FN_HOST_ACC ALPAKA_FN_EXTERN auto mysqrt(float x) -> float
 {
-  if (x <= 0) {
-    return 0.f;
-  }
-
-  float result = x;
-
-  for (int i = 0; i < 100; ++i) {
-    if (result <= 0) {
-      result = 0.1f;
+    if(x <= 0)
+    {
+        return 0.f;
     }
-    float delta = x - (result * result);
-    result = result + 0.5f * delta / result;
-  }
-  return result;
+
+    float result = x;
+
+    for(int i = 0; i < 100; ++i)
+    {
+        if(result <= 0)
+        {
+            result = 0.1f;
+        }
+        float delta = x - (result * result);
+        result = result + 0.5f * delta / result;
+    }
+    return result;
 }

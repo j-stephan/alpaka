@@ -14,7 +14,7 @@
 
 // Boost.Uuid errors with VS2017 when intrin.h is not included
 #if defined(_MSC_VER) && _MSC_VER >= 1910
-    #include <intrin.h>
+#    include <intrin.h>
 #endif
 
 //-----------------------------------------------------------------------------
@@ -25,17 +25,29 @@
 //! auto add(std::int32_t a, std::int32_t b)
 //! -> std::int32_t;
 #if BOOST_LANG_CUDA || BOOST_LANG_HIP
-    #if defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE) || defined(ALPAKA_ACC_GPU_HIP_ONLY_MODE)
-        #define ALPAKA_FN_ACC __device__
-    #else
-        #define ALPAKA_FN_ACC __device__ __host__
-    #endif
-    #define ALPAKA_FN_HOST_ACC __device__ __host__
-    #define ALPAKA_FN_HOST __host__
+#    if defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE) || defined(ALPAKA_ACC_GPU_HIP_ONLY_MODE)
+#        define ALPAKA_FN_ACC __device__
+#    else
+#        define ALPAKA_FN_ACC __device__ __host__
+#    endif
+#    define ALPAKA_FN_HOST_ACC __device__ __host__
+#    define ALPAKA_FN_HOST __host__
 #else
-    #define ALPAKA_FN_ACC
-    #define ALPAKA_FN_HOST_ACC
-    #define ALPAKA_FN_HOST
+#    define ALPAKA_FN_ACC
+#    define ALPAKA_FN_HOST_ACC
+#    define ALPAKA_FN_HOST
+#endif
+
+//-----------------------------------------------------------------------------
+//! All functions marked with ALPAKA_FN_ACC or ALPAKA_FN_HOST_ACC that are exported to / imported from different translation units have to be attributed with
+//! ALPAKA_FN_EXTERN.
+//!
+//! Usage:
+//! ALPAKA_FN_ACC ALPAKA_FN_EXTERN auto add(std::int32_t a, std::int32_t b) -> std::int32_t;
+#ifdef ALPAKA_ACC_SYCL_ENABLED
+#   define ALPAKA_FN_EXTERN SYCL_EXTERNAL
+#else
+#   define ALPAKA_FN_EXTERN
 #endif
 
 //-----------------------------------------------------------------------------
@@ -60,22 +72,22 @@
 //!
 //! WARNING: Only use this method if there is no other way.
 //! Most cases can be solved by #if BOOST_ARCH_PTX or #if BOOST_LANG_CUDA.
-#if (BOOST_LANG_CUDA && !BOOST_COMP_CLANG_CUDA) || BOOST_LANG_HIP
-    #if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
-        #define ALPAKA_NO_HOST_ACC_WARNING __pragma(hd_warning_disable)
-    #else
-        #define ALPAKA_NO_HOST_ACC_WARNING _Pragma("hd_warning_disable")
-    #endif
+#if(BOOST_LANG_CUDA && !BOOST_COMP_CLANG_CUDA) || BOOST_LANG_HIP
+#    if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
+#        define ALPAKA_NO_HOST_ACC_WARNING __pragma(hd_warning_disable)
+#    else
+#        define ALPAKA_NO_HOST_ACC_WARNING _Pragma("hd_warning_disable")
+#    endif
 #else
-    #define ALPAKA_NO_HOST_ACC_WARNING
+#    define ALPAKA_NO_HOST_ACC_WARNING
 #endif
 
 //-----------------------------------------------------------------------------
 //! Macro defining the inline function attribute.
 #if BOOST_LANG_CUDA || BOOST_LANG_HIP
-    #define ALPAKA_FN_INLINE __forceinline__
+#    define ALPAKA_FN_INLINE __forceinline__
 #else
-    #define ALPAKA_FN_INLINE inline
+#    define ALPAKA_FN_INLINE inline
 #endif
 
 //-----------------------------------------------------------------------------
@@ -94,10 +106,10 @@
 //! In contrast to ordinary variables, you can not define such variables
 //! as static compilation unit local variables with internal linkage
 //! because this is forbidden by CUDA.
-#if (BOOST_LANG_CUDA && BOOST_ARCH_PTX) || (BOOST_LANG_HIP && (BOOST_ARCH_HSA || BOOST_ARCH_PTX))
-    #define ALPAKA_STATIC_ACC_MEM_GLOBAL __device__
+#if(BOOST_LANG_CUDA && BOOST_ARCH_PTX) || (BOOST_LANG_HIP && (BOOST_ARCH_HSA || BOOST_ARCH_PTX))
+#    define ALPAKA_STATIC_ACC_MEM_GLOBAL __device__
 #else
-    #define ALPAKA_STATIC_ACC_MEM_GLOBAL
+#    define ALPAKA_STATIC_ACC_MEM_GLOBAL
 #endif
 
 //-----------------------------------------------------------------------------
@@ -116,8 +128,8 @@
 //! In contrast to ordinary variables, you can not define such variables
 //! as static compilation unit local variables with internal linkage
 //! because this is forbidden by CUDA.
-#if (BOOST_LANG_CUDA && BOOST_ARCH_PTX) || (BOOST_LANG_HIP && (BOOST_ARCH_HSA || BOOST_ARCH_PTX))
-    #define ALPAKA_STATIC_ACC_MEM_CONSTANT __constant__
+#if(BOOST_LANG_CUDA && BOOST_ARCH_PTX) || (BOOST_LANG_HIP && (BOOST_ARCH_HSA || BOOST_ARCH_PTX))
+#    define ALPAKA_STATIC_ACC_MEM_CONSTANT __constant__
 #else
-    #define ALPAKA_STATIC_ACC_MEM_CONSTANT
+#    define ALPAKA_STATIC_ACC_MEM_CONSTANT
 #endif

@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -12,11 +12,6 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Unused.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/math/sincos/Traits.hpp>
 
 #include <CL/sycl.hpp>
@@ -30,8 +25,6 @@ namespace alpaka
         //! sincos.
         class SinCosGenericSycl : public concepts::Implements<ConceptMathSinCos, SinCosGenericSycl>
         {
-        public:
-            using SinCosBase = SinCosGenericSycl;
         };
 
         namespace traits
@@ -40,16 +33,9 @@ namespace alpaka
 
             //! sincos trait specialization.
             template<typename TArg>
-            struct SinCos<
-                SinCosGenericSycl,
-                TArg>
+            struct SinCos<SinCosGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto sincos(
-                    SinCosGenericSycl const &,
-                    TArg const & arg,
-                    TArg & result_sin,
-                    TArg & result_cos)
-                -> void
+                static auto sincos(SinCosGenericSycl const &, TArg const & arg, TArg & result_sin, TArg & result_cos) -> void
                 {
                     result_sin = cl::sycl::sincos(arg, &result_cos);
                 }

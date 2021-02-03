@@ -8,9 +8,8 @@
  */
 
 #include <alpaka/block/sync/Traits.hpp>
-
-#include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
+#include <alpaka/test/acc/TestAccs.hpp>
 
 #include <catch2/catch.hpp>
 
@@ -22,12 +21,8 @@ public:
 
     //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
-    template<
-        typename TAcc>
-    ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc,
-        bool * success) const
-    -> void
+    template<typename TAcc>
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
     {
         using Idx = alpaka::Idx<TAcc>;
 
@@ -38,8 +33,8 @@ public:
         auto const blockThreadExtent1D = blockThreadExtent.prod();
 
         // Allocate shared memory.
-        Idx * const pBlockSharedArray = alpaka::getMem<Idx>(acc);
-   
+        Idx* const pBlockSharedArray = alpaka::getDynSharedMem<Idx>(acc);
+
         // Write the thread index into the shared memory.
         pBlockSharedArray[blockThreadIdx1D] = blockThreadIdx1D;
 
@@ -60,22 +55,17 @@ namespace alpaka
     {
         //#############################################################################
         //! The trait for getting the size of the block shared dynamic memory for a kernel.
-        template<
-            typename TAcc>
-        struct BlockSharedMemDynSizeBytes<
-            BlockSyncTestKernel,
-            TAcc>
+        template<typename TAcc>
+        struct BlockSharedMemDynSizeBytes<BlockSyncTestKernel, TAcc>
         {
             //-----------------------------------------------------------------------------
             //! \return The size of the shared memory allocated for a block.
-            template<
-                typename TVec>
+            template<typename TVec>
             ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
-                BlockSyncTestKernel const & blockSharedMemDyn,
-                TVec const & blockThreadExtent,
-                TVec const & threadElemExtent,
-                bool * success)
-            -> std::size_t
+                BlockSyncTestKernel const& blockSharedMemDyn,
+                TVec const& blockThreadExtent,
+                TVec const& threadElemExtent,
+                bool* success) -> std::size_t
             {
                 using Idx = alpaka::Idx<TAcc>;
 
@@ -85,11 +75,11 @@ namespace alpaka
                 return static_cast<std::size_t>(blockThreadExtent.prod()) * sizeof(Idx);
             }
         };
-    }
-}
+    } // namespace traits
+} // namespace alpaka
 
 //-----------------------------------------------------------------------------
-TEMPLATE_LIST_TEST_CASE( "synchronize", "[blockSync]", alpaka::test::TestAccs)
+TEMPLATE_LIST_TEST_CASE("synchronize", "[blockSync]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
     using Dim = alpaka::Dim<Acc>;
@@ -100,7 +90,5 @@ TEMPLATE_LIST_TEST_CASE( "synchronize", "[blockSync]", alpaka::test::TestAccs)
 
     BlockSyncTestKernel kernel;
 
-    REQUIRE(
-        fixture(
-            kernel));
+    REQUIRE(fixture(kernel));
 }

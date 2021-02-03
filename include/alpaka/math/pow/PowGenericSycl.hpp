@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -14,11 +14,6 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Unused.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/math/pow/Traits.hpp>
 
 #include <CL/sycl.hpp>
@@ -29,32 +24,19 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library pow.
-        class PowGenericSycl : concepts::Implements<ConceptMathPow, PowGenericSycl>
+        //! The SYCL pow.
+        class PowGenericSycl : public concepts::Implements<ConceptMathPow, PowGenericSycl>
         {
-        public:
-            using PowBase = PowGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library pow trait specialization.
-            template<
-                typename TBase,
-                typename TExp>
-            struct Pow<
-                PowGenericSycl,
-                TBase,
-                TExp,
-                std::enable_if_t<
-                    std::is_floating_point_v<TBase>
-                    && std::is_floating_point_v<TExp>>>
+            //! The SYCL pow trait specialization.
+            template<typename TBase, typename TExp>
+            struct Pow<PowGenericSycl, TBase, TExp, std::enable_if_t<std::is_arithmetic_v<TBase> && std::is_arithmetic_v<TExp>>>
             {
-                static auto pow(
-                    PowGenericSycl const &,
-                    TBase const & base,
-                    TExp const & exp)
+                static auto pow(PowGenericSycl const &, TBase const & base, TExp const & exp)
                 {
                     return cl::sycl::pow(base, exp);
                 }

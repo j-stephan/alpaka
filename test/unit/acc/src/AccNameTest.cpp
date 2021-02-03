@@ -8,7 +8,6 @@
  */
 
 #include <alpaka/acc/Traits.hpp>
-
 #include <alpaka/test/acc/TestAccs.hpp>
 
 #include <catch2/catch.hpp>
@@ -16,7 +15,7 @@
 #include <iostream>
 
 //-----------------------------------------------------------------------------
-TEMPLATE_LIST_TEST_CASE( "getAccName", "[acc]", alpaka::test::TestAccs)
+TEMPLATE_LIST_TEST_CASE("getAccName", "[acc]", alpaka::test::TestAccs)
 {
     std::cout << alpaka::getAccName<TestType>() << std::endl;
 }

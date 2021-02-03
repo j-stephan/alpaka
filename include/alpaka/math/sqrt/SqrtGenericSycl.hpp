@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -14,11 +14,6 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Unused.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/math/sqrt/Traits.hpp>
 
 #include <CL/sycl.hpp>
@@ -29,27 +24,19 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library sqrt.
+        //! The SYCL library sqrt.
         class SqrtGenericSycl : public concepts::Implements<ConceptMathSqrt, SqrtGenericSycl>
         {
-        public:
-            using SqrtBase = SqrtGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
             //! The standard library sqrt trait specialization.
-            template<
-                typename TArg>
-            struct Sqrt<
-                SqrtGenericSycl,
-                TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+            template<typename TArg>
+            struct Sqrt<SqrtGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto sqrt(
-                    SqrtGenericSycl const &,
-                    TArg const & arg)
+                static auto sqrt(SqrtGenericSycl const &, TArg const & arg)
                 {
                     return cl::sycl::sqrt(arg);
                 }

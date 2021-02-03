@@ -58,7 +58,7 @@ namespace alpaka
     {
         //#############################################################################
         template<typename T>
-        struct GetMem<T, BlockSharedMemDynGenericSycl>
+        struct GetDynSharedMem<T, BlockSharedMemDynGenericSycl>
         {
             //-----------------------------------------------------------------------------
             static auto getMem(BlockSharedMemDynGenericSycl const & shared) -> T*

@@ -13,16 +13,12 @@
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
 #include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
+#include <alpaka/core/Sycl.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/event/Traits.hpp>
 #include <alpaka/queue/Traits.hpp>
+#include <alpaka/queue/sycl/Utility.hpp>
 #include <alpaka/wait/Traits.hpp>
-#include <alpaka/core/Sycl.hpp>
 
 #include <CL/sycl.hpp>
 
@@ -126,40 +122,54 @@ namespace alpaka
             {
                 using namespace cl::sycl;
 
-                auto remove_completed = [](std::vector<event>& events)
+                if constexpr(detail::is_sycl_enqueueable<TTask>::value) // Device task
                 {
-                    std::remove_if(begin(events), end(events), [](event const& ev)
+                    std::scoped_lock<std::shared_mutex, std::shared_mutex, std::shared_mutex> lock{*queue.mutex_ptr, *queue.m_dev.mutex_ptr, task.pimpl->mutex};
+
+                    // Remove any completed events from the task's dependencies
+                    if(!task.pimpl->dependencies.empty())
+                        detail::remove_completed(task.pimpl->dependencies);
+
+                    // Remove any completed events from the device's dependencies
+                    if(!queue.m_dev.m_dependencies.empty())
+                        detail::remove_completed(queue.m_dev.m_dependencies);
+                    
+                    // Wait for the remaining uncompleted events the device is supposed to wait for
+                    if(!queue.m_dev.m_dependencies.empty())
+                        task.pimpl->dependencies.insert(end(task.pimpl->dependencies), begin(queue.m_dev.m_dependencies), end(queue.m_dev.m_dependencies));
+                    
+                    // Wait for any events this queue is supposed to wait for
+                    if(!queue.m_dependencies.empty())
+                        task.pimpl->dependencies.insert(end(task.pimpl->dependencies), begin(queue.m_dependencies), end(queue.m_dependencies));
+
+                    // Execute the kernel
+                    queue.m_event = queue.m_queue.submit(task);
+
+                    // Remove queue dependencies
+                    queue.m_dependencies.clear();
+                }
+                else // Host task
+                {
+                    std::scoped_lock<std::shared_mutex, std::shared_mutex> lock{*queue.mutex_ptr, *queue.m_dev.mutex_ptr};
+
+                    // Remove any completed events from the device's dependencies
+                    if(!queue.m_dev.m_dependencies.empty())
+                        detail::remove_completed(queue.m_dev.m_dependencies);
+                    
+                    // Wait for the remaining uncompleted events the device is supposed to wait for
+                    if(!queue.m_dev.m_dependencies.empty())
+                        queue.m_dependencies.insert(end(queue.m_dependencies), begin(queue.m_dev.m_dependencies), end(queue.m_dev.m_dependencies));
+                    
+                    // Execute host task
+                    queue.m_event = queue.m_queue.submit([&queue, task](cl::sycl::handler& cgh)
                     {
-                        return (ev.get_info<info::event::command_execution_status>() == info::event_command_status::complete);
+                        cgh.depends_on(queue.m_dependencies);
+                        cgh.codeplay_host_task(task);
                     });
-                };
 
-                std::scoped_lock<std::shared_mutex, std::shared_mutex, std::shared_mutex> lock{*queue.mutex_ptr, *queue.m_dev.mutex_ptr, task.pimpl->mutex};
-
-                // Remove any completed events from the task's dependencies
-                if(!task.pimpl->dependencies.empty())
-                    remove_completed(task.pimpl->dependencies);
-
-                // Remove any completed events from the device's dependencies
-                if(!queue.m_dev.m_dependencies.empty())
-                    remove_completed(queue.m_dev.m_dependencies);
-                
-                // Wait for the remaining uncompleted events the device is supposed to wait for
-                if(!queue.m_dev.m_dependencies.empty())
-                    task.pimpl->dependencies.insert(end(task.pimpl->dependencies), begin(queue.m_dev.m_dependencies), end(queue.m_dev.m_dependencies));
-                
-                // Wait for any events this queue is supposed to wait for
-                if(!queue.m_dependencies.empty())
-                    task.pimpl->dependencies.insert(end(task.pimpl->dependencies), begin(queue.m_dependencies), end(queue.m_dependencies));
-
-                // Wait for any previous kernels running in this queue
-                task.pimpl->dependencies.push_back(queue.m_event);
-
-                // Execute the kernel
-                queue.m_event = queue.m_queue.submit(task);
-
-                // Remove queue dependencies
-                queue.m_dependencies.clear();
+                    // Remove queue dependencies
+                    queue.m_dependencies.clear();
+                }
             }
         };
 

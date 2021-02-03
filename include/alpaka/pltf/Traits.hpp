@@ -10,17 +10,18 @@
 #pragma once
 
 #include <alpaka/core/Common.hpp>
-
 #include <alpaka/core/Concepts.hpp>
-#include <alpaka/queue/Traits.hpp>
 #include <alpaka/dev/Traits.hpp>
+#include <alpaka/queue/Traits.hpp>
 
-#include <vector>
 #include <type_traits>
+#include <vector>
 
 namespace alpaka
 {
-    struct ConceptPltf{};
+    struct ConceptPltf
+    {
+    };
 
     //-----------------------------------------------------------------------------
     //! The platform traits.
@@ -28,74 +29,51 @@ namespace alpaka
     {
         //#############################################################################
         //! The platform type trait.
-        template<
-            typename T,
-            typename TSfinae = void>
+        template<typename T, typename TSfinae = void>
         struct PltfType;
 
-        template<
-            typename TPltf>
-        struct PltfType<
-            TPltf,
-            typename std::enable_if<concepts::ImplementsConcept<ConceptPltf, TPltf>::value>::type
-        >
+        template<typename TPltf>
+        struct PltfType<TPltf, typename std::enable_if<concepts::ImplementsConcept<ConceptPltf, TPltf>::value>::type>
         {
             using type = typename concepts::ImplementationBase<ConceptDev, TPltf>;
         };
 
         //#############################################################################
         //! The device count get trait.
-        template<
-            typename T,
-            typename TSfinae = void>
+        template<typename T, typename TSfinae = void>
         struct GetDevCount;
 
         //#############################################################################
         //! The device get trait.
-        template<
-            typename T,
-            typename TSfinae = void>
+        template<typename T, typename TSfinae = void>
         struct GetDevByIdx;
-    }
+    } // namespace traits
 
     //#############################################################################
     //! The platform type trait alias template to remove the ::type.
-    template<
-        typename T>
+    template<typename T>
     using Pltf = typename traits::PltfType<T>::type;
 
     //-----------------------------------------------------------------------------
     //! \return The device identified by its index.
-    template<
-        typename TPltf>
+    template<typename TPltf>
     ALPAKA_FN_HOST auto getDevCount()
     {
-        return
-            traits::GetDevCount<
-                Pltf<TPltf>>
-            ::getDevCount();
+        return traits::GetDevCount<Pltf<TPltf>>::getDevCount();
     }
 
     //-----------------------------------------------------------------------------
     //! \return The device identified by its index.
-    template<
-        typename TPltf>
-    ALPAKA_FN_HOST auto getDevByIdx(
-        std::size_t const & devIdx)
+    template<typename TPltf>
+    ALPAKA_FN_HOST auto getDevByIdx(std::size_t const& devIdx)
     {
-        return
-            traits::GetDevByIdx<
-                Pltf<TPltf>>
-            ::getDevByIdx(
-                devIdx);
+        return traits::GetDevByIdx<Pltf<TPltf>>::getDevByIdx(devIdx);
     }
 
     //-----------------------------------------------------------------------------
     //! \return All the devices available on this accelerator.
-    template<
-        typename TPltf>
-    ALPAKA_FN_HOST auto getDevs()
-    -> std::vector<Dev<Pltf<TPltf>>>
+    template<typename TPltf>
+    ALPAKA_FN_HOST auto getDevs() -> std::vector<Dev<Pltf<TPltf>>>
     {
         std::vector<Dev<Pltf<TPltf>>> devs;
 
@@ -110,18 +88,10 @@ namespace alpaka
 
     namespace traits
     {
-        template<
-            typename TPltf,
-            typename TProperty>
-        struct QueueType<
-            TPltf,
-            TProperty,
-            std::enable_if_t<concepts::ImplementsConcept<ConceptPltf, TPltf>::value>
-        >
+        template<typename TPltf, typename TProperty>
+        struct QueueType<TPltf, TProperty, std::enable_if_t<concepts::ImplementsConcept<ConceptPltf, TPltf>::value>>
         {
-            using type = typename QueueType<
-                typename alpaka::traits::DevType<TPltf>::type,
-                TProperty>::type;
+            using type = typename QueueType<typename alpaka::traits::DevType<TPltf>::type, TProperty>::type;
         };
-    }
-}
+    } // namespace traits
+} // namespace alpaka

@@ -37,6 +37,7 @@
 #include <stl-tuple/STLTuple.hpp> // computecpp-sdk
 #pragma clang diagnostic pop
 
+#include <functional>
 #include <memory>
 #include <shared_mutex>
 #include <stdexcept>
@@ -49,7 +50,7 @@ namespace alpaka
 {
     namespace detail
     {
-        template <typename TName, typename TAcc>
+        template <typename TAcc, typename TKernelFnObj, typename... TArgs>
         struct kernel {}; // SYCL kernel names must be globally visible
 
         template <typename... TArgs, std::size_t... Is>
@@ -70,16 +71,16 @@ namespace alpaka
             return std::is_same_v<std::result_of_t<TKernelFnObj(TArgs const & ...)>, void>;
         }
 
-        template <typename TFunc, typename... TArgs, std::size_t... Is>
-        constexpr auto apply_impl(TFunc&& f, utility::tuple::Tuple<TArgs...> t, std::index_sequence<Is...>)
+        template <typename TFunc, typename TAcc, typename... TArgs, std::size_t... Is>
+        constexpr auto apply_impl(TFunc&& f, TAcc const& acc, utility::tuple::Tuple<TArgs...> t, std::index_sequence<Is...>)
         {
-            f(utility::tuple::get<Is>(t)...);
+            f(acc, utility::tuple::get<Is>(t)...);
         }
 
-        template <typename TFunc, typename... TArgs>
-        constexpr auto apply(TFunc&& f, utility::tuple::Tuple<TArgs...> t)
+        template <typename TFunc, typename TAcc, typename... TArgs>
+        constexpr auto apply(TFunc&& f, TAcc const& acc, utility::tuple::Tuple<TArgs...> t)
         {
-            apply_impl(std::forward<TFunc>(f), t, std::make_index_sequence<sizeof...(TArgs)>{});
+            apply_impl(std::forward<TFunc>(f), acc, t, std::make_index_sequence<sizeof...(TArgs)>{});
         }
 
         struct TaskKernelGenericSyclImpl
@@ -99,6 +100,10 @@ namespace alpaka
 
     public:
         static_assert(TDim::value > 0 && TDim::value <= 3, "Invalid kernel dimensionality");
+        static_assert(!std::is_same_v<TKernelFnObj, std::function<void(TAcc const&, TArgs...)>>,
+                      "std::function is not allowed for SYCL kernels!");
+        static_assert(alpaka::detail::kernelReturnsVoid<TKernelFnObj, TAcc, TArgs...>::value,
+                      "The KernelFnObj must return void!");
         //-----------------------------------------------------------------------------
         template<typename TWorkDiv>
         ALPAKA_FN_HOST TaskKernelGenericSycl(TWorkDiv && workDiv, TKernelFnObj const & kernelFnObj,
@@ -127,11 +132,12 @@ namespace alpaka
         { 
             using namespace cl::sycl;
 
-            // create shared predicate counter -- needed for block synchronization with predicates
-            auto pred_counter_acc = accessor<int, 0, access::mode::read_write, access::target::local>{cgh};
+            // wait for previous kernels to complete
+            cgh.depends_on(pimpl->dependencies);
 
-            // transform to device tuple so we can copy the arguments into device code. We can't use std::tuple for
-            // this step because it isn't standard layout and thus prohibited to be copied into SYCL device code.
+            // transform arguments to device tuple so we can copy the arguments into device code. We can't use
+            // std::tuple for this step because it isn't standard layout and thus prohibited to be copied into SYCL
+            // device code.
             auto device_args = detail::make_device_args(m_args, std::make_index_sequence<sizeof...(TArgs)>{});
 
             const auto work_groups = WorkDivMembers<TDim, TIdx>::m_gridBlockExtent;
@@ -153,26 +159,37 @@ namespace alpaka
             // copy-by-value so we don't access 'this' on the device
             auto k_func = m_kernelFnObj;
 
-            // wait for previous kernels to complete
-            cgh.depends_on(pimpl->dependencies);
+#ifdef ALPAKA_SYCL_STREAM_ENABLED
+            // set up device-side printing
+            constexpr auto buf_size = std::size_t{65535}; // 64 KiB for the output buffer
+            auto buf_per_work_item = std::size_t{};
+            if constexpr(TDim::value == 1)
+                buf_per_work_item = buf_size / static_cast<std::size_t>(group_items[0]);
+            else if constexpr(TDim::value == 2)
+                buf_per_work_item = buf_size / static_cast<std::size_t>(group_items[0] * group_items[1]);
+            else
+                buf_per_work_item = buf_size / static_cast<std::size_t>(group_items[0] * group_items[1] * group_items[2]);
 
-            cgh.parallel_for<detail::kernel<TKernelFnObj, TAcc>>(nd_range<TDim::value>{global_size, local_size},
+            auto output_stream = stream{buf_size, // 1 MiB for the output buffer
+                                        buf_per_work_item,
+                                        cgh};
+#endif
+
+            cgh.parallel_for<detail::kernel<TAcc, TKernelFnObj, TArgs...>>(nd_range<TDim::value>{global_size, local_size},
             [=](nd_item<TDim::value> work_item)
             {
-                auto pred_counter = ONEAPI::atomic_ref<int, ONEAPI::memory_order::relaxed, ONEAPI::memory_scope::work_group,
-                                               access::address_space::local_space>{pred_counter_acc};
+#ifdef ALPAKA_SYCL_STREAM_ENABLED
+                auto acc = TAcc{item_elements, work_item, shared_accessor, output_stream};
+#else
+                auto acc = TAcc{item_elements, work_item, shared_accessor};
+#endif
 
-                // add alpaka accelerator to variadic arguments
-                auto kernel_args = utility::tuple::append(utility::tuple::make_tuple(
-                                    TAcc{item_elements, work_item, shared_accessor, pred_counter}),
-                                    device_args);
-
-                // Now we can check for correctness.
-                static_assert(alpaka::detail::kernelReturnsVoid<TKernelFnObj, TAcc, TArgs...>::value, "The KernelFnObj must return void!");
-                //static_assert(alpaka::detail::kernel_returns_void(k_func, kernel_args), "The TKernelFnObj must return void!");
-                alpaka::detail::apply(k_func, kernel_args);
+                alpaka::detail::apply(k_func, acc, device_args);
             });
         }
+
+        // Distinguish from non-alpaka types (= host tasks)
+        static constexpr auto is_sycl_enqueueable = true;
 
     private:
         auto get_global_size(const Vec<TDim, TIdx>& work_groups, const Vec<TDim, TIdx>& group_items)

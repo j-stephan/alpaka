@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -14,11 +14,6 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Unused.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/math/cbrt/Traits.hpp>
 
 #include <CL/sycl.hpp>
@@ -29,27 +24,19 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library cbrt.
-        class CbrtGenericSycl : concepts::Implements<ConceptMathCbrt, CbrtGenericSycl>
+        //! The SYCL cbrt.
+        class CbrtGenericSycl : public concepts::Implements<ConceptMathCbrt, CbrtGenericSycl>
         {
-        public:
-            using CbrtBase = CbrtGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library cbrt trait specialization.
-            template<
-                typename TArg>
-            struct Cbrt<
-                CbrtGenericSycl,
-                TArg,
-                std::enable_if_t<std::is_arithmetic_v<TArg>>>
+            //! The SYCL cbrt trait specialization.
+            template<typename TArg>
+            struct Cbrt<CbrtGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto cbrt(
-                    CbrtGenericSycl const &,
-                    TArg const & arg)
+                static auto cbrt(CbrtGenericSycl const &, TArg const & arg)
                 {
                     return cl::sycl::cbrt(arg);
                 }

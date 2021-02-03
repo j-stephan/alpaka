@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  * 
  * This file is part of Alpaka.
  *
@@ -13,20 +13,14 @@
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
 #include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/core/Sycl.hpp>
-#include <alpaka/vec/Vec.hpp>
-
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/dev/DevGenericSycl.hpp>
 #include <alpaka/dim/DimIntegralConst.hpp>
 #include <alpaka/dim/Traits.hpp>
 #include <alpaka/mem/buf/Traits.hpp>
 #include <alpaka/mem/buf/BufCpu.hpp>
+#include <alpaka/vec/Vec.hpp>
 
 #include <CL/sycl.hpp>
 
@@ -208,11 +202,6 @@ namespace alpaka
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                 using namespace cl::sycl;
-#if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                std::cout << __func__;
-                // buffer allocation prints the values, keeping this
-                // here for consistency
-#endif
 
                 auto memPtr = static_cast<TElem*>(nullptr);
                 auto pitchBytes = TIdx{};

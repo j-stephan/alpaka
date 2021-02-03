@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -14,11 +14,6 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Unused.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/math/trunc/Traits.hpp>
 
 #include <CL/sycl.hpp>
@@ -29,27 +24,19 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library trunc.
-        class TruncGenericSycl : concepts::Implements<ConceptMathTrunc, TruncGenericSycl>
+        //! The SYCL trunc.
+        class TruncGenericSycl : public concepts::Implements<ConceptMathTrunc, TruncGenericSycl>
         {
-        public:
-            using TruncBase = TruncGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library trunc trait specialization.
-            template<
-                typename TArg>
-            struct Trunc<
-                TruncGenericSycl,
-                TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+            //! The SYCL trunc trait specialization.
+            template<typename TArg>
+            struct Trunc<TruncGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto trunc(
-                    TruncGenericSycl const &,
-                    TArg const & arg)
+                static auto trunc(TruncGenericSycl const &, TArg const & arg)
                 {
                     return cl::sycl::trunc(arg);
                 }

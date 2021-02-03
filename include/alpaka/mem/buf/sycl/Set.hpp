@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -13,11 +13,6 @@
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
 #include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/dev/DevGenericSycl.hpp>
 #include <alpaka/dim/DimIntegralConst.hpp>
@@ -68,6 +63,8 @@ namespace alpaka
             }
 
             std::shared_ptr<TaskSetSyclImpl<TElem>> pimpl;
+            // Distinguish from non-alpaka types (= host tasks)
+            static constexpr auto is_sycl_enqueueable = true;
         };
     }
 

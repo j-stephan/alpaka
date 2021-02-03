@@ -12,11 +12,6 @@
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
 #include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/block/sync/Traits.hpp>
 
 #include <CL/sycl.hpp>
@@ -32,12 +27,8 @@ namespace alpaka
         using BlockSyncBase = BlockSyncGenericSycl<TDim>;
 
         //-----------------------------------------------------------------------------
-        BlockSyncGenericSycl(cl::sycl::nd_item<TDim::value> work_item,
-                             cl::sycl::ONEAPI::atomic_ref<int, cl::sycl::ONEAPI::memory_order::relaxed,
-                                                          cl::sycl::ONEAPI::memory_scope::work_group,
-                                                          cl::sycl::access::address_space::local_space> pred_counter)
+        BlockSyncGenericSycl(cl::sycl::nd_item<TDim::value> work_item)
         : my_item{work_item}
-        , counter{pred_counter}
         {
         }
         //-----------------------------------------------------------------------------
@@ -52,9 +43,6 @@ namespace alpaka
         /*virtual*/ ~BlockSyncGenericSycl() = default;
 
         cl::sycl::nd_item<TDim::value> my_item;
-        cl::sycl::ONEAPI::atomic_ref<int, cl::sycl::ONEAPI::memory_order::relaxed,
-                                     cl::sycl::ONEAPI::memory_scope::work_group,
-                                     cl::sycl::access::address_space::local_space> counter;
     };
 
     namespace traits
@@ -79,17 +67,11 @@ namespace alpaka
             {
                 using namespace cl::sycl;
 
+                const auto group = blockSync.my_item.get_group();
                 blockSync.my_item.barrier();
-                
-                if(blockSync.my_item.get_local_linear_id(0) == 0)
-                    blockSync.counter.store(0);
-                blockSync.my_item.barrier(access::fence_space::local_space);
 
-                if(predicate)
-                    blockSync.counter.fetch_add(1);
-                blockSync.my_item.barrier(access::fence_space::local_space);
-
-                return blockSync.counter.load();
+                const auto counter = (predicate != 0) ? 1 : 0;
+                return ONEAPI::reduce(group, counter, ONEAPI::plus<>{});
             }
         };
 
@@ -102,17 +84,10 @@ namespace alpaka
             {
                 using namespace cl::sycl;
 
+                const auto group = blockSync.my_item.get_group();
                 blockSync.my_item.barrier();
 
-                if(blockSync.my_item.get_local_linear_id(0) == 0)
-                    blockSync.counter.store(1);
-                blockSync.my_item.barrier(access::fence_space::local_space);
-                
-                if(!predicate)
-                    blockSync.counter.fetch_and(0);
-                blockSync.my_item.barrier(access::fence_space::local_space);
-
-                return blockSync.counter.load();
+                return static_cast<int>(ONEAPI::all_of(group, static_cast<bool>(predicate)));
             }
         };
 
@@ -125,17 +100,10 @@ namespace alpaka
             {
                 using namespace cl::sycl;
 
+                const auto group = blockSync.my_item.get_group();
                 blockSync.my_item.barrier();
 
-                if(blockSync.my_item.get_local_linear_id(0) == 0)
-                    blockSync.counter.store(0);
-                blockSync.my_item.barrier(access::fence_space::local_space);
-
-                if(predicate)
-                    blockSync.counter.fetch_or(1);
-                blockSync.my_item.barrier(access::fence_space::local_space);
-
-                return blockSync.counter.load();
+                return static_cast<int>(ONEAPI::any_of(group, static_cast<bool>(predicate)));
             }
         };
     }

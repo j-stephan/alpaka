@@ -51,8 +51,12 @@ if [ "$ALPAKA_CI_OS_NAME" = "Linux" ]
 then
     if [ "${CXX}" == "g++" ] ;then ./script/install_gcc.sh ;fi
     if [ "${CXX}" == "clang++" ] ;then source ./script/install_clang.sh ;fi
+    if [ "${CXX}" == "icpc" ] ;then source ./script/install_icpc.sh ;fi
 elif [ "$ALPAKA_CI_OS_NAME" = "macOS" ]
 then
+    echo "### list all applications ###"
+    ls "/Applications/"
+    echo "### end list all applications ###"
     sudo xcode-select -s "/Applications/Xcode_${ALPAKA_CI_XCODE_VER}.app/Contents/Developer"
 fi
 

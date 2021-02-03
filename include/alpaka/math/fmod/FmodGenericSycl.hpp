@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -14,11 +14,6 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Unused.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/math/fmod/Traits.hpp>
 
 #include <CL/sycl.hpp>
@@ -29,32 +24,19 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library fmod.
+        //! The SYCL fmod.
         class FmodGenericSycl : public concepts::Implements<ConceptMathFmod, FmodGenericSycl>
         {
-        public:
-            using FmodBase = FmodGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library fmod trait specialization.
-            template<
-                typename Tx,
-                typename Ty>
-            struct Fmod<
-                FmodGenericSycl,
-                Tx,
-                Ty,
-                std::enable_if_t<
-                    std::is_floating_point_v<Tx>
-                    && std::is_floating_point_v<Ty>>>
+            //! The SYCL fmod trait specialization.
+            template<typename Tx, typename Ty>
+            struct Fmod<FmodGenericSycl, Tx, Ty, std::enable_if_t<std::is_arithmetic_v<Tx> && std::is_arithmetic_v<Ty>>>
             {
-                static auto fmod(
-                    FmodGenericSycl const &,
-                    Tx const & x,
-                    Ty const & y)
+                static auto fmod(FmodGenericSycl const &, Tx const & x, Ty const & y)
                 {
                     return cl::sycl::fmod(x, y);
                 }

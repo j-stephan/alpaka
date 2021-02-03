@@ -18,6 +18,7 @@
 #pragma once
 
 #include "iterator.hpp"
+
 #include <alpaka/alpaka.hpp>
 
 // Defines for dimensions and types.
@@ -32,11 +33,10 @@ using WorkDiv = alpaka::WorkDivMembers<Dim, Extent>;
 //!
 //! \tparam TAcc The accelerator object.
 //! \tparam TSize The desired size.
-template <typename TAcc, uint64_t TSize>
+template<typename TAcc, uint64_t TSize>
 static constexpr uint64_t getMaxBlockSize()
 {
-    return (TAcc::MaxBlockSize::value > TSize) ? TSize
-                                               : TAcc::MaxBlockSize::value;
+    return (TAcc::MaxBlockSize::value > TSize) ? TSize : TAcc::MaxBlockSize::value;
 }
 
 //#############################################################################
@@ -47,7 +47,7 @@ static constexpr uint64_t getMaxBlockSize()
 //! \tparam TAcc The accelerator type.
 //!
 //! Defines the appropriate iterator for an accelerator.
-template <typename T, typename TBuf, typename TAcc>
+template<typename T, typename TBuf, typename TAcc>
 struct GetIterator
 {
     using Iterator = IteratorCpu<TAcc, T, TBuf>;
@@ -68,16 +68,15 @@ struct CpuOmp2Blocks
     using MaxBlockSize = alpaka::DimInt<1u>;
 };
 
-template <typename T, typename TBuf, typename... TArgs>
+template<typename T, typename TBuf, typename... TArgs>
 struct GetIterator<T, TBuf, alpaka::AccCpuOmp2Blocks<TArgs...>>
 {
-    using Iterator =
-        IteratorCpu<alpaka::AccCpuOmp2Blocks<TArgs...>, T, TBuf>;
+    using Iterator = IteratorCpu<alpaka::AccCpuOmp2Blocks<TArgs...>, T, TBuf>;
 };
 #endif
 
 #ifdef ALPAKA_ACC_ANY_BT_OMP5_ENABLED
-#ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
+#    ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
 //#############################################################################
 //! OpenMP 5 defines
 //!
@@ -95,12 +94,12 @@ struct Omp5
     using MaxBlockSize = alpaka::DimInt<1u>;
 };
 
-template <typename T, typename TBuf, typename... TArgs>
+template<typename T, typename TBuf, typename... TArgs>
 struct GetIterator<T, TBuf, alpaka::AccOmp5<TArgs...>>
 {
     using Iterator = IteratorCpu<alpaka::AccOmp5<TArgs...>, T, TBuf>;
 };
-#endif
+#    endif
 #endif
 
 #ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
@@ -115,7 +114,7 @@ struct CpuSerial
     using MaxBlockSize = alpaka::DimInt<1u>;
 };
 
-template <typename T, typename TBuf, typename... TArgs>
+template<typename T, typename TBuf, typename... TArgs>
 struct GetIterator<T, TBuf, alpaka::AccCpuSerial<TArgs...>>
 {
     using Iterator = IteratorCpu<alpaka::AccCpuSerial<TArgs...>, T, TBuf>;
@@ -134,7 +133,7 @@ struct CpuThreads
     using MaxBlockSize = alpaka::DimInt<1u>;
 };
 
-template <typename T, typename TBuf, typename... TArgs>
+template<typename T, typename TBuf, typename... TArgs>
 struct GetIterator<T, TBuf, alpaka::AccCpuThreads<TArgs...>>
 {
     using Iterator = IteratorCpu<alpaka::AccCpuThreads<TArgs...>, T, TBuf>;
@@ -142,7 +141,7 @@ struct GetIterator<T, TBuf, alpaka::AccCpuThreads<TArgs...>>
 #endif
 
 #ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
-#ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
+#    ifdef ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED
 //#############################################################################
 //! CUDA defines
 //!
@@ -154,10 +153,10 @@ struct GpuCudaRt
     using MaxBlockSize = alpaka::DimInt<1024u>;
 };
 
-template <typename T, typename TBuf, typename... TArgs>
+template<typename T, typename TBuf, typename... TArgs>
 struct GetIterator<T, TBuf, alpaka::AccGpuUniformCudaHipRt<TArgs...>>
 {
     using Iterator = IteratorGpu<alpaka::AccGpuUniformCudaHipRt<TArgs...>, T, TBuf>;
 };
-#endif
+#    endif
 #endif

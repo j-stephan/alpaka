@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -14,11 +14,6 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Unused.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/math/tan/Traits.hpp>
 
 #include <CL/sycl.hpp>
@@ -32,24 +27,16 @@ namespace alpaka
         //! The standard library tan.
         class TanGenericSycl : public concepts::Implements<ConceptMathTan, TanGenericSycl>
         {
-        public:
-            using TanBase = TanGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
             //! The standard library tan trait specialization.
-            template<
-                typename TArg>
-            struct Tan<
-                TanGenericSycl,
-                TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+            template<typename TArg>
+            struct Tan<TanGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto tan(
-                    TanGenericSycl const &,
-                    TArg const & arg)
+                static auto tan(TanGenericSycl const &, TArg const & arg)
                 {
                     return cl::sycl::tan(arg);
                 }

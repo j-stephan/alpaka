@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -12,11 +12,6 @@
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
 #include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/math/abs/AbsGenericSycl.hpp>
 #include <alpaka/math/acos/AcosGenericSycl.hpp>
 #include <alpaka/math/asin/AsinGenericSycl.hpp>
@@ -71,6 +66,7 @@ namespace alpaka
             public RoundGenericSycl,
             public RsqrtGenericSycl,
             public SinGenericSycl,
+            public SinCosGenericSycl,
             public SqrtGenericSycl,
             public TanGenericSycl,
             public TruncGenericSycl

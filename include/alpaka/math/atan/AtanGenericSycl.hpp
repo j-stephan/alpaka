@@ -14,11 +14,6 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Unused.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/math/atan/Traits.hpp>
 
 #include <CL/sycl.hpp>
@@ -29,27 +24,19 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library atan.
-        class AtanGenericSycl : concepts::Implements<ConceptMathAtan, AtanGenericSycl>
+        //! The SYCL atan.
+        class AtanGenericSycl : public concepts::Implements<ConceptMathAtan, AtanGenericSycl>
         {
-        public:
-            using AtanBase = AtanGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library atan trait specialization.
-            template<
-                typename TArg>
-            struct Atan<
-                AtanGenericSycl,
-                TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+            //! The SYCL atan trait specialization.
+            template<typename TArg>
+            struct Atan<AtanGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto atan(
-                    AtanGenericSycl const&,
-                    TArg const & arg)
+                static auto atan(AtanGenericSycl const&, TArg const & arg)
                 {
                     return cl::sycl::atan(arg);
                 }

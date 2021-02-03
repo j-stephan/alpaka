@@ -12,12 +12,6 @@
 
 #if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_BACKEND_ONEAPI)
 
-#include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/dev/DevFpgaSyclIntel.hpp>
 #include <alpaka/queue/QueueGenericSyclBlocking.hpp>
 

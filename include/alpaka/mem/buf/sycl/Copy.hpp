@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -13,11 +13,6 @@
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
 #include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/dev/DevCpu.hpp>
 #include <alpaka/dev/DevGenericSycl.hpp>
 #include <alpaka/dim/DimIntegralConst.hpp>
@@ -69,6 +64,8 @@ namespace alpaka
             }
 
             std::shared_ptr<TaskCopySyclImpl<TElem>> pimpl;
+            // Distinguish from non-alpaka types (= host tasks)
+            static constexpr auto is_sycl_enqueueable = true;
         };
     }
 
@@ -96,7 +93,7 @@ namespace alpaka
                 static_assert(Dim<TViewDst>::value == Dim<TExtent>::value,
                               "The views and the extent are required to have the same dimensionality!");
 
-                static_assert(std::is_same_v<Elem<TViewDst>, SrcType>,
+                static_assert(std::is_same_v<Elem<TViewDst>, std::remove_const_t<SrcType>>,
                               "The source and the destination view are required to have the same element type!");
 
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;

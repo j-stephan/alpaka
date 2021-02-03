@@ -31,22 +31,25 @@ namespace alpaka
 {
     template <typename TDim, typename TIdx>
     class AccFpgaSyclXilinx : public AccGenericSycl<TDim, TIdx>
-                           , public concepts::Implements<ConceptAcc, AccFpgaSyclXilinx<TDim, TIdx>>
+                            , public concepts::Implements<ConceptAcc, AccFpgaSyclXilinx<TDim, TIdx>>
     {
     public:
+#ifdef ALPAKA_SYCL_STREAM_ENABLED
         AccFpgaSyclXilinx(Vec<TDim, TIdx> const & threadElemExtent, cl::sycl::nd_item<TDim::value> work_item,
                           cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write,
                                              cl::sycl::access::target::local> shared_acc,
-                          cl::sycl::ONEAPI::atomic_ref<int, cl::sycl::ONEAPI::memory_order::relaxed,
-                                                       cl::sycl::ONEAPI::memory_scope::work_group,
-                                                       cl::sycl::access::address_space::local_space> pred_counter)
-        : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc, pred_counter)
+                          cl::sycl::stream output_stream)
+        : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc, output_stream)
         {}
+#else
+        AccFpgaSyclXilinx(Vec<TDim, TIdx> const & threadElemExtent, cl::sycl::nd_item<TDim::value> work_item,
+                          cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write,
+                                             cl::sycl::access::target::local> shared_acc)
+        : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc)
+        {}
+#endif
 
-        AccFpgaSyclXilinx(AccFpgaSyclXilinx const& rhs)
-        : AccGenericSycl<TDim, TIdx>(rhs)
-        {}
-        
+        AccFpgaSyclXilinx(AccFpgaSyclXilinx const&) = delete;        
         auto operator=(AccFpgaSyclXilinx const&) -> AccFpgaSyclXilinx& = delete;
 
         AccFpgaSyclXilinx(AccFpgaSyclXilinx&&) = delete;
@@ -69,13 +72,13 @@ namespace alpaka
             }
         };
 
-        //#############################################################################
+        /*//#############################################################################
         //! The SYCL accelerator device type trait specialization.
         template<typename TDim, typename TIdx>
         struct DevType<AccFpgaSyclXilinx<TDim, TIdx>>
         {
             using type = DevFpgaSyclXilinx;
-        };
+        };*/
 
         //#############################################################################
         //! The SYCL accelerator execution task type trait specialization.

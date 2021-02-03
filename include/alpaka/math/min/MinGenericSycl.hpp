@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -14,70 +14,41 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Unused.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/math/min/Traits.hpp>
 
 #include <CL/sycl.hpp>
 
 #include <type_traits>
-#include <algorithm>
 
 namespace alpaka
 {
     namespace math
     {
         //#############################################################################
-        //! The standard library min.
+        //! The SYCL library min.
         class MinGenericSycl : public concepts::Implements<ConceptMathMin, MinGenericSycl>
         {
-        public:
-            using MinBase = MinGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
-            //! The standard library integral min trait specialization.
-            template<
-                typename Tx,
-                typename Ty>
-            struct Min<
-                MinGenericSycl,
-                Tx,
-                Ty,
-                std::enable_if_t<
-                    std::is_integral_v<Tx>
-                    && std::is_integral_v<Ty>>>
+            //! The SYCL integral min trait specialization.
+            template<typename Tx, typename Ty>
+            struct Min<MinGenericSycl, Tx, Ty, std::enable_if_t<std::is_integral_v<Tx> && std::is_integral_v<Ty>>>
             {
-                static auto min(
-                    MinGenericSycl const &,
-                    Tx const & x,
-                    Ty const & y)
+                static auto min(MinGenericSycl const &, Tx const & x, Ty const & y)
                 {
                     return cl::sycl::min(x, y);
                 }
             };
             //#############################################################################
-            //! The standard library mixed integral floating point min trait specialization.
-            template<
-                typename Tx,
-                typename Ty>
-            struct Min<
-                MinGenericSycl,
-                Tx,
-                Ty,
-                std::enable_if_t<
-                    std::is_floating_point_v<Tx>
-                    && std::is_floating_point_v<Ty>>>
+            //! The SYCL mixed integral floating point min trait specialization.
+            template<typename Tx, typename Ty>
+            struct Min<MinGenericSycl, Tx, Ty, std::enable_if_t<std::is_arithmetic_v<Tx> && std::is_arithmetic_v<Ty>
+                                                                && !(std::is_integral_v<Tx> && std::is_integral_v<Ty>)>>
             {
-                static auto min(
-                    MinGenericSycl const &,
-                    Tx const & x,
-                    Ty const & y)
+                static auto min(MinGenericSycl const &, Tx const & x, Ty const & y)
                 {
                     return cl::sycl::fmin(x, y);
                 }

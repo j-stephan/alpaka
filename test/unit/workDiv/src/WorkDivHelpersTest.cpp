@@ -9,17 +9,16 @@
 
 #include <alpaka/acc/AccDevProps.hpp>
 #include <alpaka/core/Unused.hpp>
-#include <alpaka/workdiv/WorkDivHelpers.hpp>
-
-#include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/KernelExecutionFixture.hpp>
+#include <alpaka/test/acc/TestAccs.hpp>
+#include <alpaka/workdiv/WorkDivHelpers.hpp>
 
 #include <catch2/catch.hpp>
 
- //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 namespace
 {
-    template< typename TAcc >
+    template<typename TAcc>
     auto getWorkDiv()
     {
         using Dev = alpaka::Dev<TAcc>;
@@ -38,31 +37,27 @@ namespace
             alpaka::GridBlockExtentSubDivRestrictions::Unrestricted);
         return workDiv;
     }
-}
+} // namespace
 
 //-----------------------------------------------------------------------------
-TEMPLATE_LIST_TEST_CASE( "getValidWorkDiv", "[workDiv]", alpaka::test::TestAccs)
+TEMPLATE_LIST_TEST_CASE("getValidWorkDiv", "[workDiv]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
     // Note: getValidWorkDiv() is called inside getWorkDiv
-    auto workDiv = getWorkDiv< Acc >();
-    alpaka::ignore_unused( workDiv );
+    auto workDiv = getWorkDiv<Acc>();
+    alpaka::ignore_unused(workDiv);
 }
 
 //-----------------------------------------------------------------------------
-TEMPLATE_LIST_TEST_CASE( "isValidWorkDiv", "[workDiv]", alpaka::test::TestAccs)
+TEMPLATE_LIST_TEST_CASE("isValidWorkDiv", "[workDiv]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
     using Dev = alpaka::Dev<Acc>;
     using Pltf = alpaka::Pltf<Dev>;
 
     Dev dev(alpaka::getDevByIdx<Pltf>(0u));
-    auto workDiv = getWorkDiv< Acc >();
+    auto workDiv = getWorkDiv<Acc>();
     // Test both overloads
-    REQUIRE( alpaka::isValidWorkDiv(
-        alpaka::getAccDevProps< Acc >( dev ),
-        workDiv));
-    REQUIRE( alpaka::isValidWorkDiv<Acc>(
-        dev,
-        workDiv));
+    REQUIRE(alpaka::isValidWorkDiv(alpaka::getAccDevProps<Acc>(dev), workDiv));
+    REQUIRE(alpaka::isValidWorkDiv<Acc>(dev, workDiv));
 }

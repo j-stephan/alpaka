@@ -13,18 +13,14 @@
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
 #include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
+#include <alpaka/core/Sycl.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/event/Traits.hpp>
+#include <alpaka/queue/QueueGenericSyclBlocking.hpp>
+#include <alpaka/queue/QueueGenericSyclNonBlocking.hpp>
 #include <alpaka/wait/Traits.hpp>
 
-#include <alpaka/queue/QueueGenericSyclNonBlocking.hpp>
-#include <alpaka/queue/QueueGenericSyclBlocking.hpp>
-#include <alpaka/core/Sycl.hpp>
+#include <CL/sycl.hpp>
 
 #include <stdexcept>
 #include <memory>
@@ -32,6 +28,23 @@
 
 namespace alpaka
 {
+    namespace detail
+    {
+        template <typename TDev>
+        struct EventGenericSyclImpl final
+        {
+            EventGenericSyclImpl(TDev const& d) : dev{d}
+            {}
+            EventGenericSyclImpl(EventGenericSyclImpl const&) = delete;
+            auto operator=(EventGenericSyclImpl const&) -> EventGenericSyclImpl& = delete;
+            EventGenericSyclImpl(EventGenericSyclImpl&&) = default;
+            auto operator=(EventGenericSyclImpl&&) -> EventGenericSyclImpl& = default;
+            ~EventGenericSyclImpl() = default;
+
+            TDev dev;
+            cl::sycl::event event{};
+        };
+    }
     //#############################################################################
     //! The SYCL device event.
     template <typename TDev>
@@ -47,10 +60,8 @@ namespace alpaka
 
     public:
         //-----------------------------------------------------------------------------
-        ALPAKA_FN_HOST EventGenericSycl(TDev const& dev, bool bBusyWait = true)
-        : m_dev{dev}
-        , m_event{}
-        , m_bBusyWait{bBusyWait}
+        ALPAKA_FN_HOST EventGenericSycl(TDev const& dev)
+        : pimpl{std::make_shared<detail::EventGenericSyclImpl<TDev>>(dev)}
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
         }
@@ -65,7 +76,7 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator==(EventGenericSycl const & rhs) const -> bool
         {
-            return (m_event == rhs.m_event);
+            return (pimpl->event == rhs.pimpl->event);
         }
         //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST auto operator!=(EventGenericSycl const & rhs) const -> bool
@@ -76,9 +87,7 @@ namespace alpaka
         ~EventGenericSycl() = default;
 
     private:
-        TDev m_dev;
-        cl::sycl::event m_event;
-        bool m_bBusyWait;
+        std::shared_ptr<detail::EventGenericSyclImpl<TDev>> pimpl;
     };
 
     namespace traits
@@ -91,7 +100,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getDev(EventGenericSycl<TDev> const & event)-> TDev
             {
-                return event.m_dev;
+                return event.pimpl->dev;
             }
         };
 
@@ -106,7 +115,7 @@ namespace alpaka
                 using namespace cl::sycl;
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                const auto status = event.m_event.template get_info<info::event::command_execution_status>();
+                const auto status = event.pimpl->event.template get_info<info::event::command_execution_status>();
                 return (status == info::event_command_status::complete);
             }
         };
@@ -120,7 +129,7 @@ namespace alpaka
             ALPAKA_FN_HOST static auto enqueue(QueueGenericSyclNonBlocking<TDev>& queue, EventGenericSycl<TDev>& event) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-                event.m_event = queue.m_event;
+                event.pimpl->event = queue.m_event;
             }
         };
 
@@ -133,7 +142,7 @@ namespace alpaka
             ALPAKA_FN_HOST static auto enqueue(QueueGenericSyclBlocking<TDev>& queue, EventGenericSycl<TDev>& event) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-                event.m_event = queue.m_event;
+                event.pimpl->event = queue.m_event;
             }
         };
 
@@ -146,11 +155,10 @@ namespace alpaka
         struct CurrentThreadWaitFor<EventGenericSycl<TDev>>
         {
             //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto currentThreadWaitFor(EventGenericSycl<TDev>& event)
-            -> void
+            ALPAKA_FN_HOST static auto currentThreadWaitFor(EventGenericSycl<TDev> const& event) -> void
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
-                event.m_Event.wait_and_throw();
+                event.pimpl->event.wait_and_throw();
             }
         };
 
@@ -164,7 +172,7 @@ namespace alpaka
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                queue.m_dependencies.push_back(event.m_event);
+                queue.m_dependencies.push_back(event.pimpl->event);
             }
         };
 
@@ -178,7 +186,7 @@ namespace alpaka
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                queue.m_dependencies.push_back(event.m_event);
+                queue.m_dependencies.push_back(event.pimpl->event);
             }
         };
 
@@ -194,7 +202,7 @@ namespace alpaka
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                dev.m_dependencies.push_back(event.m_event);
+                dev.m_dependencies.push_back(event.pimpl->event);
             }
         };
     }

@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -14,11 +14,6 @@
 
 #include <alpaka/core/Common.hpp>
 #include <alpaka/core/Unused.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/math/cos/Traits.hpp>
 
 #include <CL/sycl.hpp>
@@ -29,27 +24,19 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library cos.
+        //! The SYCL cos.
         class CosGenericSycl : public concepts::Implements<ConceptMathCos, CosGenericSycl>
         {
-        public:
-            using CosBase = CosGenericSycl;
         };
 
         namespace traits
         {
             //#############################################################################
             //! The standard library cos trait specialization.
-            template<
-                typename TArg>
-            struct Cos<
-                CosGenericSycl,
-                TArg,
-                std::enable_if_t<std::is_floating_point_v<TArg>>>
+            template<typename TArg>
+            struct Cos<CosGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto cos(
-                    CosGenericSycl const &,
-                    TArg const & arg)
+                static auto cos(CosGenericSycl const &, TArg const & arg)
                 {
                     return cl::sycl::cos(arg);
                 }

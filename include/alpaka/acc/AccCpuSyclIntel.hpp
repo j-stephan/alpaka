@@ -32,22 +32,25 @@ namespace alpaka
 {
     template <typename TDim, typename TIdx>
     class AccCpuSyclIntel : public AccGenericSycl<TDim, TIdx>
-                           , public concepts::Implements<ConceptAcc, AccCpuSyclIntel<TDim, TIdx>>
+                          , public concepts::Implements<ConceptAcc, AccCpuSyclIntel<TDim, TIdx>>
     {
     public:
+#ifdef ALPAKA_SYCL_STREAM_ENABLED
         AccCpuSyclIntel(Vec<TDim, TIdx> const & threadElemExtent, cl::sycl::nd_item<TDim::value> work_item,
-                         cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write,
-                                            cl::sycl::access::target::local> shared_acc,
-                         cl::sycl::ONEAPI::atomic_ref<int, cl::sycl::ONEAPI::memory_order::relaxed,
-                                                      cl::sycl::ONEAPI::memory_scope::work_group,
-                                                      cl::sycl::access::address_space::local_space> pred_counter)
-        : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc, pred_counter)
+                        cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write,
+                                           cl::sycl::access::target::local> shared_acc,
+                        cl::sycl::stream output_stream)
+        : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc, output_stream)
         {}
+#else
+        AccCpuSyclIntel(Vec<TDim, TIdx> const & threadElemExtent, cl::sycl::nd_item<TDim::value> work_item,
+                        cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write,
+                                           cl::sycl::access::target::local> shared_acc)
+        : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc)
+        {}
+#endif
 
-        AccCpuSyclIntel(AccCpuSyclIntel const& rhs)
-        : AccGenericSycl<TDim, TIdx>(rhs)
-        {}
-        
+        AccCpuSyclIntel(AccCpuSyclIntel const&) = delete;
         auto operator=(AccCpuSyclIntel const&) -> AccCpuSyclIntel& = delete;
 
         AccCpuSyclIntel(AccCpuSyclIntel&&) = delete;

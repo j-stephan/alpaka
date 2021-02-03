@@ -8,10 +8,9 @@
  */
 
 #include <alpaka/block/shared/dyn/Traits.hpp>
-
+#include <alpaka/test/KernelExecutionFixture.hpp>
 #include <alpaka/test/acc/TestAccs.hpp>
 #include <alpaka/test/queue/Queue.hpp>
-#include <alpaka/test/KernelExecutionFixture.hpp>
 
 #include <catch2/catch.hpp>
 
@@ -21,24 +20,20 @@ class BlockSharedMemDynTestKernel
 public:
     //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
-    template<
-        typename TAcc>
-    ALPAKA_FN_ACC auto operator()(
-        TAcc const & acc,
-        bool * success) const
-    -> void
+    template<typename TAcc>
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
     {
         // Assure that the pointer is non null.
-        auto a = alpaka::getMem<std::uint32_t>(acc);
-        ALPAKA_CHECK(*success, static_cast<std::uint32_t *>(nullptr) != a);
+        auto a = alpaka::getDynSharedMem<std::uint32_t>(acc);
+        ALPAKA_CHECK(*success, static_cast<std::uint32_t*>(nullptr) != a);
 
         // Each call should return the same pointer ...
-        auto b = alpaka::getMem<std::uint32_t>(acc);
+        auto b = alpaka::getDynSharedMem<std::uint32_t>(acc);
         ALPAKA_CHECK(*success, a == b);
 
         // ... even for different types.
-        auto c = alpaka::getMem<float>(acc);
-        ALPAKA_CHECK(*success, a == reinterpret_cast<std::uint32_t *>(c));
+        auto c = alpaka::getDynSharedMem<float>(acc);
+        ALPAKA_CHECK(*success, a == reinterpret_cast<std::uint32_t*>(c));
     }
 };
 
@@ -48,22 +43,17 @@ namespace alpaka
     {
         //#############################################################################
         //! The trait for getting the size of the block shared dynamic memory for a kernel.
-        template<
-            typename TAcc>
-        struct BlockSharedMemDynSizeBytes<
-            BlockSharedMemDynTestKernel,
-            TAcc>
+        template<typename TAcc>
+        struct BlockSharedMemDynSizeBytes<BlockSharedMemDynTestKernel, TAcc>
         {
             //-----------------------------------------------------------------------------
             //! \return The size of the shared memory allocated for a block.
-            template<
-                typename TVec>
+            template<typename TVec>
             ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
-                BlockSharedMemDynTestKernel const & blockSharedMemDyn,
-                TVec const & blockThreadExtent,
-                TVec const & threadElemExtent,
-                bool * success)
-            -> std::size_t
+                BlockSharedMemDynTestKernel const& blockSharedMemDyn,
+                TVec const& blockThreadExtent,
+                TVec const& threadElemExtent,
+                bool* success) -> std::size_t
             {
                 alpaka::ignore_unused(blockSharedMemDyn);
                 alpaka::ignore_unused(success);
@@ -71,22 +61,19 @@ namespace alpaka
                 return static_cast<std::size_t>(gridSize) * sizeof(std::uint32_t);
             }
         };
-    }
-}
+    } // namespace traits
+} // namespace alpaka
 
 //-----------------------------------------------------------------------------
-TEMPLATE_LIST_TEST_CASE( "sameNonNullAdress", "[blockSharedMemDyn]", alpaka::test::TestAccs)
+TEMPLATE_LIST_TEST_CASE("sameNonNullAdress", "[blockSharedMemDyn]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
     using Dim = alpaka::Dim<Acc>;
     using Idx = alpaka::Idx<Acc>;
 
-    alpaka::test::KernelExecutionFixture<Acc> fixture(
-        alpaka::Vec<Dim, Idx>::ones());
+    alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::ones());
 
     BlockSharedMemDynTestKernel kernel;
 
-    REQUIRE(
-        fixture(
-            kernel));
+    REQUIRE(fixture(kernel));
 }

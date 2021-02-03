@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -13,15 +13,12 @@
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
 #include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
-#include <alpaka/dev/Traits.hpp>
-#include <alpaka/pltf/Traits.hpp>
 #include <alpaka/core/Concepts.hpp>
 #include <alpaka/core/Sycl.hpp>
+#include <alpaka/dev/Traits.hpp>
+#include <alpaka/pltf/Traits.hpp>
+
+#include <CL/sycl.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -208,9 +205,9 @@ namespace alpaka
                 std::cout << "Maximum number of work items per dimension: ";
                 auto item_dims = device.get_info<cl::sycl::info::device::max_work_item_sizes>(); 
                 std::cout << "(";
-                for(auto i = 0u; i < dims - 1; ++i)
-                    std::cout << item_dims[i] << ", ";
-                std::cout << item_dims[dims - 1] << ")" << std::endl;
+                for(auto i = 0u; i < dims - 1u; ++i)
+                    std::cout << item_dims[static_cast<int>(i)] << ", ";
+                std::cout << item_dims[static_cast<int>(dims - 1u)] << ")" << std::endl;
 
                 std::cout << "Maximum number of work items per work group: "
                     << device.get_info<cl::sycl::info::device::max_work_group_size>()
