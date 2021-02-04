@@ -803,7 +803,6 @@ if(ALPAKA_ACC_SYCL_ENABLE)
         set_property(CACHE ALPAKA_SYCL_ONEAPI_CPU_ISA PROPERTY STRINGS "sse42;avx;avx2;avx512")
 
         target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_CPU")
-        target_compile_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_ONEAPI_CPU_TARGET} -march=${ALPAKA_SYCL_ONEAPI_CPU_ISA}")
         target_link_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_ONEAPI_CPU_TARGET} -march=${ALPAKA_SYCL_ONEAPI_CPU_ISA}")
     endif()
 
@@ -838,7 +837,6 @@ if(ALPAKA_ACC_SYCL_ENABLE)
         string(REPLACE ALPAKA_ONEAPI_GPU_DEVICES REPLACE ";" ",")
         
         target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_GPU")
-        target_compile_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_ONEAPI_GPU_TARGET} \"-device ${ALPAKA_ONEAPI_GPU_DEVICES}\"")
         target_link_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_ONEAPI_GPU_TARGET} \"-device ${ALPAKA_ONEAPI_GPU_DEVICES}\"")
     endif()
 
