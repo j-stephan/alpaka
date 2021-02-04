@@ -216,7 +216,7 @@ namespace alpaka
                     auto const width = extent::getWidth(ext);
                     auto const widthBytes = width * static_cast<TIdx>(sizeof(TElem));
 
-                    memPtr = malloc_device<TElem>(static_cast<std::size_t>(width), dev.m_device, dev.m_context);
+                    memPtr = malloc_device<TElem>(static_cast<std::size_t>(widthBytes), dev.m_device, dev.m_context);
                     pitchBytes = static_cast<TIdx>(widthBytes);
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
@@ -233,7 +233,7 @@ namespace alpaka
                     auto const widthBytes = width * static_cast<TIdx>(sizeof(TElem));
                     auto const height = extent::getHeight(ext);
 
-                    memPtr = malloc_device<TElem>(static_cast<std::size_t>(width * height), dev.m_device, dev.m_context);
+                    memPtr = malloc_device<TElem>(static_cast<std::size_t>(widthBytes * height), dev.m_device, dev.m_context);
                     pitchBytes = static_cast<TIdx>(widthBytes);
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
@@ -253,7 +253,7 @@ namespace alpaka
                     auto const height = extent::getHeight(ext);
                     auto const depth = extent::getDepth(ext);
 
-                    memPtr = malloc_device<TElem>(static_cast<std::size_t>(width * height * depth), dev.m_device, dev.m_context);
+                    memPtr = malloc_device<TElem>(static_cast<std::size_t>(widthBytes * height * depth), dev.m_device, dev.m_context);
                     pitchBytes = static_cast<TIdx>(widthBytes);
 
 #if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
