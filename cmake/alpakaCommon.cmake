@@ -727,7 +727,7 @@ if(ALPAKA_ACC_SYCL_ENABLE)
 
     # Both Intel and Xilinx require their respective OpenCL runtimes
     find_package(OpenCL REQUIRED)
-    target_link_libraries(alpaka INTERFACE OpenCL::OpenCL)
+    # target_link_libraries(alpaka INTERFACE OpenCL::OpenCL)
 
     # Possible SYCL platforms
     cmake_dependent_option(ALPAKA_SYCL_PLATFORM_ONEAPI "Enable Intel oneAPI platform for the SYCL back-end" OFF "ALPAKA_ACC_SYCL_ENABLE" OFF)
@@ -817,7 +817,6 @@ if(ALPAKA_ACC_SYCL_ENABLE)
             target_compile_options(alpaka INTERFACE "-Xssimulation")
             target_link_options(alpaka INTERFACE "-Xssimulation")
         else()
-            target_compile_options(alpaka INTERFACE "-Xshardware")
             target_link_options(alpaka INTERFACE "-Xshardware")
         endif()
 
@@ -827,7 +826,6 @@ if(ALPAKA_ACC_SYCL_ENABLE)
 
             set(ALPAKA_ONEAPI_FPGA_BSP "intel_a10gx_pac" CACHE STRING "Path to or name of the Intel FPGA board support package")
             set_property(CACHE ALPAKA_ONEAPI_FPGA_BSP PROPERTY STRINGS "intel_a10gx_pac;intel_s10sx_pac")
-            target_compile_options(alpaka INTERFACE "-Xsboard=${ALPAKA_ONEAPI_FPGA_BSP}:${ALPAKA_ONEAPI_FPGA_BOARD}")
             target_link_options(alpaka INTERFACE "-Xsboard=${ALPAKA_ONEAPI_FPGA_BSP}:${ALPAKA_ONEAPI_FPGA_BOARD}")
         endif()
 

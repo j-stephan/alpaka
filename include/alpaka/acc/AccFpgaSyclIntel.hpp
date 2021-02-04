@@ -72,13 +72,13 @@ namespace alpaka
             }
         };
 
-        /*//#############################################################################
+        //#############################################################################
         //! The SYCL accelerator device type trait specialization.
         template<typename TDim, typename TIdx>
         struct DevType<AccFpgaSyclIntel<TDim, TIdx>>
         {
             using type = DevFpgaSyclIntel;
-        };*/
+        };
 
         //#############################################################################
         //! The SYCL accelerator execution task type trait specialization.

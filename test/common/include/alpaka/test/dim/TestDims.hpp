@@ -32,7 +32,6 @@ namespace alpaka
 #       endif
 #    endif
 #endif
-#endif
             >;
     } // namespace test
 } // namespace alpaka
