@@ -22,10 +22,11 @@ class KernelFuntionObjectTemplate
 public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success)
+        const -> void
     {
         ALPAKA_CHECK(
-            *success,
+            success[0],
             static_cast<alpaka::Idx<TAcc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
 
         static_assert(std::is_same<std::int32_t, T>::value, "Incorrect additional kernel template parameter type!");
@@ -50,10 +51,13 @@ class KernelInvocationWithAdditionalTemplate
 public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc, typename T>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success, T const&) const -> void
+    ALPAKA_FN_ACC auto operator()(
+        TAcc const& acc,
+        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success,
+        T const&) const -> void
     {
         ALPAKA_CHECK(
-            *success,
+            success[0],
             static_cast<alpaka::Idx<TAcc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
 
         static_assert(std::is_same<std::int32_t, T>::value, "Incorrect additional kernel template parameter type!");

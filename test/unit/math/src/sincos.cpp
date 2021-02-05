@@ -37,7 +37,10 @@ class SinCosTestKernel
 public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc, typename FP>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success, FP const arg) const -> void
+    ALPAKA_FN_ACC auto operator()(
+        TAcc const& acc,
+        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success,
+        FP const arg) const -> void
     {
         // if arg is hardcoded then compiler can optimize it out
         // (PTX kernel (float) was just empty)
@@ -47,7 +50,7 @@ public:
         FP result_cos = 0.;
         alpaka::math::sincos(acc, arg, result_sin, result_cos);
         ALPAKA_CHECK(
-            *success,
+            success[0],
             almost_equal(acc, result_sin, check_sin, 1) && almost_equal(acc, result_cos, check_cos, 1));
     }
 };

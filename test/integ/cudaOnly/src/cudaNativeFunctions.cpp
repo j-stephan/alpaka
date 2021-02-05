@@ -31,7 +31,8 @@ class CudaOnlyTestKernel
 {
 public:
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success)
+        const -> void
     {
         alpaka::ignore_unused(acc);
 
@@ -40,7 +41,7 @@ public:
         userDefinedThreadFence();
         __threadfence_system();
 
-        *success = true;
+        success[0] = true;
     }
 };
 

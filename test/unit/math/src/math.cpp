@@ -35,9 +35,12 @@ struct TestKernel
     //! @param acc Accelerator given from alpaka.
     //! @param functor Accessible with operator().
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename TResults, typename TFunctor, typename TArgs>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, TResults* results, TFunctor const& functor, TArgs const* args)
-        const noexcept -> void
+    template<typename TAcc, typename TResults, typename Idx, typename TFunctor, typename TArgs>
+    ALPAKA_FN_ACC auto operator()(
+        TAcc const& acc,
+        alpaka::Accessor<TResults*, TResults, Idx, 1> const results,
+        TFunctor const& functor,
+        alpaka::Accessor<const TArgs*, const TArgs, Idx, 1> const args) const noexcept -> void
     {
         for(size_t i = 0; i < TCapacity; ++i)
         {
@@ -107,8 +110,12 @@ struct TestTemplate
         args.copyToDevice(queue);
         results.copyToDevice(queue);
 
-        auto const taskKernel(
-            alpaka::createTaskKernel<TAcc>(workDiv, kernel, results.pDevBuffer, functor, args.pDevBuffer));
+        auto const taskKernel(alpaka::createTaskKernel<TAcc>(
+            workDiv,
+            kernel,
+            results.pDevBuffer,
+            functor,
+            alpaka::readAccess(args.devBuffer)));
         // Enqueue the kernel execution task.
         alpaka::enqueue(queue, taskKernel);
         // Copy back the results (encapsulated in the buffer class).

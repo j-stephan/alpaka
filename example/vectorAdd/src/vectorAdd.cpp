@@ -37,20 +37,21 @@ public:
     //! \param C The destination vector.
     //! \param numElements The number of elements.
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename TElem, typename TIdx>
+    template<typename TAcc, typename TElem, typename Idx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        TElem const* const A,
-        TElem const* const B,
-        TElem* const C,
-        TIdx const& numElements) const -> void
+        alpaka::Accessor<const TElem*, const TElem, Idx, 1> A,
+        alpaka::Accessor<const TElem*, const TElem, Idx, 1> B,
+        alpaka::Accessor<TElem*, TElem, Idx, 1> C) const -> void
     {
         static_assert(alpaka::Dim<TAcc>::value == 1, "The VectorAddKernel expects 1-dimensional indices!");
 
+        using TIdx = alpaka::Idx<TAcc>;
         TIdx const gridThreadIdx(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0u]);
         TIdx const threadElemExtent(alpaka::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc)[0u]);
         TIdx const threadFirstElemIdx(gridThreadIdx * threadElemExtent);
 
+        const auto numElements = C.extents[0];
         if(threadFirstElemIdx < numElements)
         {
             // Calculate the number of elements to compute in this thread.
@@ -166,10 +167,9 @@ auto main() -> int
     auto const taskKernel(alpaka::createTaskKernel<Acc>(
         workDiv,
         kernel,
-        alpaka::getPtrNative(bufAccA),
-        alpaka::getPtrNative(bufAccB),
-        alpaka::getPtrNative(bufAccC),
-        numElements));
+        alpaka::readAccess(bufAccA),
+        alpaka::readAccess(bufAccB),
+        alpaka::access(bufAccC)));
 
     // Enqueue the kernel execution task
     {
