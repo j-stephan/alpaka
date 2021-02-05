@@ -23,11 +23,11 @@
 //!
 //! \tparam T The type.
 //! \tparam TBuf The buffer type (standard is T).
-template<typename T, typename TBuf = T>
+template<typename T, typename Idx, typename TBuf = T>
 class Iterator
 {
 protected:
-    const TBuf* mData;
+    const alpaka::Accessor<const TBuf*, const TBuf, Idx, 1> mData;
     uint64_t mIndex;
     const uint64_t mMaximum;
 
@@ -37,7 +37,8 @@ public:
     //! \param data A pointer to the data.
     //! \param index The index.
     //! \param maximum The first index outside of the iterator memory.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE Iterator(const TBuf* data, uint32_t index, uint64_t maximum)
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE
+    Iterator(alpaka::Accessor<const TBuf*, const TBuf, Idx, 1> data, uint32_t index, uint64_t maximum)
         : mData(data)
         , mIndex(index)
         , mMaximum(maximum)
@@ -125,8 +126,8 @@ public:
 //! \tparam TAcc The accelerator type.
 //! \tparam T The type.
 //! \tparam TBuf The buffer type (standard is T).
-template<typename TAcc, typename T, typename TBuf = T>
-class IteratorCpu : public Iterator<T, TBuf>
+template<typename TAcc, typename T, typename Idx, typename TBuf = T>
+class IteratorCpu : public Iterator<T, Idx, TBuf>
 {
 public:
     //! Constructor.
@@ -136,9 +137,13 @@ public:
     //! \param linearizedIndex The linearized index.
     //! \param gridSize The grid size.
     //! \param n The problem size.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE
-    IteratorCpu(const TAcc& acc, const TBuf* data, uint32_t linearizedIndex, uint32_t gridSize, uint64_t n)
-        : Iterator<T, TBuf>(
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE IteratorCpu(
+        const TAcc& acc,
+        alpaka::Accessor<const TBuf*, const TBuf, Idx, 1> data,
+        uint32_t linearizedIndex,
+        uint32_t gridSize,
+        uint64_t n)
+        : Iterator<T, Idx, TBuf>(
             data,
             static_cast<uint32_t>((n * linearizedIndex) / alpaka::math::min(acc, static_cast<uint64_t>(gridSize), n)),
             static_cast<uint32_t>(
@@ -244,8 +249,8 @@ public:
 //! \tparam TAcc The accelerator type.
 //! \tparam T The type.
 //! \tparam TBuf The buffer type (standard is T).
-template<typename TAcc, typename T, typename TBuf = T>
-class IteratorGpu : public Iterator<T, TBuf>
+template<typename TAcc, typename T, typename Idx, typename TBuf = T>
+class IteratorGpu : public Iterator<T, Idx, TBuf>
 {
 private:
     const uint32_t mGridSize;
@@ -257,9 +262,13 @@ public:
     //! \param linearizedIndex The linearized index.
     //! \param gridSize The grid size.
     //! \param n The problem size.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE
-    IteratorGpu(const TAcc&, const TBuf* data, uint32_t linearizedIndex, uint32_t gridSize, uint64_t n)
-        : Iterator<T, TBuf>(data, linearizedIndex, n)
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE IteratorGpu(
+        const TAcc&,
+        alpaka::Accessor<const TBuf*, const TBuf, Idx, 1> data,
+        uint32_t linearizedIndex,
+        uint32_t gridSize,
+        uint64_t n)
+        : Iterator<T, Idx, TBuf>(data, linearizedIndex, n)
         , mGridSize(gridSize)
     {
     }

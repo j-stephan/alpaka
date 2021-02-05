@@ -36,7 +36,10 @@ struct StaticDeviceMemoryTestKernel
 {
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc, typename TElem>
-    ALPAKA_FN_ACC void operator()(TAcc const& acc, bool* success, TElem const* const pConstantMem) const
+    ALPAKA_FN_ACC void operator()(
+        TAcc const& acc,
+        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success,
+        TElem const* const pConstantMem) const
     {
         auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
         auto const gridThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
@@ -44,7 +47,7 @@ struct StaticDeviceMemoryTestKernel
         auto const offset = gridThreadExtent[1u] * gridThreadIdx[0u] + gridThreadIdx[1u];
         auto const val = offset;
 
-        ALPAKA_CHECK(*success, val == *(pConstantMem + offset));
+        ALPAKA_CHECK(success[0], val == pConstantMem[offset]);
     }
 };
 

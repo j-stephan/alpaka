@@ -126,7 +126,7 @@ namespace alpaka
             template<typename TAcc, typename TIter>
             ALPAKA_FN_ACC void operator()(
                 TAcc const& acc,
-                bool* success,
+                alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success,
                 TIter const& begin,
                 TIter const& end,
                 std::uint8_t const& byte) const
@@ -140,7 +140,7 @@ namespace alpaka
                     auto const pBytes = reinterpret_cast<std::uint8_t const*>(&elem);
                     for(std::size_t i = 0u; i < elemSizeInByte; ++i)
                     {
-                        ALPAKA_CHECK(*success, pBytes[i] == byte);
+                        ALPAKA_CHECK(success[0], pBytes[i] == byte);
                     }
                 }
             }
@@ -169,7 +169,7 @@ namespace alpaka
             template<typename TAcc, typename TIterA, typename TIterB>
             ALPAKA_FN_ACC void operator()(
                 TAcc const& acc,
-                bool* success,
+                alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success,
                 TIterA beginA,
                 TIterA const& endA,
                 TIterB beginB) const
@@ -182,7 +182,7 @@ namespace alpaka
 #    pragma clang diagnostic push
 #    pragma clang diagnostic ignored "-Wfloat-equal" // "comparing floating point with == or != is unsafe"
 #endif
-                    ALPAKA_CHECK(*success, *beginA == *beginB);
+                    ALPAKA_CHECK(success[0], *beginA == *beginB);
 #if BOOST_COMP_CLANG
 #    pragma clang diagnostic pop
 #endif

@@ -20,7 +20,8 @@ public:
 
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success)
+        const -> void
     {
         using Idx = alpaka::Idx<TAcc>;
 
@@ -42,7 +43,7 @@ public:
         // All other threads within the block should now have written their index into the shared memory.
         for(auto i(static_cast<Idx>(0u)); i < blockThreadExtent1D; ++i)
         {
-            ALPAKA_CHECK(*success, pBlockSharedArray[i] == i);
+            ALPAKA_CHECK(success[0], pBlockSharedArray[i] == i);
         }
     }
 };
@@ -61,7 +62,7 @@ namespace alpaka
                 BlockSyncTestKernel const& blockSharedMemDyn,
                 TVec const& blockThreadExtent,
                 TVec const& threadElemExtent,
-                bool* success) -> std::size_t
+                alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success) -> std::size_t
             {
                 using Idx = alpaka::Idx<TAcc>;
 
