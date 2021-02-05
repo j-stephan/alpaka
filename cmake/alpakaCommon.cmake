@@ -742,8 +742,14 @@ if(ALPAKA_ACC_SYCL_ENABLE)
 
     # Enable device-side printing to stdout
     cmake_dependent_option(ALPAKA_SYCL_ENABLE_STREAM "Enable device-side printing to stdout" OFF "ALPAKA_ACC_SYCL_ENABLE" OFF)
-    if(BUILD_TESTING)
+    if(BUILD_TESTING AND NOT ALPAKA_SYCL_ONEAPI_FPGA)
         set(ALPAKA_SYCL_ENABLE_STREAM ON CACHE BOOL "Enable device-side printing to stdout" FORCE)
+    endif()
+
+    # Intel FPGAs apparently don't like SYCL streams
+    if(ALPAKA_SYCL_ENABLE_STREAM AND ALPAKA_SYCL_ONEAPI_FPGA)
+        set(ALPAKA_SYCL_ENABLE_STREAM OFF CACHE BOOL "Enable device-side printing to stdout" FORCE)
+        message(WARNING "You are compiling for Intel FPGAs. Disabling device-side printing.")
     endif()
 
     if(NOT (ALPAKA_SYCL_PLATFORM_ONEAPI OR ALPAKA_SYCL_PLATFORM_XILINX))
