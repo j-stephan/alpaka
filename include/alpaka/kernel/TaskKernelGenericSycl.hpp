@@ -170,9 +170,7 @@ namespace alpaka
             else
                 buf_per_work_item = buf_size / static_cast<std::size_t>(group_items[0] * group_items[1] * group_items[2]);
 
-            auto output_stream = stream{buf_size, // 1 MiB for the output buffer
-                                        buf_per_work_item,
-                                        cgh};
+            auto output_stream = stream{buf_size, buf_per_work_item, cgh};
 #endif
 
             cgh.parallel_for<detail::kernel<TAcc, TKernelFnObj, TArgs...>>(nd_range<TDim::value>{global_size, local_size},
