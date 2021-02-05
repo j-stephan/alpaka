@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -50,7 +50,8 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         ALPAKA_FN_HOST QueueGenericSyclBlocking(TDev const& dev)
         : m_dev{dev}
-        , m_queue{dev.m_device, {cl::sycl::property::queue::enable_profiling{}, cl::sycl::property::queue::in_order{}}}
+        , m_queue{dev.m_context, // This is important. In SYCL a device can belong to multiple contexts.
+                  dev.m_device, {cl::sycl::property::queue::enable_profiling{}, cl::sycl::property::queue::in_order{}}}
         {}
         //-----------------------------------------------------------------------------
         QueueGenericSyclBlocking(QueueGenericSyclBlocking const &) = default;
