@@ -62,7 +62,7 @@ namespace alpaka
                     m_queue,
                     m_workDiv,
                     kernelFnObj,
-                    alpaka::getPtrNative(bufAccResult),
+                    alpaka::access(bufAccResult),
                     std::forward<TArgs>(args)...);
 
                 // Copy the result value to the host
@@ -70,7 +70,7 @@ namespace alpaka
                 alpaka::memcpy(m_queue, bufHostResult, bufAccResult, bufAccResult);
                 alpaka::wait(m_queue);
 
-                auto const result(*alpaka::getPtrNative(bufHostResult));
+                auto const result(alpaka::readAccess(bufHostResult)[0]);
 
                 return result;
             }

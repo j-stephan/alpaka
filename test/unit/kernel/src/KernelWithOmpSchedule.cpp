@@ -24,18 +24,21 @@ struct KernelWithOmpScheduleBase
 {
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success)
+        const -> void
     {
         // By default no run-time check is performed
         alpaka::ignore_unused(acc);
-        ALPAKA_CHECK(*success, true);
+        ALPAKA_CHECK(success[0], true);
     }
 
     // Only check when the schedule feature is active
 #if defined _OPENMP && _OPENMP >= 200805 && defined ALPAKA_ACC_CPU_B_OMP2_T_SEQ_ENABLED
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TDim, typename TIdx>
-    ALPAKA_FN_ACC auto operator()(alpaka::AccCpuOmp2Blocks<TDim, TIdx> const& acc, bool* success) const -> void
+    ALPAKA_FN_ACC auto operator()(
+        alpaka::AccCpuOmp2Blocks<TDim, TIdx> const& acc,
+        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success) const -> void
     {
         alpaka::ignore_unused(acc);
         omp_sched_t kind;
@@ -43,7 +46,7 @@ struct KernelWithOmpScheduleBase
         omp_get_schedule(&kind, &actualChunkSize);
         auto const actualKind = static_cast<std::uint32_t>(kind);
         bool result = (expectedSchedule.kind == actualKind) && (expectedSchedule.chunkSize == actualChunkSize);
-        ALPAKA_CHECK(*success, result);
+        ALPAKA_CHECK(success[0], result);
     }
 #endif
 };

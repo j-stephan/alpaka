@@ -25,11 +25,12 @@ TEST_UNIT_KERNEL_KERNEL_STD_FUNCTION
 #endif
 
 template<typename Acc>
-void ALPAKA_FN_ACC kernelFn(Acc const& acc, bool* success, std::int32_t val)
+void ALPAKA_FN_ACC
+kernelFn(Acc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<Acc>, 1> const success, std::int32_t val)
 {
     alpaka::ignore_unused(acc);
 
-    ALPAKA_CHECK(*success, 42 == val);
+    ALPAKA_CHECK(success[0], 42 == val);
 }
 
 // std::function and std::bind is only allowed on CPU
@@ -42,7 +43,9 @@ TEMPLATE_LIST_TEST_CASE("stdFunctionKernelIsWorking", "[kernel]", alpaka::test::
 
     alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::ones());
 
-    const auto kernel = std::function<void(Acc const&, bool*, std::int32_t)>(kernelFn<Acc>);
+    const auto kernel
+        = std::function<void(Acc const&, alpaka::Accessor<bool*, bool, alpaka::Idx<Acc>, 1> const, std::int32_t)>(
+            kernelFn<Acc>);
     REQUIRE(fixture(kernel, 42));
 }
 

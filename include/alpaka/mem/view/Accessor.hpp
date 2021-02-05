@@ -20,11 +20,31 @@
 
 namespace alpaka
 {
-    template<typename Pointer, typename Value, typename Idx, typename Dim>
+    namespace internal
+    {
+        template<typename T>
+        auto asBytePtr(T* p)
+        {
+            return reinterpret_cast<char*>(p);
+        }
+        template<typename T>
+        auto asBytePtr(const T* p)
+        {
+            return reinterpret_cast<const char*>(p);
+        }
+    } // namespace internal
+
+    enum class AccessMode
+    {
+        read_only,
+        read_write
+    };
+
+    template<typename Pointer, typename Value, typename Idx, std::size_t Dim>
     struct Accessor;
 
     template<typename Pointer, typename Value, typename Idx>
-    struct Accessor<Pointer, Value, Idx, DimInt<1>>
+    struct Accessor<Pointer, Value, Idx, 1>
     {
         ALPAKA_FN_ACC auto& operator[](Vec<DimInt<1>, Idx> i) const
         {
@@ -46,7 +66,7 @@ namespace alpaka
     };
 
     template<typename Pointer, typename Value, typename Idx>
-    struct Accessor<Pointer, Value, Idx, DimInt<2>>
+    struct Accessor<Pointer, Value, Idx, 2>
     {
         ALPAKA_FN_ACC auto& operator[](Vec<DimInt<2>, Idx> i) const
         {
@@ -55,7 +75,10 @@ namespace alpaka
 
         ALPAKA_FN_ACC auto& operator()(Idx y, Idx x) const
         {
-            return *(reinterpret_cast<Pointer>(reinterpret_cast<char*>(p) + y * rowPitchInBytes) + x);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+            return *(reinterpret_cast<Value*>(internal::asBytePtr(p) + y * rowPitchInBytes) + x);
+#pragma GCC diagnostic pop
         }
 
         Pointer p;
@@ -64,7 +87,7 @@ namespace alpaka
     };
 
     template<typename Pointer, typename Value, typename Idx>
-    struct Accessor<Pointer, Value, Idx, DimInt<3>>
+    struct Accessor<Pointer, Value, Idx, 3>
     {
         ALPAKA_FN_ACC auto& operator[](Vec<DimInt<3>, Idx> i) const
         {
@@ -73,9 +96,10 @@ namespace alpaka
 
         ALPAKA_FN_ACC auto& operator()(Idx z, Idx y, Idx x) const
         {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
             return *(
-                reinterpret_cast<Pointer>(reinterpret_cast<char*>(p) + z * slicePitchInBytes + y * rowPitchInBytes)
-                + x);
+                reinterpret_cast<Pointer>(internal::asBytePtr(p) + z * slicePitchInBytes + y * rowPitchInBytes) + x);
         }
 
         Pointer p;
@@ -88,7 +112,7 @@ namespace alpaka
     using Image = cudaTextureObject_t;
 
     template<typename Value, typename Idx>
-    struct Accessor<Image, Value, Idx, DimInt<1>>
+    struct Accessor<Image, Value, Idx, 1>
     {
         ALPAKA_FN_ACC auto operator[](Vec<DimInt<1>, Idx> i) const -> Value
         {
@@ -115,7 +139,7 @@ namespace alpaka
     };
 
     template<typename Value, typename Idx>
-    struct Accessor<Image, Value, Idx, DimInt<2>>
+    struct Accessor<Image, Value, Idx, 2>
     {
         ALPAKA_FN_ACC auto operator[](Vec<DimInt<2>, Idx> i) const -> Value
         {
@@ -138,7 +162,7 @@ namespace alpaka
     };
 
     template<typename Value, typename Idx>
-    struct Accessor<Image, Value, Idx, DimInt<3>>
+    struct Accessor<Image, Value, Idx, 3>
     {
         ALPAKA_FN_ACC auto operator[](Vec<DimInt<3>, Idx> i) const -> Value
         {
@@ -164,27 +188,35 @@ namespace alpaka
 
     namespace internal
     {
-        template<typename Buf, std::size_t... PitchIs, std::size_t... ExtentIs>
+        template<AccessMode Mode, typename Buf, std::size_t... PitchIs, std::size_t... ExtentIs>
         auto buildAccessor(Buf&& buffer, std::index_sequence<PitchIs...>, std::index_sequence<ExtentIs...>)
         {
-            using Idx = Idx<std::decay_t<Buf>>;
-            using Dim = Dim<std::decay_t<Buf>>;
-            using Elem = Elem<std::decay_t<Buf>>;
+            using DBuf = std::decay_t<Buf>;
+            using Idx = Idx<DBuf>;
+            constexpr auto dim = Dim<DBuf>::value;
+            constexpr auto IsConst = Mode == AccessMode::read_only;
+            using Elem = std::conditional_t<IsConst, const Elem<DBuf>, Elem<DBuf>>;
             auto p = getPtrNative(buffer);
-            return Accessor<decltype(p), Elem, Idx, Dim>{
+            return Accessor<Elem*, Elem, Idx, dim>{
                 p,
                 getPitchBytes<PitchIs + 1>(buffer)...,
                 {extent::getExtent<ExtentIs>(buffer)...}};
         }
     } // namespace internal
 
-    template<typename Buf>
+    template<AccessMode Mode = AccessMode::read_write, typename Buf>
     auto access(Buf&& buffer)
     {
         using Dim = Dim<std::decay_t<Buf>>;
-        return internal::buildAccessor(
-            buffer,
+        return internal::buildAccessor<Mode>(
+            std::forward<Buf>(buffer),
             std::make_index_sequence<Dim::value - 1>{},
             std::make_index_sequence<Dim::value>{});
+    }
+
+    template<typename Buf>
+    auto readAccess(Buf&& buffer)
+    {
+        return access<AccessMode::read_only>(std::forward<Buf>(buffer));
     }
 } // namespace alpaka

@@ -20,7 +20,8 @@ class PopcountTestKernel
 public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success)
+        const -> void
     {
         // Use negative values to get inputs near the max value of TInput type
         TInput const inputs[]
@@ -38,7 +39,7 @@ public:
         {
             int const expected = popcountNaive(input);
             int const actual = alpaka::popcount(acc, input);
-            ALPAKA_CHECK(*success, actual == expected);
+            ALPAKA_CHECK(success[0], actual == expected);
         }
     }
 
