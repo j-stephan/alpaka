@@ -198,14 +198,14 @@ namespace alpaka
                 return range<1>{static_cast<std::size_t>(work_groups[0] * group_items[0])};
             else if constexpr(TDim::value == 2)
             {
-                return range<2>{static_cast<std::size_t>(work_groups[0] * group_items[0]),
-                                static_cast<std::size_t>(work_groups[1] * group_items[1])};
+                return range<2>{static_cast<std::size_t>(work_groups[1] * group_items[1]),
+                                static_cast<std::size_t>(work_groups[0] * group_items[0])};
             }
             else
             {
-                return range<3>{static_cast<std::size_t>(work_groups[0] * group_items[0]),
+                return range<3>{static_cast<std::size_t>(work_groups[2] * group_items[2]),
                                 static_cast<std::size_t>(work_groups[1] * group_items[1]),
-                                static_cast<std::size_t>(work_groups[2] * group_items[2])};
+                                static_cast<std::size_t>(work_groups[0] * group_items[0])};
             }
         }
 
@@ -216,11 +216,11 @@ namespace alpaka
             if constexpr(TDim::value == 1)
                 return range<1>{static_cast<std::size_t>(group_items[0])};
             else if constexpr(TDim::value == 2)
-                return range<2>{static_cast<std::size_t>(group_items[0]), static_cast<std::size_t>(group_items[1])};
+                return range<2>{static_cast<std::size_t>(group_items[1]), static_cast<std::size_t>(group_items[0])};
             else
             {
-                return range<3>{static_cast<std::size_t>(group_items[0]), static_cast<std::size_t>(group_items[1]),
-                                static_cast<std::size_t>(group_items[2])};
+                return range<3>{static_cast<std::size_t>(group_items[2]), static_cast<std::size_t>(group_items[1]),
+                                static_cast<std::size_t>(group_items[0])};
             }
         }
 

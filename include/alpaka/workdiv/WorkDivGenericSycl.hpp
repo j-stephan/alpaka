@@ -89,14 +89,14 @@ namespace alpaka
                     return Vec<TDim, TIdx>{static_cast<TIdx>(workDiv.my_item.get_group_range(0))};
                 else if constexpr(TDim::value == 2)
                 {
-                    return Vec<TDim, TIdx>{static_cast<TIdx>(workDiv.my_item.get_group_range(0)),
-                                           static_cast<TIdx>(workDiv.my_item.get_group_range(1))};
+                    return Vec<TDim, TIdx>{static_cast<TIdx>(workDiv.my_item.get_group_range(1)),
+                                           static_cast<TIdx>(workDiv.my_item.get_group_range(0))};
                 }
                 else
                 {
-                    return Vec<TDim, TIdx>{static_cast<TIdx>(workDiv.my_item.get_group_range(0)),
+                    return Vec<TDim, TIdx>{static_cast<TIdx>(workDiv.my_item.get_group_range(2)),
                                            static_cast<TIdx>(workDiv.my_item.get_group_range(1)),
-                                           static_cast<TIdx>(workDiv.my_item.get_group_range(2))};
+                                           static_cast<TIdx>(workDiv.my_item.get_group_range(0))};
                 }
             }
         };
@@ -114,14 +114,14 @@ namespace alpaka
                     return Vec<TDim, TIdx>{static_cast<TIdx>(workDiv.my_item.get_local_range(0))};
                 else if constexpr(TDim::value == 2)
                 {
-                    return Vec<TDim, TIdx>{static_cast<TIdx>(workDiv.my_item.get_local_range(0)),
-                                           static_cast<TIdx>(workDiv.my_item.get_local_range(1))};
+                    return Vec<TDim, TIdx>{static_cast<TIdx>(workDiv.my_item.get_local_range(1)),
+                                           static_cast<TIdx>(workDiv.my_item.get_local_range(0))};
                 }
                 else
                 {
-                    return Vec<TDim, TIdx>{static_cast<TIdx>(workDiv.my_item.get_local_range(0)),
+                    return Vec<TDim, TIdx>{static_cast<TIdx>(workDiv.my_item.get_local_range(2)),
                                            static_cast<TIdx>(workDiv.my_item.get_local_range(1)),
-                                           static_cast<TIdx>(workDiv.my_item.get_local_range(2))};
+                                           static_cast<TIdx>(workDiv.my_item.get_local_range(0))};
                 }
             }
         };

@@ -85,14 +85,14 @@ namespace alpaka
                     return Vec<TDim, TIdx>(static_cast<TIdx>(idx.my_item.get_group(0)));
                 else if constexpr(TDim::value == 2)
                 {
-                    return Vec<TDim, TIdx>(static_cast<TIdx>(idx.my_item.get_group(0)),
-                                           static_cast<TIdx>(idx.my_item.get_group(1)));
+                    return Vec<TDim, TIdx>(static_cast<TIdx>(idx.my_item.get_group(1)),
+                                           static_cast<TIdx>(idx.my_item.get_group(0)));
                 }
                 else
                 {
-                    return Vec<TDim, TIdx>(static_cast<TIdx>(idx.my_item.get_group(0)),
+                    return Vec<TDim, TIdx>(static_cast<TIdx>(idx.my_item.get_group(2)),
                                            static_cast<TIdx>(idx.my_item.get_group(1)),
-                                           static_cast<TIdx>(idx.my_item.get_group(2)));
+                                           static_cast<TIdx>(idx.my_item.get_group(0)));
                 }
             }
         };
