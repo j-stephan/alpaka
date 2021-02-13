@@ -221,6 +221,19 @@ namespace alpaka
                 static_assert(std::is_same<Result, void>::value, "The TKernelFnObj is required to return void!");
             }
         };
+
+        inline void disallowPointers()
+        {
+        }
+
+        template<typename Head, typename... Tail>
+        void disallowPointers()
+        {
+            static_assert(
+                !std::is_pointer<std::decay_t<Head>>::value,
+                "Pointers as kernel parameters are not allowed. Use alpaka::accessor!");
+            disallowPointers<Tail...>();
+        }
     } // namespace detail
     //! Creates a kernel execution task.
     //!
@@ -237,6 +250,13 @@ namespace alpaka
     {
         // check for void return type
         detail::CheckFnReturnType<TAcc>{}(kernelFnObj, args...);
+#if defined(__cpp_fold_expressions) && defined(__cpp_lib_type_trait_variable_templates)
+        static_assert(
+            ((!std::is_pointer_v<std::decay_t<TArgs>>) &&...),
+            "Pointers as kernel parameters are not allowed. Use alpaka::accessor!");
+#else
+        detail::disallowPointers();
+#endif
 
         static_assert(
             Dim<std::decay_t<TWorkDiv>>::value == Dim<TAcc>::value,
