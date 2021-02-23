@@ -62,7 +62,7 @@ namespace alpaka
                     m_queue,
                     m_workDiv,
                     kernelFnObj,
-                    alpaka::access(bufAccResult),
+                    alpaka::writeAccess(bufAccResult),
                     std::forward<TArgs>(args)...);
 
                 // Copy the result value to the host

@@ -42,10 +42,11 @@ public:
         TIndex const& n,
         TIndex const& k,
         TElem const& alpha,
-        alpaka::Accessor<const TElem*, const TElem, TIndex, 2> const A,
-        alpaka::Accessor<const TElem*, const TElem, TIndex, 2> const B,
+        alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const A,
+        alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const B,
         TElem const& beta,
-        alpaka::Accessor<TElem*, TElem, TIndex, 2> const C) const -> void
+        alpaka::Accessor<TElem*, TElem, TIndex, 2, std::tuple<alpaka::WriteAccess, alpaka::ReadAccess>> const C) const
+        -> void
     {
         static_assert(
             alpaka::Dim<TAcc>::value == 2u,
@@ -144,10 +145,11 @@ namespace alpaka
                 TIndex const& n,
                 TIndex const& k,
                 TElem const& alpha,
-                alpaka::Accessor<const TElem*, const TElem, TIndex, 2> const A,
-                alpaka::Accessor<const TElem*, const TElem, TIndex, 2> const B,
+                alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const A,
+                alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const B,
                 TElem const& beta,
-                alpaka::Accessor<TElem*, TElem, TIndex, 2> const C)
+                alpaka::Accessor<TElem*, TElem, TIndex, 2, std::tuple<alpaka::WriteAccess, alpaka::ReadAccess>> const
+                    C)
             {
                 alpaka::ignore_unused(matMulKernel);
                 alpaka::ignore_unused(m);

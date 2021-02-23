@@ -70,8 +70,8 @@ struct ReduceKernel
     template<typename TAcc, typename TElem, typename TIdx, typename TExtent, std::size_t TDim>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<const TElem*, const TElem, TIdx, TDim> source,
-        alpaka::Accessor<TElem*, TElem, TIdx, TDim> destination,
+        alpaka::Accessor<TElem*, TElem, TIdx, TDim, alpaka::ReadAccess> source,
+        alpaka::Accessor<TElem*, TElem, TIdx, TDim, alpaka::WriteAccess> destination,
         TExtent const& n,
         TFunc func) const -> void
     {

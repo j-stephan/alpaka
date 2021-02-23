@@ -27,7 +27,7 @@ template<typename T, typename Idx, typename TBuf = T>
 class Iterator
 {
 protected:
-    const alpaka::Accessor<const TBuf*, const TBuf, Idx, 1> mData;
+    const alpaka::Accessor<TBuf*, TBuf, Idx, 1, alpaka::ReadAccess> mData;
     uint64_t mIndex;
     const uint64_t mMaximum;
 
@@ -38,7 +38,7 @@ public:
     //! \param index The index.
     //! \param maximum The first index outside of the iterator memory.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE
-    Iterator(alpaka::Accessor<const TBuf*, const TBuf, Idx, 1> data, uint32_t index, uint64_t maximum)
+    Iterator(alpaka::Accessor<TBuf*, TBuf, Idx, 1, alpaka::ReadAccess> data, uint32_t index, uint64_t maximum)
         : mData(data)
         , mIndex(index)
         , mMaximum(maximum)
@@ -113,9 +113,7 @@ public:
     }
 
     //! Returns the current element.
-    //!
-    //! Returns a reference to the current index.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator*() -> const T&
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator*() -> T
     {
         return mData[mIndex];
     }
@@ -139,7 +137,7 @@ public:
     //! \param n The problem size.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE IteratorCpu(
         const TAcc& acc,
-        alpaka::Accessor<const TBuf*, const TBuf, Idx, 1> data,
+        alpaka::Accessor<TBuf*, TBuf, Idx, 1, alpaka::ReadAccess> data,
         uint32_t linearizedIndex,
         uint32_t gridSize,
         uint64_t n)
@@ -264,7 +262,7 @@ public:
     //! \param n The problem size.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE IteratorGpu(
         const TAcc&,
-        alpaka::Accessor<const TBuf*, const TBuf, Idx, 1> data,
+        alpaka::Accessor<TBuf*, TBuf, Idx, 1, alpaka::ReadAccess> data,
         uint32_t linearizedIndex,
         uint32_t gridSize,
         uint64_t n)
