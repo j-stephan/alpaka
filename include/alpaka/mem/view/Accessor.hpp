@@ -40,40 +40,40 @@ namespace alpaka
         read_write
     };
 
-    template<typename Pointer, typename Value, typename Idx, std::size_t Dim>
+    template<typename Pointer, typename Value, typename BufferIdx, std::size_t Dim>
     struct Accessor;
 
-    template<typename Pointer, typename Value, typename Idx>
-    struct Accessor<Pointer, Value, Idx, 1>
+    template<typename Pointer, typename Value, typename BufferIdx>
+    struct Accessor<Pointer, Value, BufferIdx, 1>
     {
-        ALPAKA_FN_ACC auto& operator[](Vec<DimInt<1>, Idx> i) const
+        ALPAKA_FN_ACC auto& operator[](Vec<DimInt<1>, BufferIdx> i) const
         {
             return (*this)(i[0]);
         }
 
-        ALPAKA_FN_ACC auto& operator[](Idx i) const
+        ALPAKA_FN_ACC auto& operator[](BufferIdx i) const
         {
             return (*this)(i);
         }
 
-        ALPAKA_FN_ACC auto& operator()(Idx i) const
+        ALPAKA_FN_ACC auto& operator()(BufferIdx i) const
         {
             return p[i];
         }
 
         Pointer p;
-        Vec<DimInt<1>, Idx> extents;
+        Vec<DimInt<1>, BufferIdx> extents;
     };
 
-    template<typename Pointer, typename Value, typename Idx>
-    struct Accessor<Pointer, Value, Idx, 2>
+    template<typename Pointer, typename Value, typename BufferIdx>
+    struct Accessor<Pointer, Value, BufferIdx, 2>
     {
-        ALPAKA_FN_ACC auto& operator[](Vec<DimInt<2>, Idx> i) const
+        ALPAKA_FN_ACC auto& operator[](Vec<DimInt<2>, BufferIdx> i) const
         {
             return (*this)(i[0], i[1]);
         }
 
-        ALPAKA_FN_ACC auto& operator()(Idx y, Idx x) const
+        ALPAKA_FN_ACC auto& operator()(BufferIdx y, BufferIdx x) const
         {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
@@ -82,19 +82,19 @@ namespace alpaka
         }
 
         Pointer p;
-        Idx rowPitchInBytes;
-        Vec<DimInt<2>, Idx> extents;
+        BufferIdx rowPitchInBytes;
+        Vec<DimInt<2>, BufferIdx> extents;
     };
 
-    template<typename Pointer, typename Value, typename Idx>
-    struct Accessor<Pointer, Value, Idx, 3>
+    template<typename Pointer, typename Value, typename BufferIdx>
+    struct Accessor<Pointer, Value, BufferIdx, 3>
     {
-        ALPAKA_FN_ACC auto& operator[](Vec<DimInt<3>, Idx> i) const
+        ALPAKA_FN_ACC auto& operator[](Vec<DimInt<3>, BufferIdx> i) const
         {
             return (*this)(i[0], i[1], i[2]);
         }
 
-        ALPAKA_FN_ACC auto& operator()(Idx z, Idx y, Idx x) const
+        ALPAKA_FN_ACC auto& operator()(BufferIdx z, BufferIdx y, BufferIdx x) const
         {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
@@ -103,28 +103,28 @@ namespace alpaka
         }
 
         Pointer p;
-        Idx slicePitchInBytes;
-        Idx rowPitchInBytes;
-        Vec<DimInt<3>, Idx> extents;
+        BufferIdx slicePitchInBytes;
+        BufferIdx rowPitchInBytes;
+        Vec<DimInt<3>, BufferIdx> extents;
     };
 
 #if 0
     using Image = cudaTextureObject_t;
 
-    template<typename Value, typename Idx>
-    struct Accessor<Image, Value, Idx, 1>
+    template<typename Value, typename BufferIdx>
+    struct Accessor<Image, Value, BufferIdx, 1>
     {
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<1>, Idx> i) const -> Value
+        ALPAKA_FN_ACC auto operator[](Vec<DimInt<1>, BufferIdx> i) const -> Value
         {
             return (*this)(i[0]);
         }
 
-        ALPAKA_FN_ACC auto operator[](Idx i) const -> Value
+        ALPAKA_FN_ACC auto operator[](BufferIdx i) const -> Value
         {
             return (*this)(i);
         }
 
-        ALPAKA_FN_ACC auto operator()(Idx i) const -> Value
+        ALPAKA_FN_ACC auto operator()(BufferIdx i) const -> Value
         {
             return tex1Dfetch(texObj, i);
         }
@@ -135,18 +135,18 @@ namespace alpaka
         }
 
         Image texObj;
-        Vec<DimInt<1>, Idx> extents;
+        Vec<DimInt<1>, BufferIdx> extents;
     };
 
-    template<typename Value, typename Idx>
-    struct Accessor<Image, Value, Idx, 2>
+    template<typename Value, typename BufferIdx>
+    struct Accessor<Image, Value, BufferIdx, 2>
     {
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<2>, Idx> i) const -> Value
+        ALPAKA_FN_ACC auto operator[](Vec<DimInt<2>, BufferIdx> i) const -> Value
         {
             return (*this)(i[0], i[1]);
         }
 
-        ALPAKA_FN_ACC auto operator()(Idx y, Idx x) const -> Value
+        ALPAKA_FN_ACC auto operator()(BufferIdx y, BufferIdx x) const -> Value
         {
             return tex1Dfetch(texObj, y * rowPitchInValues + x);
         }
@@ -157,19 +157,19 @@ namespace alpaka
         }
 
         Image texObj;
-        Idx rowPitchInValues;
-        Vec<DimInt<2>, Idx> extents;
+        BufferIdx rowPitchInValues;
+        Vec<DimInt<2>, BufferIdx> extents;
     };
 
-    template<typename Value, typename Idx>
-    struct Accessor<Image, Value, Idx, 3>
+    template<typename Value, typename BufferIdx>
+    struct Accessor<Image, Value, BufferIdx, 3>
     {
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<3>, Idx> i) const -> Value
+        ALPAKA_FN_ACC auto operator[](Vec<DimInt<3>, BufferIdx> i) const -> Value
         {
             return (*this)(i[0], i[1], i[2]);
         }
 
-        ALPAKA_FN_ACC auto operator()(Idx z, Idx y, Idx x) const -> Value
+        ALPAKA_FN_ACC auto operator()(BufferIdx z, BufferIdx y, BufferIdx x) const -> Value
         {
             return tex1Dfetch(texObj, z * slicePitchInValues + y * rowPitchInValues + x);
         }
@@ -180,9 +180,9 @@ namespace alpaka
         }
 
         Image texObj;
-        Idx rowPitchInValues;
-        Idx slicePitchInValues;
-        Vec<DimInt<3>, Idx> extents;
+        BufferIdx rowPitchInValues;
+        BufferIdx slicePitchInValues;
+        Vec<DimInt<3>, BufferIdx> extents;
     };
 #endif
 
@@ -192,12 +192,12 @@ namespace alpaka
         auto buildAccessor(Buf&& buffer, std::index_sequence<PitchIs...>, std::index_sequence<ExtentIs...>)
         {
             using DBuf = std::decay_t<Buf>;
-            using Idx = Idx<DBuf>;
+            using BufferIdx = Idx<DBuf>;
             constexpr auto dim = Dim<DBuf>::value;
             constexpr auto IsConst = Mode == AccessMode::read_only;
             using Elem = std::conditional_t<IsConst, const Elem<DBuf>, Elem<DBuf>>;
             auto p = getPtrNative(buffer);
-            return Accessor<Elem*, Elem, Idx, dim>{
+            return Accessor<Elem*, Elem, BufferIdx, dim>{
                 p,
                 getPitchBytes<PitchIs + 1>(buffer)...,
                 {extent::getExtent<ExtentIs>(buffer)...}};
