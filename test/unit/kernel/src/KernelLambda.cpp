@@ -33,7 +33,7 @@ struct TestTemplateLambda
 #    endif
         auto kernel = [] ALPAKA_FN_ACC(
                           TAcc const& acc,
-                          alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success) -> void {
+                          alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) -> void {
             ALPAKA_CHECK(
                 success[0],
                 static_cast<alpaka::Idx<TAcc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
@@ -59,7 +59,7 @@ struct TestTemplateArg
         std::uint32_t const arg = 42u;
         auto kernel = [] ALPAKA_FN_ACC(
                           TAcc const& acc,
-                          alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success,
+                          alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
                           std::uint32_t const& arg1) -> void {
             alpaka::ignore_unused(acc);
 
@@ -88,7 +88,7 @@ struct TestTemplateCapture
 #    endif
         auto kernel = [arg] ALPAKA_FN_ACC(
                           TAcc const& acc,
-                          alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success) -> void {
+                          alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) -> void {
             alpaka::ignore_unused(acc);
 
             ALPAKA_CHECK(success[0], 42u == arg);

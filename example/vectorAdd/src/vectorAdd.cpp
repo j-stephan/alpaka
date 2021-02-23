@@ -40,9 +40,9 @@ public:
     template<typename TAcc, typename TElem, typename Idx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<const TElem*, const TElem, Idx, 1> A,
-        alpaka::Accessor<const TElem*, const TElem, Idx, 1> B,
-        alpaka::Accessor<TElem*, TElem, Idx, 1> C) const -> void
+        alpaka::Accessor<TElem*, TElem, Idx, 1, alpaka::ReadAccess> A,
+        alpaka::Accessor<TElem*, TElem, Idx, 1, alpaka::ReadAccess> B,
+        alpaka::Accessor<TElem*, TElem, Idx, 1, alpaka::WriteAccess> C) const -> void
     {
         static_assert(alpaka::Dim<TAcc>::value == 1, "The VectorAddKernel expects 1-dimensional indices!");
 
@@ -169,7 +169,7 @@ auto main() -> int
         kernel,
         alpaka::readAccess(bufAccA),
         alpaka::readAccess(bufAccB),
-        alpaka::access(bufAccC)));
+        alpaka::writeAccess(bufAccC)));
 
     // Enqueue the kernel execution task
     {

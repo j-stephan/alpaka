@@ -43,8 +43,8 @@ struct HeatEquationKernel
     template<typename TAcc, typename Idx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<const double*, const double, Idx, 1> const uCurrBuf,
-        alpaka::Accessor<double*, double, Idx, 1> const uNextBuf,
+        alpaka::Accessor<double*, double, Idx, 1, alpaka::ReadAccess> const uCurrBuf,
+        alpaka::Accessor<double*, double, Idx, 1, alpaka::WriteAccess> const uNextBuf,
         double const dx,
         double const dt) const -> void
     {
@@ -169,7 +169,7 @@ auto main() -> int
             workdiv,
             kernel,
             alpaka::readAccess(*uCurrBufAccPtr),
-            alpaka::access(*uNextBufAccPtr),
+            alpaka::writeAccess(*uNextBufAccPtr),
             dx,
             dt);
 

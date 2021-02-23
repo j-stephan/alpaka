@@ -44,7 +44,7 @@ using AccGpu = alpaka::AccGpuCudaRt<Dim, Idx>;
 struct KernelNoTemplateCpu
 {
     ALPAKA_FN_ACC
-    auto operator()(AccCpu const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success) const -> void
+    auto operator()(AccCpu const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
     {
         ALPAKA_CHECK(
             success[0],
@@ -69,7 +69,7 @@ struct KernelNoTemplateGpu
     ALPAKA_FN_ACC
     auto operator()(
         AccGpu const & acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success) const
+        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const
     -> void
     {
         ALPAKA_CHECK(
@@ -93,7 +93,7 @@ TEST_CASE("kernelNoTemplateGpu", "[kernel]")
 struct KernelWithoutTemplateParamCpu
 {
     template<typename TNotUsed = void>
-    ALPAKA_FN_ACC auto operator()(AccCpu const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success)
+    ALPAKA_FN_ACC auto operator()(AccCpu const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success)
         const -> void
     {
         ALPAKA_CHECK(
@@ -116,7 +116,7 @@ TEST_CASE("kernelWithoutTemplateParamCpu", "[kernel]")
 struct KernelWithoutTemplateParamGpu
 {
     template<typename TNotUsed = void>
-    ALPAKA_FN_ACC auto operator()(AccGpu const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success)
+    ALPAKA_FN_ACC auto operator()(AccGpu const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success)
         const -> void
     {
         ALPAKA_CHECK(

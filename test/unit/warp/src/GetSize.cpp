@@ -23,7 +23,7 @@ public:
     template<typename TAcc>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success,
+        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
         std::int32_t expectedWarpSize) const -> void
     {
         std::int32_t const actualWarpSize = alpaka::warp::getSize(acc);

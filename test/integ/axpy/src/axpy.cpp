@@ -38,8 +38,9 @@ public:
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
         TElem const& alpha,
-        alpaka::Accessor<const TElem*, const TElem, TIdx, 1> const X,
-        alpaka::Accessor<TElem*, TElem, TIdx, 1> const Y) const -> void
+        alpaka::Accessor<TElem*, TElem, TIdx, 1, alpaka::ReadAccess> const X,
+        alpaka::Accessor<TElem*, TElem, TIdx, 1, std::tuple<alpaka::WriteAccess, alpaka::ReadAccess>> const Y) const
+        -> void
     {
         static_assert(alpaka::Dim<TAcc>::value == 1, "The AxpyKernel expects 1-dimensional indices!");
 

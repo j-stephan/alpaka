@@ -32,9 +32,10 @@ ALPAKA_FN_ACC size_t linIdxToPitchedIdx(size_t const globalIdx, size_t const pit
 //! Prints all elements of the buffer.
 struct PrintBufferKernel
 {
-    template<typename TAcc, typename Data, typename Idx, std::size_t Dim>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<const Data*, const Data, Idx, Dim> data) const
-        -> void
+    template<typename TAcc, typename Data, typename Idx>
+    ALPAKA_FN_ACC auto operator()(
+        TAcc const& acc,
+        alpaka::Accessor<Data*, Data, Idx, 3, alpaka::ReadAccess> const data) const -> void
     {
         auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
         auto const gridSize = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
@@ -50,7 +51,9 @@ struct PrintBufferKernel
 struct TestBufferKernel
 {
     template<typename TAcc, typename TData, typename Idx>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<TData*, TData, Idx, 3> const data) const -> void
+    ALPAKA_FN_ACC auto operator()(
+        TAcc const& acc,
+        alpaka::Accessor<TData*, TData, Idx, 3, alpaka::WriteAccess> const data) const -> void
     {
         auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
         auto const gridSize = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
@@ -67,7 +70,9 @@ struct TestBufferKernel
 struct FillBufferKernel
 {
     template<typename TAcc, typename TData, typename Idx>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<TData*, TData, Idx, 3> const data) const -> void
+    ALPAKA_FN_ACC auto operator()(
+        TAcc const& acc,
+        alpaka::Accessor<TData*, TData, Idx, 3, alpaka::WriteAccess> const data) const -> void
     {
         auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
         auto const gridSize = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
@@ -208,7 +213,7 @@ auto main() -> int
     // native pointer into the kernel invocation.
 
     FillBufferKernel fillBufferKernel;
-    alpaka::exec<Host>(hostQueue, hostWorkDiv, fillBufferKernel, alpaka::access(hostViewPlainPtr));
+    alpaka::exec<Host>(hostQueue, hostWorkDiv, fillBufferKernel, alpaka::writeAccess(hostViewPlainPtr));
 
     // Copy host to device Buffer
     //
@@ -231,8 +236,8 @@ auto main() -> int
     // went wrong an assert will fail.
 
     TestBufferKernel testBufferKernel;
-    alpaka::exec<Acc>(devQueue, devWorkDiv, testBufferKernel, alpaka::access(deviceBuffer1));
-    alpaka::exec<Acc>(devQueue, devWorkDiv, testBufferKernel, alpaka::access(deviceBuffer2));
+    alpaka::exec<Acc>(devQueue, devWorkDiv, testBufferKernel, alpaka::writeAccess(deviceBuffer1));
+    alpaka::exec<Acc>(devQueue, devWorkDiv, testBufferKernel, alpaka::writeAccess(deviceBuffer2));
 
     // Print device Buffer
     //

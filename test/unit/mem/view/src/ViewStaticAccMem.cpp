@@ -38,7 +38,7 @@ struct StaticDeviceMemoryTestKernel
     template<typename TAcc, typename TElem>
     ALPAKA_FN_ACC void operator()(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success,
+        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
         TElem const* const pConstantMem) const
     {
         auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);

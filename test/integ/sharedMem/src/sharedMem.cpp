@@ -26,8 +26,9 @@ class SharedMemKernel
 public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc, typename Idx>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<Val*, Val, Idx, 1> const puiBlockRetVals) const
-        -> void
+    ALPAKA_FN_ACC auto operator()(
+        TAcc const& acc,
+        alpaka::Accessor<Val*, Val, Idx, 1, alpaka::WriteAccess> const puiBlockRetVals) const -> void
     {
         static_assert(alpaka::Dim<TAcc>::value == 1, "The SharedMemKernel expects 1-dimensional indices!");
 
@@ -160,7 +161,7 @@ TEMPLATE_LIST_TEST_CASE("sharedMem", "[sharedMem]", TestAccs)
     alpaka::memcpy(queue, blockRetValsAcc, blockRetVals, resultElemCount);
 
     // Create the kernel execution task.
-    auto const taskKernel(alpaka::createTaskKernel<Acc>(workDiv, kernel, alpaka::access(blockRetValsAcc)));
+    auto const taskKernel(alpaka::createTaskKernel<Acc>(workDiv, kernel, alpaka::writeAccess(blockRetValsAcc)));
 
     // Profile the kernel execution.
     std::cout << "Execution time: " << alpaka::test::integ::measureTaskRunTimeMs(queue, taskKernel) << " ms"

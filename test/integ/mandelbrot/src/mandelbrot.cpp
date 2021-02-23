@@ -100,7 +100,7 @@ public:
     template<typename TAcc, typename Idx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<std::uint32_t*, std::uint32_t, Idx, 2> const colors,
+        alpaka::Accessor<std::uint32_t*, std::uint32_t, Idx, 2, alpaka::WriteAccess> const colors,
         float const& fMinR,
         float const& fMaxR,
         float const& fMinI,
@@ -313,7 +313,7 @@ TEMPLATE_LIST_TEST_CASE("mandelbrot", "[mandelbrot]", TestAccs)
     // Create the kernel execution task.
     auto const taskKernel(
         alpaka::createTaskKernel<
-            Acc>(workDiv, kernel, alpaka::access(bufColorAcc), fMinR, fMaxR, fMinI, fMaxI, maxIterations));
+            Acc>(workDiv, kernel, alpaka::writeAccess(bufColorAcc), fMinR, fMaxR, fMinI, fMaxI, maxIterations));
 
     // Profile the kernel execution.
     std::cout << "Execution time: " << alpaka::test::integ::measureTaskRunTimeMs(queue, taskKernel) << " ms"
