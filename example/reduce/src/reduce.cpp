@@ -94,7 +94,7 @@ T reduce(
         workDiv1,
         kernel1,
         alpaka::readAccess(sourceDeviceMemory),
-        alpaka::access(destinationDeviceMemory),
+        alpaka::writeAccess(destinationDeviceMemory),
         n,
         func));
 
@@ -103,7 +103,7 @@ T reduce(
         workDiv2,
         kernel2,
         alpaka::readAccess(destinationDeviceMemory),
-        alpaka::access(destinationDeviceMemory),
+        alpaka::writeAccess(destinationDeviceMemory),
         blockCount,
         func));
 

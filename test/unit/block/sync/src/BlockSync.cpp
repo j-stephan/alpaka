@@ -20,7 +20,7 @@ public:
 
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success)
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success)
         const -> void
     {
         using Idx = alpaka::Idx<TAcc>;
@@ -62,7 +62,7 @@ namespace alpaka
                 BlockSyncTestKernel const& blockSharedMemDyn,
                 TVec const& blockThreadExtent,
                 TVec const& threadElemExtent,
-                alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1> const success) -> std::size_t
+                alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) -> std::size_t
             {
                 using Idx = alpaka::Idx<TAcc>;
 

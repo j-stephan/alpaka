@@ -19,36 +19,35 @@ namespace
     struct WriteKernelTemplate
     {
         template<typename Acc, typename Accessor>
-        ALPAKA_FN_ACC void operator()(Acc const& acc, Accessor data) const
+        ALPAKA_FN_ACC void operator()(Acc const&, Accessor data) const
         {
-            (void) acc;
             data[1] = 1.0f;
             data(2) = 2.0f;
-            data[alpaka::Vec<alpaka::Dim<Acc>, alpaka::Idx<Acc>>{alpaka::Idx<Acc>{3}}] = 3.0f;
+            data[alpaka::Vec<alpaka::DimInt<1>, alpaka::Idx<Acc>>{alpaka::Idx<Acc>{3}}] = 3.0f;
         }
     };
 
     struct WriteKernelExplicit
     {
         template<typename Acc, typename Pointer, typename Idx>
-        ALPAKA_FN_ACC void operator()(Acc const& acc, alpaka::Accessor<Pointer, float, Idx, 1> const data) const
+        ALPAKA_FN_ACC void operator()(
+            Acc const&,
+            alpaka::Accessor<Pointer, float, Idx, 1, alpaka::WriteAccess> const data) const
         {
-            (void) acc;
             data[1] = 1.0f;
             data(2) = 2.0f;
-            data[alpaka::Vec<alpaka::Dim<Acc>, Idx>{Idx{3}}] = 3.0f;
+            data[alpaka::Vec<alpaka::DimInt<1>, Idx>{Idx{3}}] = 3.0f;
         }
     };
 
     struct ReadKernelTemplate
     {
         template<typename Acc, typename Accessor>
-        ALPAKA_FN_ACC void operator()(Acc const& acc, Accessor data) const
+        ALPAKA_FN_ACC void operator()(Acc const&, Accessor data) const
         {
-            (void) acc;
             const float v1 = data[1];
             const float v2 = data(2);
-            const float v3 = data[alpaka::Vec<alpaka::Dim<Acc>, alpaka::Idx<Acc>>{alpaka::Idx<Acc>{3}}];
+            const float v3 = data[alpaka::Vec<alpaka::DimInt<1>, alpaka::Idx<Acc>>{alpaka::Idx<Acc>{3}}];
             (void) v1;
             (void) v2;
             (void) v3;
@@ -58,15 +57,37 @@ namespace
     struct ReadKernelExplicit
     {
         template<typename Acc, typename Pointer, typename Idx>
-        ALPAKA_FN_ACC void operator()(Acc const& acc, alpaka::Accessor<Pointer, const float, Idx, 1> const data) const
+        ALPAKA_FN_ACC void operator()(
+            Acc const&,
+            alpaka::Accessor<Pointer, float, Idx, 1, alpaka::ReadAccess> const data) const
         {
-            (void) acc;
             const float v1 = data[1];
             const float v2 = data(2);
-            const float v3 = data[alpaka::Vec<alpaka::Dim<Acc>, Idx>{Idx{3}}];
+            const float v3 = data[alpaka::Vec<alpaka::DimInt<1>, Idx>{Idx{3}}];
             (void) v1;
             (void) v2;
             (void) v3;
+        }
+    };
+
+    struct ReadWriteKernelExplicit
+    {
+        template<typename Acc, typename Pointer, typename Idx>
+        ALPAKA_FN_ACC void operator()(
+            Acc const&,
+            alpaka::Accessor<Pointer, float, Idx, 1, std::tuple<alpaka::WriteAccess, alpaka::ReadAccess>> const data)
+            const
+        {
+            const float v1 = data[1];
+            const float v2 = data(2);
+            const float v3 = data[alpaka::Vec<alpaka::DimInt<1>, Idx>{Idx{3}}];
+            (void) v1;
+            (void) v2;
+            (void) v3;
+
+            data[1] = 1.0f;
+            data(2) = 2.0f;
+            data[alpaka::Vec<alpaka::DimInt<1>, Idx>{Idx{3}}] = 3.0f;
         }
     };
 } // namespace
@@ -87,10 +108,11 @@ TEST_CASE("readWrite", "[accessor]")
         alpaka::Vec<Dim, Size>{Size{1}},
         alpaka::Vec<Dim, Size>{Size{1}}};
 
-    alpaka::exec<Acc>(queue, workdiv, WriteKernelTemplate{}, alpaka::access(buffer));
-    alpaka::exec<Acc>(queue, workdiv, WriteKernelExplicit{}, alpaka::access(buffer));
+    alpaka::exec<Acc>(queue, workdiv, WriteKernelTemplate{}, alpaka::writeAccess(buffer));
+    alpaka::exec<Acc>(queue, workdiv, WriteKernelExplicit{}, alpaka::writeAccess(buffer));
     alpaka::exec<Acc>(queue, workdiv, ReadKernelTemplate{}, alpaka::readAccess(buffer));
     alpaka::exec<Acc>(queue, workdiv, ReadKernelExplicit{}, alpaka::readAccess(buffer));
+    alpaka::exec<Acc>(queue, workdiv, ReadWriteKernelExplicit{}, alpaka::access(buffer));
 }
 
 namespace
@@ -123,15 +145,20 @@ TEST_CASE("customPointer", "[accessor]")
         alpaka::Vec<Dim, Size>{Size{1}}};
 
     // TODO: Accessor is invoking UB here by reinterpreting as MyPointer ...
-    auto accessor = alpaka::Accessor<MyPointer, float, alpaka::Idx<Acc>, Dim::value>{
+    auto readAccessor = alpaka::Accessor<const MyPointer, float, alpaka::Idx<Acc>, Dim::value, alpaka::ReadAccess>{
         {alpaka::getPtrNative(buffer)},
         {alpaka::extent::getExtent<0>(buffer)}};
-    auto readAccessor = alpaka::Accessor<const MyPointer, const float, alpaka::Idx<Acc>, Dim::value>{
+    auto writeAccessor = alpaka::Accessor<MyPointer, float, alpaka::Idx<Acc>, Dim::value, alpaka::WriteAccess>{
         {alpaka::getPtrNative(buffer)},
         {alpaka::extent::getExtent<0>(buffer)}};
+    auto readWriteAccessor = alpaka::
+        Accessor<MyPointer, float, alpaka::Idx<Acc>, Dim::value, std::tuple<alpaka::WriteAccess, alpaka::ReadAccess>>{
+            {alpaka::getPtrNative(buffer)},
+            {alpaka::extent::getExtent<0>(buffer)}};
 
-    alpaka::exec<Acc>(queue, workdiv, WriteKernelTemplate{}, accessor);
-    alpaka::exec<Acc>(queue, workdiv, WriteKernelExplicit{}, accessor);
+    alpaka::exec<Acc>(queue, workdiv, WriteKernelTemplate{}, writeAccessor);
+    alpaka::exec<Acc>(queue, workdiv, WriteKernelExplicit{}, writeAccessor);
     alpaka::exec<Acc>(queue, workdiv, ReadKernelTemplate{}, readAccessor);
     alpaka::exec<Acc>(queue, workdiv, ReadKernelExplicit{}, readAccessor);
+    alpaka::exec<Acc>(queue, workdiv, ReadWriteKernelExplicit{}, readWriteAccessor);
 }

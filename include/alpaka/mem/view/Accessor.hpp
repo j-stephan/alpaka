@@ -34,29 +34,59 @@ namespace alpaka
         }
     } // namespace internal
 
-    enum class AccessMode
+    struct ReadAccess
     {
-        read_only,
-        read_write
+    };
+    struct WriteAccess
+    {
     };
 
-    template<typename Pointer, typename Value, typename BufferIdx, std::size_t Dim>
+    template<typename MemoryHandle, typename Elem, typename BufferIdx, std::size_t Dim, typename AccessModes>
     struct Accessor;
 
-    template<typename Pointer, typename Value, typename BufferIdx>
-    struct Accessor<Pointer, Value, BufferIdx, 1>
+    namespace internal
     {
-        ALPAKA_FN_ACC auto& operator[](Vec<DimInt<1>, BufferIdx> i) const
+        template<typename Pointer, typename Elem, typename AccessModes>
+        struct AccessReturnTypeImpl;
+
+        template<typename Pointer, typename Elem>
+        struct AccessReturnTypeImpl<Pointer, Elem, ReadAccess>
+        {
+            using type = Elem;
+        };
+
+        template<typename Pointer, typename Elem>
+        struct AccessReturnTypeImpl<Pointer, Elem, WriteAccess>
+        {
+            using type = Elem&;
+        };
+
+        template<typename Pointer, typename Elem, typename HeadAccessMode, typename... TailAccessModes>
+        struct AccessReturnTypeImpl<Pointer, Elem, std::tuple<HeadAccessMode, TailAccessModes...>>
+            : AccessReturnTypeImpl<Pointer, Elem, HeadAccessMode>
+        {
+        };
+    } // namespace internal
+
+    template<typename Pointer, typename Elem, typename AccessModes>
+    using AccessReturnType = typename internal::AccessReturnTypeImpl<Pointer, Elem, AccessModes>::type;
+
+    template<typename Pointer, typename Elem, typename BufferIdx, typename AccessModes>
+    struct Accessor<Pointer, Elem, BufferIdx, 1, AccessModes>
+    {
+        using ReturnType = AccessReturnType<Pointer, Elem, AccessModes>;
+
+        ALPAKA_FN_ACC auto operator[](Vec<DimInt<1>, BufferIdx> i) const -> ReturnType
         {
             return (*this)(i[0]);
         }
 
-        ALPAKA_FN_ACC auto& operator[](BufferIdx i) const
+        ALPAKA_FN_ACC auto operator[](BufferIdx i) const -> ReturnType
         {
             return (*this)(i);
         }
 
-        ALPAKA_FN_ACC auto& operator()(BufferIdx i) const
+        ALPAKA_FN_ACC auto operator()(BufferIdx i) const -> ReturnType
         {
             return p[i];
         }
@@ -65,20 +95,26 @@ namespace alpaka
         Vec<DimInt<1>, BufferIdx> extents;
     };
 
-    template<typename Pointer, typename Value, typename BufferIdx>
-    struct Accessor<Pointer, Value, BufferIdx, 2>
+    template<typename Pointer, typename Elem, typename BufferIdx, typename AccessModes>
+    struct Accessor<Pointer, Elem, BufferIdx, 2, AccessModes>
     {
-        ALPAKA_FN_ACC auto& operator[](Vec<DimInt<2>, BufferIdx> i) const
+        using ReturnType = AccessReturnType<Pointer, Elem, AccessModes>;
+
+        ALPAKA_FN_ACC auto operator[](Vec<DimInt<2>, BufferIdx> i) const -> ReturnType
         {
             return (*this)(i[0], i[1]);
         }
 
-        ALPAKA_FN_ACC auto& operator()(BufferIdx y, BufferIdx x) const
+        ALPAKA_FN_ACC auto operator()(BufferIdx y, BufferIdx x) const -> ReturnType
         {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-            return *(reinterpret_cast<Value*>(internal::asBytePtr(p) + y * rowPitchInBytes) + x);
-#pragma GCC diagnostic pop
+#if BOOST_COMP_GNUC
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-align"
+#endif
+            return *(reinterpret_cast<Elem*>(internal::asBytePtr(p) + y * rowPitchInBytes) + x);
+#if BOOST_COMP_GNUC
+#    pragma GCC diagnostic pop
+#endif
         }
 
         Pointer p;
@@ -86,20 +122,27 @@ namespace alpaka
         Vec<DimInt<2>, BufferIdx> extents;
     };
 
-    template<typename Pointer, typename Value, typename BufferIdx>
-    struct Accessor<Pointer, Value, BufferIdx, 3>
+    template<typename Pointer, typename Elem, typename BufferIdx, typename AccessModes>
+    struct Accessor<Pointer, Elem, BufferIdx, 3, AccessModes>
     {
-        ALPAKA_FN_ACC auto& operator[](Vec<DimInt<3>, BufferIdx> i) const
+        using ReturnType = AccessReturnType<Pointer, Elem, AccessModes>;
+
+        ALPAKA_FN_ACC auto operator[](Vec<DimInt<3>, BufferIdx> i) const -> ReturnType
         {
             return (*this)(i[0], i[1], i[2]);
         }
 
-        ALPAKA_FN_ACC auto& operator()(BufferIdx z, BufferIdx y, BufferIdx x) const
+        ALPAKA_FN_ACC auto operator()(BufferIdx z, BufferIdx y, BufferIdx x) const -> ReturnType
         {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
+#if BOOST_COMP_GNUC
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-align"
+#endif
             return *(
                 reinterpret_cast<Pointer>(internal::asBytePtr(p) + z * slicePitchInBytes + y * rowPitchInBytes) + x);
+#if BOOST_COMP_GNUC
+#    pragma GCC diagnostic pop
+#endif
         }
 
         Pointer p;
@@ -111,25 +154,25 @@ namespace alpaka
 #if 0
     using Image = cudaTextureObject_t;
 
-    template<typename Value, typename BufferIdx>
-    struct Accessor<Image, Value, BufferIdx, 1>
+    template<typename Elem, typename BufferIdx, typename AccessModes>
+    struct Accessor<Image, Elem, BufferIdx, 1, AccessModes>
     {
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<1>, BufferIdx> i) const -> Value
+        ALPAKA_FN_ACC auto operator[](Vec<DimInt<1>, BufferIdx> i) const -> Elem
         {
             return (*this)(i[0]);
         }
 
-        ALPAKA_FN_ACC auto operator[](BufferIdx i) const -> Value
+        ALPAKA_FN_ACC auto operator[](BufferIdx i) const -> Elem
         {
             return (*this)(i);
         }
 
-        ALPAKA_FN_ACC auto operator()(BufferIdx i) const -> Value
+        ALPAKA_FN_ACC auto operator()(BufferIdx i) const -> Elem
         {
             return tex1Dfetch(texObj, i);
         }
 
-        ALPAKA_FN_ACC auto operator()(float i) const -> Value
+        ALPAKA_FN_ACC auto operator()(float i) const -> Elem
         {
             return tex1D(texObj, i);
         }
@@ -138,20 +181,20 @@ namespace alpaka
         Vec<DimInt<1>, BufferIdx> extents;
     };
 
-    template<typename Value, typename BufferIdx>
-    struct Accessor<Image, Value, BufferIdx, 2>
+    template<typename Elem, typename BufferIdx, typename AccessModes>
+    struct Accessor<Image, Elem, BufferIdx, 2, AccessModes>
     {
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<2>, BufferIdx> i) const -> Value
+        ALPAKA_FN_ACC auto operator[](Vec<DimInt<2>, BufferIdx> i) const -> Elem
         {
             return (*this)(i[0], i[1]);
         }
 
-        ALPAKA_FN_ACC auto operator()(BufferIdx y, BufferIdx x) const -> Value
+        ALPAKA_FN_ACC auto operator()(BufferIdx y, BufferIdx x) const -> Elem
         {
             return tex1Dfetch(texObj, y * rowPitchInValues + x);
         }
 
-        ALPAKA_FN_ACC auto operator()(float y, float x) const -> Value
+        ALPAKA_FN_ACC auto operator()(float y, float x) const -> Elem
         {
             return tex2D(texObj, x, y);
         }
@@ -161,20 +204,20 @@ namespace alpaka
         Vec<DimInt<2>, BufferIdx> extents;
     };
 
-    template<typename Value, typename BufferIdx>
-    struct Accessor<Image, Value, BufferIdx, 3>
+    template<typename Elem, typename BufferIdx, typename AccessModes>
+    struct Accessor<Image, Elem, BufferIdx, 3, AccessModes>
     {
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<3>, BufferIdx> i) const -> Value
+        ALPAKA_FN_ACC auto operator[](Vec<DimInt<3>, BufferIdx> i) const -> Elem
         {
             return (*this)(i[0], i[1], i[2]);
         }
 
-        ALPAKA_FN_ACC auto operator()(BufferIdx z, BufferIdx y, BufferIdx x) const -> Value
+        ALPAKA_FN_ACC auto operator()(BufferIdx z, BufferIdx y, BufferIdx x) const -> Elem
         {
             return tex1Dfetch(texObj, z * slicePitchInValues + y * rowPitchInValues + x);
         }
 
-        ALPAKA_FN_ACC auto operator()(float z, float y, float x) const -> Value
+        ALPAKA_FN_ACC auto operator()(float z, float y, float x) const -> Elem
         {
             return tex3D(texObj, x, y, z);
         }
@@ -188,35 +231,61 @@ namespace alpaka
 
     namespace internal
     {
-        template<AccessMode Mode, typename Buf, std::size_t... PitchIs, std::size_t... ExtentIs>
+        template<typename... AccessModes>
+        struct BuildAccessModeList;
+
+        template<typename AccessMode>
+        struct BuildAccessModeList<AccessMode>
+        {
+            using type = AccessMode;
+        };
+
+        template<typename AccessMode1, typename AccessMode2, typename... AccessModes>
+        struct BuildAccessModeList<AccessMode1, AccessMode2, AccessModes...>
+        {
+            using type = std::tuple<AccessMode1, AccessMode2, AccessModes...>;
+        };
+
+        template<typename... AccessModes, typename Buf, std::size_t... PitchIs, std::size_t... ExtentIs>
         auto buildAccessor(Buf&& buffer, std::index_sequence<PitchIs...>, std::index_sequence<ExtentIs...>)
         {
             using DBuf = std::decay_t<Buf>;
             using BufferIdx = Idx<DBuf>;
             constexpr auto dim = Dim<DBuf>::value;
-            constexpr auto IsConst = Mode == AccessMode::read_only;
-            using Elem = std::conditional_t<IsConst, const Elem<DBuf>, Elem<DBuf>>;
             auto p = getPtrNative(buffer);
-            return Accessor<Elem*, Elem, BufferIdx, dim>{
+            using AccessModeList = typename BuildAccessModeList<AccessModes...>::type;
+            return Accessor<decltype(p), Elem<DBuf>, BufferIdx, dim, AccessModeList>{
                 p,
                 getPitchBytes<PitchIs + 1>(buffer)...,
                 {extent::getExtent<ExtentIs>(buffer)...}};
         }
     } // namespace internal
 
-    template<AccessMode Mode = AccessMode::read_write, typename Buf>
-    auto access(Buf&& buffer)
+    template<typename... AccessModes, typename Buf>
+    auto accessWith(Buf&& buffer)
     {
         using Dim = Dim<std::decay_t<Buf>>;
-        return internal::buildAccessor<Mode>(
+        return internal::buildAccessor<AccessModes...>(
             std::forward<Buf>(buffer),
             std::make_index_sequence<Dim::value - 1>{},
             std::make_index_sequence<Dim::value>{});
     }
 
     template<typename Buf>
+    auto access(Buf&& buffer)
+    {
+        return accessWith<WriteAccess, ReadAccess>(std::forward<Buf>(buffer));
+    }
+
+    template<typename Buf>
     auto readAccess(Buf&& buffer)
     {
-        return access<AccessMode::read_only>(std::forward<Buf>(buffer));
+        return accessWith<ReadAccess>(std::forward<Buf>(buffer));
+    }
+
+    template<typename Buf>
+    auto writeAccess(Buf&& buffer)
+    {
+        return accessWith<WriteAccess>(std::forward<Buf>(buffer));
     }
 } // namespace alpaka

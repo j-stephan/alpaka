@@ -34,9 +34,9 @@ public:
     template<typename TAcc, typename TElem, typename TIdx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<const TElem*, const TElem, TIdx, 1> const A,
-        alpaka::Accessor<const TElem*, const TElem, TIdx, 1> const B,
-        alpaka::Accessor<TElem*, TElem, TIdx, 1> const C) const -> void
+        alpaka::Accessor<TElem*, TElem, TIdx, 1, alpaka::ReadAccess> const A,
+        alpaka::Accessor<TElem*, TElem, TIdx, 1, alpaka::ReadAccess> const B,
+        alpaka::Accessor<TElem*, TElem, TIdx, 1, alpaka::WriteAccess> const C) const -> void
     {
         static_assert(alpaka::Dim<TAcc>::value == 1, "The VectorAddKernel expects 1-dimensional indices!");
 
@@ -112,8 +112,8 @@ TEMPLATE_LIST_TEST_CASE("separableCompilation", "[separableCompilation]", TestAc
     // Initialize the host input vectors
     for(Idx i(0); i < numElements; ++i)
     {
-        alpaka::access(memBufHostA)[i] = static_cast<Val>(rand()) / static_cast<Val>(RAND_MAX);
-        alpaka::access(memBufHostB)[i] = static_cast<Val>(rand()) / static_cast<Val>(RAND_MAX);
+        alpaka::writeAccess(memBufHostA)[i] = static_cast<Val>(rand()) / static_cast<Val>(RAND_MAX);
+        alpaka::writeAccess(memBufHostB)[i] = static_cast<Val>(rand()) / static_cast<Val>(RAND_MAX);
     }
 
     // Allocate the buffers on the accelerator.
@@ -131,7 +131,7 @@ TEMPLATE_LIST_TEST_CASE("separableCompilation", "[separableCompilation]", TestAc
         kernel,
         alpaka::readAccess(memBufAccA),
         alpaka::readAccess(memBufAccB),
-        alpaka::access(memBufAccC)));
+        alpaka::writeAccess(memBufAccC)));
 
     // Profile the kernel execution.
     std::cout << "Execution time: " << alpaka::test::integ::measureTaskRunTimeMs(queueAcc, taskKernel) << " ms"
