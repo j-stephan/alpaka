@@ -54,9 +54,8 @@ namespace alpaka
                     BufAcc devBuffer;
 
                     // Native pointer to access buffer.
-                    alpaka::Accessor<TData*, TData, Idx, Dim::value> const pHostBuffer;
-                    alpaka::Accessor<TData*, TData, Idx, Dim::value> const pDevBuffer;
-
+                    alpaka::Accessor<TData*, TData, Idx, Dim::value, alpaka::ReadWriteAccess> const pHostBuffer;
+                    alpaka::Accessor<TData*, TData, Idx, Dim::value, alpaka::ReadWriteAccess> const pDevBuffer;
 
                     // This constructor cant be used,
                     // because BufHost and BufAcc need to be initialised.

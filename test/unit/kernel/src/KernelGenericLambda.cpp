@@ -24,8 +24,9 @@ TEMPLATE_LIST_TEST_CASE("genericLambdaKernelIsWorking", "[kernel]", alpaka::test
 
     alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::ones());
 
-    auto kernel
-        = [] ALPAKA_FN_ACC(auto const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<Acc>, 1> const success) -> void {
+    auto kernel = [] ALPAKA_FN_ACC(
+                      auto const& acc,
+                      alpaka::Accessor<bool*, bool, alpaka::Idx<Acc>, 1, alpaka::WriteAccess> const success) -> void {
         ALPAKA_CHECK(
             success[0],
             static_cast<alpaka::Idx<Acc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
@@ -46,7 +47,7 @@ TEMPLATE_LIST_TEST_CASE("variadicGenericLambdaKernelIsWorking", "[kernel]", alpa
     std::uint32_t const arg2 = 43u;
     auto kernel = [] ALPAKA_FN_ACC(
                       Acc const& acc,
-                      alpaka::Accessor<bool*, bool, alpaka::Idx<Acc>, 1> const success,
+                      alpaka::Accessor<bool*, bool, alpaka::Idx<Acc>, 1, alpaka::WriteAccess> const success,
                       auto... args) -> void {
         alpaka::ignore_unused(acc);
 
