@@ -268,3 +268,32 @@ TEST_CASE("projection", "[accessor]")
 
     REQUIRE(host[0] == 84);
 }
+
+TEST_CASE("constraining", "[accessor]")
+{
+    using Dim = alpaka::DimInt<1>;
+    using Size = std::size_t;
+    using Acc = alpaka::ExampleDefaultAcc<Dim, Size>;
+
+    auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
+    auto buffer = alpaka::allocBuf<int, Size>(devAcc, Size{1});
+
+    alpaka::Accessor<int*, int, Size, 1, std::tuple<alpaka::ReadAccess, alpaka::WriteAccess, alpaka::ReadWriteAccess>>
+        acc = alpaka::accessWith<alpaka::ReadAccess, alpaka::WriteAccess, alpaka::ReadWriteAccess>(buffer);
+
+    // constraining from multi-tag to single-tag
+    alpaka::Accessor<int*, int, Size, 1, alpaka::ReadAccess> readAcc = alpaka::readAccess(acc);
+    alpaka::Accessor<int*, int, Size, 1, alpaka::WriteAccess> writeAcc = alpaka::writeAccess(acc);
+    alpaka::Accessor<int*, int, Size, 1, alpaka::ReadWriteAccess> readWriteAcc = alpaka::access(acc);
+    (void) readAcc;
+    (void) writeAcc;
+    (void) readWriteAcc;
+
+    // constraining from single-tag to single-tag
+    alpaka::Accessor<int*, int, Size, 1, alpaka::ReadAccess> readAcc2 = alpaka::readAccess(readAcc);
+    alpaka::Accessor<int*, int, Size, 1, alpaka::WriteAccess> writeAcc2 = alpaka::writeAccess(writeAcc);
+    alpaka::Accessor<int*, int, Size, 1, alpaka::ReadWriteAccess> readWriteAcc2 = alpaka::access(readWriteAcc);
+    (void) readAcc2;
+    (void) writeAcc2;
+    (void) readWriteAcc2;
+}
