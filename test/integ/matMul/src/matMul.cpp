@@ -45,7 +45,7 @@ public:
         alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const A,
         alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const B,
         TElem const& beta,
-        alpaka::Accessor<TElem*, TElem, TIndex, 2, std::tuple<alpaka::WriteAccess, alpaka::ReadAccess>> const C) const
+        alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadWriteAccess> const C) const
         -> void
     {
         static_assert(
@@ -148,7 +148,7 @@ namespace alpaka
                 alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const A,
                 alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const B,
                 TElem const& beta,
-                alpaka::Accessor<TElem*, TElem, TIndex, 2, std::tuple<alpaka::WriteAccess, alpaka::ReadAccess>> const
+                alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadWriteAccess> const
                     C)
             {
                 alpaka::ignore_unused(matMulKernel);

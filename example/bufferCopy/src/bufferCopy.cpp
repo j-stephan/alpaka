@@ -53,7 +53,7 @@ struct TestBufferKernel
     template<typename TAcc, typename TData, typename Idx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<TData*, TData, Idx, 3, alpaka::WriteAccess> const data) const -> void
+        alpaka::Accessor<TData*, TData, Idx, 3, alpaka::ReadAccess> const data) const -> void
     {
         auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
         auto const gridSize = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
@@ -236,8 +236,8 @@ auto main() -> int
     // went wrong an assert will fail.
 
     TestBufferKernel testBufferKernel;
-    alpaka::exec<Acc>(devQueue, devWorkDiv, testBufferKernel, alpaka::writeAccess(deviceBuffer1));
-    alpaka::exec<Acc>(devQueue, devWorkDiv, testBufferKernel, alpaka::writeAccess(deviceBuffer2));
+    alpaka::exec<Acc>(devQueue, devWorkDiv, testBufferKernel, alpaka::readAccess(deviceBuffer1));
+    alpaka::exec<Acc>(devQueue, devWorkDiv, testBufferKernel, alpaka::readAccess(deviceBuffer2));
 
     // Print device Buffer
     //

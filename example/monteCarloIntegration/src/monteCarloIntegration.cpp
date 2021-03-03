@@ -51,8 +51,7 @@ struct Kernel
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
         size_t const numPoints,
-        alpaka::Accessor<uint32_t*, uint32_t, Idx, 1, std::tuple<alpaka::WriteAccess, alpaka::ReadAccess>>
-            globalCounter,
+        alpaka::Accessor<uint32_t*, uint32_t, Idx, 1, alpaka::ReadWriteAccess> globalCounter,
         TFunctor functor) const -> void
     {
         // Get the global linearized thread idx.

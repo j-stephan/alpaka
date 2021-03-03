@@ -75,8 +75,7 @@ namespace
         template<typename Acc, typename Pointer, typename Idx>
         ALPAKA_FN_ACC void operator()(
             Acc const&,
-            alpaka::Accessor<Pointer, float, Idx, 1, std::tuple<alpaka::WriteAccess, alpaka::ReadAccess>> const data)
-            const
+            alpaka::Accessor<Pointer, float, Idx, 1, alpaka::ReadWriteAccess> const data) const
         {
             const float v1 = data[1];
             const float v2 = data(2);
@@ -151,10 +150,9 @@ TEST_CASE("customPointer", "[accessor]")
     auto writeAccessor = alpaka::Accessor<MyPointer, float, alpaka::Idx<Acc>, Dim::value, alpaka::WriteAccess>{
         {alpaka::getPtrNative(buffer)},
         {alpaka::extent::getExtent<0>(buffer)}};
-    auto readWriteAccessor = alpaka::
-        Accessor<MyPointer, float, alpaka::Idx<Acc>, Dim::value, std::tuple<alpaka::WriteAccess, alpaka::ReadAccess>>{
-            {alpaka::getPtrNative(buffer)},
-            {alpaka::extent::getExtent<0>(buffer)}};
+    auto readWriteAccessor = alpaka::Accessor<MyPointer, float, alpaka::Idx<Acc>, Dim::value, alpaka::ReadWriteAccess>{
+        {alpaka::getPtrNative(buffer)},
+        {alpaka::extent::getExtent<0>(buffer)}};
 
     alpaka::exec<Acc>(queue, workdiv, WriteKernelTemplate{}, writeAccessor);
     alpaka::exec<Acc>(queue, workdiv, WriteKernelExplicit{}, writeAccessor);
@@ -168,14 +166,9 @@ namespace
     template<typename Projection, typename MemoryHandle, typename Elem, typename BufferIdx, std::size_t Dim>
     struct AccessorWithProjection;
 
-    template<typename Projection, typename Pointer, typename Elem, typename BufferIdx>
-    struct AccessorWithProjection<Projection, Pointer, Elem, BufferIdx, 1>
+    template<typename Projection, typename MemoryHandle, typename Elem, typename BufferIdx>
+    struct AccessorWithProjection<Projection, MemoryHandle, Elem, BufferIdx, 1>
     {
-        AccessorWithProjection(alpaka::Accessor<MemoryHandle, Elem, BufferIdx, 1, alpaka::ReadAccess> accessor)
-            : accessor(accessor)
-        {
-        }
-
         ALPAKA_FN_ACC auto operator[](alpaka::Vec<alpaka::DimInt<1>, BufferIdx> i) const -> Elem
         {
             return Projection{}(accessor[i]);
@@ -194,14 +187,9 @@ namespace
         alpaka::Accessor<MemoryHandle, Elem, BufferIdx, 1, alpaka::ReadAccess> accessor;
     };
 
-    template<typename Projection, typename Pointer, typename Elem, typename BufferIdx>
-    struct AccessorWithProjection<Projection, Pointer, Elem, BufferIdx, 2>
+    template<typename Projection, typename MemoryHandle, typename Elem, typename BufferIdx>
+    struct AccessorWithProjection<Projection, MemoryHandle, Elem, BufferIdx, 2>
     {
-        AccessorWithProjection(alpaka::Accessor<MemoryHandle, Elem, BufferIdx, 2, alpaka::ReadAccess> accessor)
-            : accessor(accessor)
-        {
-        }
-
         ALPAKA_FN_ACC auto operator[](alpaka::Vec<alpaka::DimInt<2>, BufferIdx> i) const -> Elem
         {
             return Projection{}(accessor[i]);
@@ -215,14 +203,9 @@ namespace
         alpaka::Accessor<MemoryHandle, Elem, BufferIdx, 2, alpaka::ReadAccess> accessor;
     };
 
-    template<typename Projection, typename Pointer, typename Elem, typename BufferIdx>
-    struct AccessorWithProjection<Projection, Pointer, Elem, BufferIdx, 3>
+    template<typename Projection, typename MemoryHandle, typename Elem, typename BufferIdx>
+    struct AccessorWithProjection<Projection, MemoryHandle, Elem, BufferIdx, 3>
     {
-        AccessorWithProjection(alpaka::Accessor<MemoryHandle, Elem, BufferIdx, 3, alpaka::ReadAccess> accessor)
-            : accessor(accessor)
-        {
-        }
-
         ALPAKA_FN_ACC auto operator[](alpaka::Vec<alpaka::DimInt<3>, BufferIdx> i) const -> Elem
         {
             return Projection{}(accessor[i]);
@@ -252,7 +235,7 @@ namespace
             alpaka::Accessor<Pointer, int, Idx, 1, alpaka::ReadAccess> const src,
             alpaka::Accessor<Pointer, int, Idx, 1, alpaka::WriteAccess> const dst) const
         {
-            auto const projSrc = AccessorWithProjection<DoubleValue>{src};
+            auto const projSrc = AccessorWithProjection<DoubleValue, Pointer, int, Idx, 1>{src};
             dst[0] = projSrc[0];
         }
     };
