@@ -19,8 +19,10 @@
 
 ALPAKA_NO_HOST_ACC_WARNING
 template<typename TAcc, typename Idx, typename T>
-ALPAKA_FN_ACC auto testAtomicAdd(TAcc const& acc, alpaka::Accessor<bool*, bool, Idx, 1> const success, T operandOrig)
-    -> void
+ALPAKA_FN_ACC auto testAtomicAdd(
+    TAcc const& acc,
+    alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success,
+    T operandOrig) -> void
 {
     T const value = static_cast<T>(4);
     T const reference = static_cast<T>(operandOrig + value);
@@ -41,8 +43,10 @@ ALPAKA_FN_ACC auto testAtomicAdd(TAcc const& acc, alpaka::Accessor<bool*, bool, 
 
 ALPAKA_NO_HOST_ACC_WARNING
 template<typename TAcc, typename Idx, typename T>
-ALPAKA_FN_ACC auto testAtomicSub(TAcc const& acc, alpaka::Accessor<bool*, bool, Idx, 1> const success, T operandOrig)
-    -> void
+ALPAKA_FN_ACC auto testAtomicSub(
+    TAcc const& acc,
+    alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success,
+    T operandOrig) -> void
 {
     T const value = static_cast<T>(4);
     T const reference = static_cast<T>(operandOrig - value);
@@ -63,8 +67,10 @@ ALPAKA_FN_ACC auto testAtomicSub(TAcc const& acc, alpaka::Accessor<bool*, bool, 
 
 ALPAKA_NO_HOST_ACC_WARNING
 template<typename TAcc, typename Idx, typename T>
-ALPAKA_FN_ACC auto testAtomicMin(TAcc const& acc, alpaka::Accessor<bool*, bool, Idx, 1> const success, T operandOrig)
-    -> void
+ALPAKA_FN_ACC auto testAtomicMin(
+    TAcc const& acc,
+    alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success,
+    T operandOrig) -> void
 {
     T const value = static_cast<T>(4);
     T const reference = (operandOrig < value) ? operandOrig : value;
@@ -85,8 +91,10 @@ ALPAKA_FN_ACC auto testAtomicMin(TAcc const& acc, alpaka::Accessor<bool*, bool, 
 
 ALPAKA_NO_HOST_ACC_WARNING
 template<typename TAcc, typename Idx, typename T>
-ALPAKA_FN_ACC auto testAtomicMax(TAcc const& acc, alpaka::Accessor<bool*, bool, Idx, 1> const success, T operandOrig)
-    -> void
+ALPAKA_FN_ACC auto testAtomicMax(
+    TAcc const& acc,
+    alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success,
+    T operandOrig) -> void
 {
     T const value = static_cast<T>(4);
     T const reference = (operandOrig > value) ? operandOrig : value;
@@ -107,8 +115,10 @@ ALPAKA_FN_ACC auto testAtomicMax(TAcc const& acc, alpaka::Accessor<bool*, bool, 
 
 ALPAKA_NO_HOST_ACC_WARNING
 template<typename TAcc, typename Idx, typename T>
-ALPAKA_FN_ACC auto testAtomicExch(TAcc const& acc, alpaka::Accessor<bool*, bool, Idx, 1> const success, T operandOrig)
-    -> void
+ALPAKA_FN_ACC auto testAtomicExch(
+    TAcc const& acc,
+    alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success,
+    T operandOrig) -> void
 {
     T const value = static_cast<T>(4);
     T const reference = value;
@@ -129,8 +139,10 @@ ALPAKA_FN_ACC auto testAtomicExch(TAcc const& acc, alpaka::Accessor<bool*, bool,
 
 ALPAKA_NO_HOST_ACC_WARNING
 template<typename TAcc, typename Idx, typename T>
-ALPAKA_FN_ACC auto testAtomicInc(TAcc const& acc, alpaka::Accessor<bool*, bool, Idx, 1> const success, T operandOrig)
-    -> void
+ALPAKA_FN_ACC auto testAtomicInc(
+    TAcc const& acc,
+    alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success,
+    T operandOrig) -> void
 {
     // \TODO: Check reset to 0 at 'value'.
     T const value = static_cast<T>(42);
@@ -152,8 +164,10 @@ ALPAKA_FN_ACC auto testAtomicInc(TAcc const& acc, alpaka::Accessor<bool*, bool, 
 
 ALPAKA_NO_HOST_ACC_WARNING
 template<typename TAcc, typename Idx, typename T>
-ALPAKA_FN_ACC auto testAtomicDec(TAcc const& acc, alpaka::Accessor<bool*, bool, Idx, 1> const success, T operandOrig)
-    -> void
+ALPAKA_FN_ACC auto testAtomicDec(
+    TAcc const& acc,
+    alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success,
+    T operandOrig) -> void
 {
     // \TODO: Check reset to 'value' at 0.
     T const value = static_cast<T>(42);
@@ -175,8 +189,10 @@ ALPAKA_FN_ACC auto testAtomicDec(TAcc const& acc, alpaka::Accessor<bool*, bool, 
 
 ALPAKA_NO_HOST_ACC_WARNING
 template<typename TAcc, typename Idx, typename T>
-ALPAKA_FN_ACC auto testAtomicAnd(TAcc const& acc, alpaka::Accessor<bool*, bool, Idx, 1> const success, T operandOrig)
-    -> void
+ALPAKA_FN_ACC auto testAtomicAnd(
+    TAcc const& acc,
+    alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success,
+    T operandOrig) -> void
 {
     T const value = static_cast<T>(4);
     T const reference = operandOrig & value;
@@ -197,8 +213,10 @@ ALPAKA_FN_ACC auto testAtomicAnd(TAcc const& acc, alpaka::Accessor<bool*, bool, 
 
 ALPAKA_NO_HOST_ACC_WARNING
 template<typename TAcc, typename Idx, typename T>
-ALPAKA_FN_ACC auto testAtomicOr(TAcc const& acc, alpaka::Accessor<bool*, bool, Idx, 1> const success, T operandOrig)
-    -> void
+ALPAKA_FN_ACC auto testAtomicOr(
+    TAcc const& acc,
+    alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success,
+    T operandOrig) -> void
 {
     T const value = static_cast<T>(4);
     T const reference = operandOrig | value;
@@ -219,8 +237,10 @@ ALPAKA_FN_ACC auto testAtomicOr(TAcc const& acc, alpaka::Accessor<bool*, bool, I
 
 ALPAKA_NO_HOST_ACC_WARNING
 template<typename TAcc, typename Idx, typename T>
-ALPAKA_FN_ACC auto testAtomicXor(TAcc const& acc, alpaka::Accessor<bool*, bool, Idx, 1> const success, T operandOrig)
-    -> void
+ALPAKA_FN_ACC auto testAtomicXor(
+    TAcc const& acc,
+    alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success,
+    T operandOrig) -> void
 {
     T const value = static_cast<T>(operandOrig + static_cast<T>(4));
     T const reference = operandOrig ^ value;
@@ -241,8 +261,10 @@ ALPAKA_FN_ACC auto testAtomicXor(TAcc const& acc, alpaka::Accessor<bool*, bool, 
 
 ALPAKA_NO_HOST_ACC_WARNING
 template<typename TAcc, typename Idx, typename T>
-ALPAKA_FN_ACC auto testAtomicCas(TAcc const& acc, alpaka::Accessor<bool*, bool, Idx, 1> const success, T operandOrig)
-    -> void
+ALPAKA_FN_ACC auto testAtomicCas(
+    TAcc const& acc,
+    alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success,
+    T operandOrig) -> void
 {
     T const value = static_cast<T>(4);
     auto& operand = alpaka::declareSharedVar<T, __COUNTER__>(acc);
@@ -291,7 +313,7 @@ public:
     template<typename Idx>
     ALPAKA_NO_HOST_ACC_WARNING ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, Idx, 1> const success,
+        alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success,
         T operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -323,7 +345,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuUniformCudaHipRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>> const success,
+        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
         T operandOrig) const -> void
     {
         alpaka::ignore_unused(acc);
@@ -341,7 +363,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuCudaRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>> const success,
+        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
         int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -372,7 +394,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuCudaRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>> const success,
+        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
         unsigned int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -401,7 +423,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuCudaRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>> const success,
+        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
         unsigned long int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -442,7 +464,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuCudaRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>> const success,
+        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
         unsigned long long int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -477,7 +499,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuCudaRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>> const success,
+        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
         float operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -511,7 +533,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuCudaRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>> const success,
+        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
         double operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -552,7 +574,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuCudaRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>> const success,
+        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
         T operandOrig) const -> void
     {
         alpaka::ignore_unused(acc);
@@ -572,7 +594,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuHipRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>> const success,
+        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
         int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -603,7 +625,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuHipRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>> const success,
+        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
         unsigned int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -632,7 +654,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuHipRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>> const success,
+        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
         unsigned long int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -673,7 +695,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuHipRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>> const success,
+        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
         unsigned long long int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -708,7 +730,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuHipRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>> const success,
+        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
         float operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -742,7 +764,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuHipRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>> const success,
+        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
         double operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -783,7 +805,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuHipRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>> const success,
+        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
         T operandOrig) const -> void
     {
         alpaka::ignore_unused(acc);

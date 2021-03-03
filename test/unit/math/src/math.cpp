@@ -38,9 +38,9 @@ struct TestKernel
     template<typename TAcc, typename TResults, typename Idx, typename TFunctor, typename TArgs>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<TResults*, TResults, Idx, 1> const results,
+        alpaka::Accessor<TResults*, TResults, Idx, 1, alpaka::WriteAccess> const results,
         TFunctor const& functor,
-        alpaka::Accessor<const TArgs*, const TArgs, Idx, 1> const args) const noexcept -> void
+        alpaka::Accessor<TArgs*, TArgs, Idx, 1, alpaka::ReadAccess> const args) const noexcept -> void
     {
         for(size_t i = 0; i < TCapacity; ++i)
         {
@@ -113,7 +113,7 @@ struct TestTemplate
         auto const taskKernel(alpaka::createTaskKernel<TAcc>(
             workDiv,
             kernel,
-            results.pDevBuffer,
+            alpaka::writeAccess(results.devBuffer),
             functor,
             alpaka::readAccess(args.devBuffer)));
         // Enqueue the kernel execution task.

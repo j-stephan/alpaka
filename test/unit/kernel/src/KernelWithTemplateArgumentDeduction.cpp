@@ -24,7 +24,7 @@ public:
     template<typename Acc, typename Idx, typename TByValue, typename TByConstValue, typename TByConstReference>
     ALPAKA_FN_ACC auto operator()(
         Acc const& acc,
-        alpaka::Accessor<bool*, bool, Idx, 1> const success,
+        alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success,
         TByValue,
         TByConstValue const,
         TByConstReference const&) const -> void
@@ -99,7 +99,7 @@ public:
     template<typename Acc, typename Idx, typename TByPointer, typename TByPointerToConst>
     ALPAKA_FN_ACC auto operator()(
         Acc const& acc,
-        alpaka::Accessor<bool*, bool, Idx, 1> const success,
+        alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success,
         TByPointer*,
         TByPointerToConst const*) const -> void
     {

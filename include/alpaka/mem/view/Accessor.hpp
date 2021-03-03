@@ -40,12 +40,33 @@ namespace alpaka
     struct WriteAccess
     {
     };
+    struct ReadWriteAccess
+    {
+    };
 
     template<typename MemoryHandle, typename Elem, typename BufferIdx, std::size_t Dim, typename AccessModes>
     struct Accessor;
 
     namespace internal
     {
+        template<typename T>
+        struct WriteOnlyProxy
+        {
+            WriteOnlyProxy(T& location) : loc(location)
+            {
+            }
+
+            template<typename U>
+            auto& operator=(U&& value)
+            {
+                loc = std::forward<U>(value);
+                return *this;
+            }
+
+        private:
+            T& loc;
+        };
+
         template<typename Pointer, typename Elem, typename AccessModes>
         struct AccessReturnTypeImpl;
 
@@ -57,6 +78,12 @@ namespace alpaka
 
         template<typename Pointer, typename Elem>
         struct AccessReturnTypeImpl<Pointer, Elem, WriteAccess>
+        {
+            using type = WriteOnlyProxy<Elem>;
+        };
+
+        template<typename Pointer, typename Elem>
+        struct AccessReturnTypeImpl<Pointer, Elem, ReadWriteAccess>
         {
             using type = Elem&;
         };
