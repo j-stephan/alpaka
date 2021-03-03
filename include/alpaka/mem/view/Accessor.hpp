@@ -103,6 +103,17 @@ namespace alpaka
     {
         using ReturnType = AccessReturnType<Pointer, Elem, AccessModes>;
 
+        ALPAKA_FN_ACC Accessor(Pointer p_, Vec<DimInt<1>, BufferIdx> extents_) : p(p_), extents(extents_)
+        {
+        }
+
+        template<typename OtherAccessModes>
+        ALPAKA_FN_ACC Accessor(const Accessor<Pointer, Elem, BufferIdx, 1, OtherAccessModes>& other)
+            : p(other.p)
+            , extents(other.extents)
+        {
+        }
+
         ALPAKA_FN_ACC auto operator[](Vec<DimInt<1>, BufferIdx> i) const -> ReturnType
         {
             return (*this)(i[0]);
@@ -126,6 +137,21 @@ namespace alpaka
     struct Accessor<Pointer, Elem, BufferIdx, 2, AccessModes>
     {
         using ReturnType = AccessReturnType<Pointer, Elem, AccessModes>;
+
+        ALPAKA_FN_ACC Accessor(Pointer p_, BufferIdx rowPitchInBytes_, Vec<DimInt<2>, BufferIdx> extents_)
+            : p(p_)
+            , rowPitchInBytes(rowPitchInBytes_)
+            , extents(extents_)
+        {
+        }
+
+        template<typename OtherAccessModes>
+        ALPAKA_FN_ACC Accessor(const Accessor<Pointer, Elem, BufferIdx, 2, OtherAccessModes>& other)
+            : p(other.p)
+            , rowPitchInBytes(other.rowPitchInBytes)
+            , extents(other.extents)
+        {
+        }
 
         ALPAKA_FN_ACC auto operator[](Vec<DimInt<2>, BufferIdx> i) const -> ReturnType
         {
@@ -153,6 +179,27 @@ namespace alpaka
     struct Accessor<Pointer, Elem, BufferIdx, 3, AccessModes>
     {
         using ReturnType = AccessReturnType<Pointer, Elem, AccessModes>;
+
+        ALPAKA_FN_ACC Accessor(
+            Pointer p_,
+            BufferIdx slicePitchInBytes_,
+            BufferIdx rowPitchInBytes_,
+            Vec<DimInt<3>, BufferIdx> extents_)
+            : p(p_)
+            , slicePitchInBytes(slicePitchInBytes_)
+            , rowPitchInBytes(rowPitchInBytes_)
+            , extents(extents_)
+        {
+        }
+
+        template<typename OtherAccessModes>
+        ALPAKA_FN_ACC Accessor(const Accessor<Pointer, Elem, BufferIdx, 3, OtherAccessModes>& other)
+            : p(other.p)
+            , slicePitchInBytes(other.slicePitchInBytes)
+            , rowPitchInBytes(other.rowPitchInBytes)
+            , extents(other.extents)
+        {
+        }
 
         ALPAKA_FN_ACC auto operator[](Vec<DimInt<3>, BufferIdx> i) const -> ReturnType
         {
@@ -286,9 +333,18 @@ namespace alpaka
                 getPitchBytes<PitchIs + 1>(buffer)...,
                 {extent::getExtent<ExtentIs>(buffer)...}};
         }
+
+        template<typename T>
+        constexpr bool isAccessor = false;
+
+        template<typename MemoryHandle, typename Elem, typename BufferIdx, std::size_t Dim, typename AccessModes>
+        constexpr bool isAccessor<Accessor<MemoryHandle, Elem, BufferIdx, Dim, AccessModes>> = true;
     } // namespace internal
 
-    template<typename... AccessModes, typename Buf>
+    template<
+        typename... AccessModes,
+        typename Buf,
+        typename = std::enable_if_t<!internal::isAccessor<std::decay_t<Buf>>>>
     auto accessWith(Buf&& buffer)
     {
         using Dim = Dim<std::decay_t<Buf>>;
@@ -298,21 +354,47 @@ namespace alpaka
             std::make_index_sequence<Dim::value>{});
     }
 
-    template<typename Buf>
-    auto access(Buf&& buffer)
+    // TODO: currently only allows constraining down to 1 access mode
+    template<
+        typename NewAccessMode,
+        typename MemoryHandle,
+        typename Elem,
+        typename BufferIdx,
+        std::size_t Dim,
+        typename... PrevAccessModesBefore,
+        typename... PrevAccessModesAfter>
+    auto accessWith(const Accessor<
+                    MemoryHandle,
+                    Elem,
+                    BufferIdx,
+                    Dim,
+                    std::tuple<PrevAccessModesBefore..., NewAccessMode, PrevAccessModesAfter...>>& acc)
     {
-        return accessWith<WriteAccess, ReadAccess>(std::forward<Buf>(buffer));
+        return Accessor<MemoryHandle, Elem, BufferIdx, Dim, NewAccessMode>{acc};
     }
 
-    template<typename Buf>
-    auto readAccess(Buf&& buffer)
+    // constraining accessor to the same access mode again just passes through
+    template<typename AccessMode, typename MemoryHandle, typename Elem, typename BufferIdx, std::size_t Dim>
+    auto accessWith(const Accessor<MemoryHandle, Elem, BufferIdx, Dim, AccessMode>& acc)
     {
-        return accessWith<ReadAccess>(std::forward<Buf>(buffer));
+        return acc;
     }
 
-    template<typename Buf>
-    auto writeAccess(Buf&& buffer)
+    template<typename BufOrAcc>
+    auto access(BufOrAcc&& bufOrAcc)
     {
-        return accessWith<WriteAccess>(std::forward<Buf>(buffer));
+        return accessWith<ReadWriteAccess>(std::forward<BufOrAcc>(bufOrAcc));
+    }
+
+    template<typename BufOrAcc>
+    auto readAccess(BufOrAcc&& bufOrAcc)
+    {
+        return accessWith<ReadAccess>(std::forward<BufOrAcc>(bufOrAcc));
+    }
+
+    template<typename BufOrAcc>
+    auto writeAccess(BufOrAcc&& bufOrAcc)
+    {
+        return accessWith<WriteAccess>(std::forward<BufOrAcc>(bufOrAcc));
     }
 } // namespace alpaka
