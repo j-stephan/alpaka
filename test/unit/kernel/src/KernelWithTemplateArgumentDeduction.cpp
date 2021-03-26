@@ -21,17 +21,17 @@ class KernelInvocationTemplateDeductionValueSemantics
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename Acc, typename Idx, typename TByValue, typename TByConstValue, typename TByConstReference>
+    template<typename TAcc, typename TIdx, typename TByValue, typename TByConstValue, typename TByConstReference>
     ALPAKA_FN_ACC auto operator()(
-        Acc const& acc,
-        alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success,
+        TAcc const& acc,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         TByValue,
         TByConstValue const,
         TByConstReference const&) const -> void
     {
         ALPAKA_CHECK(
             success[0],
-            static_cast<alpaka::Idx<Acc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
+            static_cast<alpaka::Idx<TAcc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
 
         static_assert(
             std::is_same<TByValue, TExpected>::value,
@@ -96,16 +96,16 @@ class KernelInvocationTemplateDeductionPointerSemantics
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename Acc, typename Idx, typename TByPointer, typename TByPointerToConst>
+    template<typename TAcc, typename TIdx, typename TByPointer, typename TByPointerToConst>
     ALPAKA_FN_ACC auto operator()(
-        Acc const& acc,
-        alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success,
+        TAcc const& acc,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         TByPointer*,
         TByPointerToConst const*) const -> void
     {
         ALPAKA_CHECK(
             success[0],
-            static_cast<alpaka::Idx<Acc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
+            static_cast<alpaka::Idx<TAcc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
 
         static_assert(
             std::is_same<TByPointer, TExpectedFirst>::value,
