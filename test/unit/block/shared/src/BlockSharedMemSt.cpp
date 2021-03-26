@@ -116,12 +116,12 @@ public:
             // same type and same id should result in same pointer for each allocation
             auto& a = alpaka::declareSharedVar<alpaka::test::Array<std::uint8_t, 21>, 42>(acc);
             auto& b = alpaka::declareSharedVar<alpaka::test::Array<std::uint8_t, 21>, 42>(acc);
-            ALPAKA_CHECK(*success, &a == &b);
-            ALPAKA_CHECK(*success, &a == &baseAllocation);
+            ALPAKA_CHECK(success[0], &a == &b);
+            ALPAKA_CHECK(success[0], &a == &baseAllocation);
 
             auto& lastAllocation = alpaka::declareSharedVar<alpaka::test::Array<std::uint8_t, 23>, 23>(acc);
             auto& c = alpaka::declareSharedVar<alpaka::test::Array<std::uint8_t, 23>, 23>(acc);
-            ALPAKA_CHECK(*success, &lastAllocation == &c);
+            ALPAKA_CHECK(success[0], &lastAllocation == &c);
         }
     }
 };

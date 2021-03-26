@@ -392,55 +392,57 @@ namespace custom
 
 struct AdlKernel
 {
-    template<typename TAcc>
-    ALPAKA_FN_ACC void operator()(TAcc const& acc, bool* success) const noexcept
+    template<typename TAcc, typename TIdx>
+    ALPAKA_FN_ACC void operator()(
+        TAcc const& acc,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success) const noexcept
     {
         using custom::Custom;
 
-        ALPAKA_CHECK(*success, alpaka::math::abs(acc, Custom::Arg1) == (Custom::Abs | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::acos(acc, Custom::Arg1) == (Custom::Acos | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::asin(acc, Custom::Arg1) == (Custom::Asin | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::atan(acc, Custom::Arg1) == (Custom::Atan | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::cbrt(acc, Custom::Arg1) == (Custom::Cbrt | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::ceil(acc, Custom::Arg1) == (Custom::Ceil | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::cos(acc, Custom::Arg1) == (Custom::Cos | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::erf(acc, Custom::Arg1) == (Custom::Erf | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::exp(acc, Custom::Arg1) == (Custom::Exp | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::floor(acc, Custom::Arg1) == (Custom::Floor | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::log(acc, Custom::Arg1) == (Custom::Log | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::round(acc, Custom::Arg1) == (Custom::Round | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::lround(acc, Custom::Arg1) == (Custom::Lround | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::llround(acc, Custom::Arg1) == (Custom::Llround | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::rsqrt(acc, Custom::Arg1) == (Custom::Rsqrt | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::sin(acc, Custom::Arg1) == (Custom::Sin | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::sqrt(acc, Custom::Arg1) == (Custom::Sqrt | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::tan(acc, Custom::Arg1) == (Custom::Tan | Custom::Arg1));
-        ALPAKA_CHECK(*success, alpaka::math::trunc(acc, Custom::Arg1) == (Custom::Trunc | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::abs(acc, Custom::Arg1) == (Custom::Abs | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::acos(acc, Custom::Arg1) == (Custom::Acos | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::asin(acc, Custom::Arg1) == (Custom::Asin | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::atan(acc, Custom::Arg1) == (Custom::Atan | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::cbrt(acc, Custom::Arg1) == (Custom::Cbrt | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::ceil(acc, Custom::Arg1) == (Custom::Ceil | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::cos(acc, Custom::Arg1) == (Custom::Cos | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::erf(acc, Custom::Arg1) == (Custom::Erf | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::exp(acc, Custom::Arg1) == (Custom::Exp | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::floor(acc, Custom::Arg1) == (Custom::Floor | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::log(acc, Custom::Arg1) == (Custom::Log | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::round(acc, Custom::Arg1) == (Custom::Round | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::lround(acc, Custom::Arg1) == (Custom::Lround | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::llround(acc, Custom::Arg1) == (Custom::Llround | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::rsqrt(acc, Custom::Arg1) == (Custom::Rsqrt | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::sin(acc, Custom::Arg1) == (Custom::Sin | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::sqrt(acc, Custom::Arg1) == (Custom::Sqrt | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::tan(acc, Custom::Arg1) == (Custom::Tan | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::trunc(acc, Custom::Arg1) == (Custom::Trunc | Custom::Arg1));
 
         ALPAKA_CHECK(
-            *success,
+            success[0],
             alpaka::math::atan2(acc, Custom::Arg1, Custom::Arg2) == (Custom::Atan2 | Custom::Arg1 | Custom::Arg2));
         ALPAKA_CHECK(
-            *success,
+            success[0],
             alpaka::math::fmod(acc, Custom::Arg1, Custom::Arg2) == (Custom::Fmod | Custom::Arg1 | Custom::Arg2));
         ALPAKA_CHECK(
-            *success,
+            success[0],
             alpaka::math::max(acc, Custom::Arg1, Custom::Arg2) == (Custom::Max | Custom::Arg1 | Custom::Arg2));
         ALPAKA_CHECK(
-            *success,
+            success[0],
             alpaka::math::min(acc, Custom::Arg1, Custom::Arg2) == (Custom::Min | Custom::Arg1 | Custom::Arg2));
         ALPAKA_CHECK(
-            *success,
+            success[0],
             alpaka::math::pow(acc, Custom::Arg1, Custom::Arg2) == (Custom::Pow | Custom::Arg1 | Custom::Arg2));
         ALPAKA_CHECK(
-            *success,
+            success[0],
             alpaka::math::remainder(acc, Custom::Arg1, Custom::Arg2)
                 == (Custom::Remainder | Custom::Arg1 | Custom::Arg2));
 
         Custom a, b;
         alpaka::math::sincos(acc, Custom::Arg1, a, b);
-        ALPAKA_CHECK(*success, a == (Custom::Sincos | Custom::Arg1 | Custom::Arg2));
-        ALPAKA_CHECK(*success, b == (Custom::Sincos | Custom::Arg1 | Custom::Arg3));
+        ALPAKA_CHECK(success[0], a == (Custom::Sincos | Custom::Arg1 | Custom::Arg2));
+        ALPAKA_CHECK(success[0], b == (Custom::Sincos | Custom::Arg1 | Custom::Arg3));
     }
 };
 
