@@ -32,10 +32,10 @@ ALPAKA_FN_ACC size_t linIdxToPitchedIdx(size_t const globalIdx, size_t const pit
 //! Prints all elements of the buffer.
 struct PrintBufferKernel
 {
-    template<typename TAcc, typename Data, typename Idx>
+    template<typename TAcc, typename TData, typename TIdx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<Data*, Data, Idx, 3, alpaka::ReadAccess> const data) const -> void
+        alpaka::Accessor<TData*, TData, TIdx, 3, alpaka::ReadAccess> const data) const -> void
     {
         auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
         auto const gridSize = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
@@ -50,10 +50,10 @@ struct PrintBufferKernel
 //! Tests if the value of the buffer on index i is equal to i.
 struct TestBufferKernel
 {
-    template<typename TAcc, typename TData, typename Idx>
+    template<typename TAcc, typename TData, typename TIdx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<TData*, TData, Idx, 3, alpaka::ReadAccess> const data) const -> void
+        alpaka::Accessor<TData*, TData, TIdx, 3, alpaka::ReadAccess> const data) const -> void
     {
         auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
         auto const gridSize = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
@@ -69,10 +69,10 @@ struct TestBufferKernel
 //! Fills values of buffer with increasing elements starting from 0
 struct FillBufferKernel
 {
-    template<typename TAcc, typename TData, typename Idx>
+    template<typename TAcc, typename TData, typename TIdx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<TData*, TData, Idx, 3, alpaka::WriteAccess> const data) const -> void
+        alpaka::Accessor<TData*, TData, TIdx, 3, alpaka::WriteAccess> const data) const -> void
     {
         auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);
         auto const gridSize = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);

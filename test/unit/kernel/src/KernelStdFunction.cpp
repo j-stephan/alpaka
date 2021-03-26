@@ -24,10 +24,10 @@ TEST_UNIT_KERNEL_KERNEL_STD_FUNCTION
 #    include <nvfunctional>
 #endif
 
-template<typename Acc>
+template<typename TAcc>
 void ALPAKA_FN_ACC kernelFn(
-    Acc const& acc,
-    alpaka::Accessor<bool*, bool, alpaka::Idx<Acc>, 1, alpaka::WriteAccess> const success,
+    TAcc const& acc,
+    alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
     std::int32_t val)
 {
     alpaka::ignore_unused(acc);

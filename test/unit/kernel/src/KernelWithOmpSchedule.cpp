@@ -38,7 +38,7 @@ struct KernelWithOmpScheduleBase
     template<typename TDim, typename TIdx>
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccCpuOmp2Blocks<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success) const -> void
     {
         alpaka::ignore_unused(acc);
         omp_sched_t kind;

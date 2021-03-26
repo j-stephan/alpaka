@@ -18,36 +18,36 @@ namespace
 
     struct WriteKernelTemplate
     {
-        template<typename Acc, typename Accessor>
-        ALPAKA_FN_ACC void operator()(Acc const&, Accessor data) const
+        template<typename TAcc, typename TAccessor>
+        ALPAKA_FN_ACC void operator()(TAcc const&, TAccessor data) const
         {
             data[1] = 1.0f;
             data(2) = 2.0f;
-            data[alpaka::Vec<alpaka::DimInt<1>, alpaka::Idx<Acc>>{alpaka::Idx<Acc>{3}}] = 3.0f;
+            data[alpaka::Vec<alpaka::DimInt<1>, alpaka::Idx<TAcc>>{alpaka::Idx<TAcc>{3}}] = 3.0f;
         }
     };
 
     struct WriteKernelExplicit
     {
-        template<typename Acc, typename Pointer, typename Idx>
+        template<typename TAcc, typename TPointer, typename TIdx>
         ALPAKA_FN_ACC void operator()(
-            Acc const&,
-            alpaka::Accessor<Pointer, float, Idx, 1, alpaka::WriteAccess> const data) const
+            TAcc const&,
+            alpaka::Accessor<TPointer, float, TIdx, 1, alpaka::WriteAccess> const data) const
         {
             data[1] = 1.0f;
             data(2) = 2.0f;
-            data[alpaka::Vec<alpaka::DimInt<1>, Idx>{Idx{3}}] = 3.0f;
+            data[alpaka::Vec<alpaka::DimInt<1>, TIdx>{TIdx{3}}] = 3.0f;
         }
     };
 
     struct ReadKernelTemplate
     {
-        template<typename Acc, typename Accessor>
-        ALPAKA_FN_ACC void operator()(Acc const&, Accessor data) const
+        template<typename TAcc, typename TAccessor>
+        ALPAKA_FN_ACC void operator()(TAcc const&, TAccessor data) const
         {
             const float v1 = data[1];
             const float v2 = data(2);
-            const float v3 = data[alpaka::Vec<alpaka::DimInt<1>, alpaka::Idx<Acc>>{alpaka::Idx<Acc>{3}}];
+            const float v3 = data[alpaka::Vec<alpaka::DimInt<1>, alpaka::Idx<TAcc>>{alpaka::Idx<TAcc>{3}}];
             (void) v1;
             (void) v2;
             (void) v3;
@@ -56,14 +56,14 @@ namespace
 
     struct ReadKernelExplicit
     {
-        template<typename Acc, typename Pointer, typename Idx>
+        template<typename TAcc, typename TPointer, typename TIdx>
         ALPAKA_FN_ACC void operator()(
-            Acc const&,
-            alpaka::Accessor<Pointer, float, Idx, 1, alpaka::ReadAccess> const data) const
+            TAcc const&,
+            alpaka::Accessor<TPointer, float, TIdx, 1, alpaka::ReadAccess> const data) const
         {
             const float v1 = data[1];
             const float v2 = data(2);
-            const float v3 = data[alpaka::Vec<alpaka::DimInt<1>, Idx>{Idx{3}}];
+            const float v3 = data[alpaka::Vec<alpaka::DimInt<1>, TIdx>{TIdx{3}}];
             (void) v1;
             (void) v2;
             (void) v3;
@@ -72,21 +72,21 @@ namespace
 
     struct ReadWriteKernelExplicit
     {
-        template<typename Acc, typename Pointer, typename Idx>
+        template<typename TAcc, typename TPointer, typename TIdx>
         ALPAKA_FN_ACC void operator()(
-            Acc const&,
-            alpaka::Accessor<Pointer, float, Idx, 1, alpaka::ReadWriteAccess> const data) const
+            TAcc const&,
+            alpaka::Accessor<TPointer, float, TIdx, 1, alpaka::ReadWriteAccess> const data) const
         {
             const float v1 = data[1];
             const float v2 = data(2);
-            const float v3 = data[alpaka::Vec<alpaka::DimInt<1>, Idx>{Idx{3}}];
+            const float v3 = data[alpaka::Vec<alpaka::DimInt<1>, TIdx>{TIdx{3}}];
             (void) v1;
             (void) v2;
             (void) v3;
 
             data[1] = 1.0f;
             data(2) = 2.0f;
-            data[alpaka::Vec<alpaka::DimInt<1>, Idx>{Idx{3}}] = 3.0f;
+            data[alpaka::Vec<alpaka::DimInt<1>, TIdx>{TIdx{3}}] = 3.0f;
         }
     };
 } // namespace
@@ -163,60 +163,60 @@ TEST_CASE("customPointer", "[accessor]")
 
 namespace
 {
-    template<typename Projection, typename MemoryHandle, typename Elem, typename BufferIdx, std::size_t Dim>
+    template<typename TProjection, typename TMemoryHandle, typename TElem, typename TBufferIdx, std::size_t TDim>
     struct AccessorWithProjection;
 
-    template<typename Projection, typename MemoryHandle, typename Elem, typename BufferIdx>
-    struct AccessorWithProjection<Projection, MemoryHandle, Elem, BufferIdx, 1>
+    template<typename TProjection, typename TMemoryHandle, typename TElem, typename TBufferIdx>
+    struct AccessorWithProjection<TProjection, TMemoryHandle, TElem, TBufferIdx, 1>
     {
-        ALPAKA_FN_ACC auto operator[](alpaka::Vec<alpaka::DimInt<1>, BufferIdx> i) const -> Elem
+        ALPAKA_FN_ACC auto operator[](alpaka::Vec<alpaka::DimInt<1>, TBufferIdx> i) const -> TElem
         {
-            return Projection{}(accessor[i]);
+            return TProjection{}(accessor[i]);
         }
 
-        ALPAKA_FN_ACC auto operator[](BufferIdx i) const -> Elem
+        ALPAKA_FN_ACC auto operator[](TBufferIdx i) const -> TElem
         {
-            return Projection{}(accessor[i]);
+            return TProjection{}(accessor[i]);
         }
 
-        ALPAKA_FN_ACC auto operator()(BufferIdx i) const -> Elem
+        ALPAKA_FN_ACC auto operator()(TBufferIdx i) const -> TElem
         {
-            return Projection{}(accessor(i));
+            return TProjection{}(accessor(i));
         }
 
-        alpaka::Accessor<MemoryHandle, Elem, BufferIdx, 1, alpaka::ReadAccess> accessor;
+        alpaka::Accessor<TMemoryHandle, TElem, TBufferIdx, 1, alpaka::ReadAccess> accessor;
     };
 
-    template<typename Projection, typename MemoryHandle, typename Elem, typename BufferIdx>
-    struct AccessorWithProjection<Projection, MemoryHandle, Elem, BufferIdx, 2>
+    template<typename TProjection, typename TMemoryHandle, typename TElem, typename TBufferIdx>
+    struct AccessorWithProjection<TProjection, TMemoryHandle, TElem, TBufferIdx, 2>
     {
-        ALPAKA_FN_ACC auto operator[](alpaka::Vec<alpaka::DimInt<2>, BufferIdx> i) const -> Elem
+        ALPAKA_FN_ACC auto operator[](alpaka::Vec<alpaka::DimInt<2>, TBufferIdx> i) const -> TElem
         {
-            return Projection{}(accessor[i]);
+            return TProjection{}(accessor[i]);
         }
 
-        ALPAKA_FN_ACC auto operator()(BufferIdx y, BufferIdx x) const -> Elem
+        ALPAKA_FN_ACC auto operator()(TBufferIdx y, TBufferIdx x) const -> TElem
         {
-            return Projection{}(accessor(y, x));
+            return TProjection{}(accessor(y, x));
         }
 
-        alpaka::Accessor<MemoryHandle, Elem, BufferIdx, 2, alpaka::ReadAccess> accessor;
+        alpaka::Accessor<TMemoryHandle, TElem, TBufferIdx, 2, alpaka::ReadAccess> accessor;
     };
 
-    template<typename Projection, typename MemoryHandle, typename Elem, typename BufferIdx>
-    struct AccessorWithProjection<Projection, MemoryHandle, Elem, BufferIdx, 3>
+    template<typename TProjection, typename TMemoryHandle, typename TElem, typename TBufferIdx>
+    struct AccessorWithProjection<TProjection, TMemoryHandle, TElem, TBufferIdx, 3>
     {
-        ALPAKA_FN_ACC auto operator[](alpaka::Vec<alpaka::DimInt<3>, BufferIdx> i) const -> Elem
+        ALPAKA_FN_ACC auto operator[](alpaka::Vec<alpaka::DimInt<3>, TBufferIdx> i) const -> TElem
         {
-            return Projection{}(accessor[i]);
+            return TProjection{}(accessor[i]);
         }
 
-        ALPAKA_FN_ACC auto operator()(BufferIdx z, BufferIdx y, BufferIdx x) const -> Elem
+        ALPAKA_FN_ACC auto operator()(TBufferIdx z, TBufferIdx y, TBufferIdx x) const -> TElem
         {
-            return Projection{}(accessor(z, y, x));
+            return TProjection{}(accessor(z, y, x));
         }
 
-        alpaka::Accessor<MemoryHandle, Elem, BufferIdx, 3, alpaka::ReadAccess> accessor;
+        alpaka::Accessor<TMemoryHandle, TElem, TBufferIdx, 3, alpaka::ReadAccess> accessor;
     };
 
     struct DoubleValue
@@ -229,13 +229,13 @@ namespace
 
     struct CopyKernel
     {
-        template<typename Acc, typename Pointer, typename Idx>
+        template<typename TAcc, typename TPointer, typename TIdx>
         ALPAKA_FN_ACC void operator()(
-            Acc const&,
-            alpaka::Accessor<Pointer, int, Idx, 1, alpaka::ReadAccess> const src,
-            alpaka::Accessor<Pointer, int, Idx, 1, alpaka::WriteAccess> const dst) const
+            TAcc const&,
+            alpaka::Accessor<TPointer, int, TIdx, 1, alpaka::ReadAccess> const src,
+            alpaka::Accessor<TPointer, int, TIdx, 1, alpaka::WriteAccess> const dst) const
         {
-            auto const projSrc = AccessorWithProjection<DoubleValue, Pointer, int, Idx, 1>{src};
+            auto const projSrc = AccessorWithProjection<DoubleValue, TPointer, int, TIdx, 1>{src};
             dst[0] = projSrc[0];
         }
     };

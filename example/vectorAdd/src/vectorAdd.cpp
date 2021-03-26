@@ -37,29 +37,29 @@ public:
     //! \param C The destination vector.
     //! \param numElements The number of elements.
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename TElem, typename Idx>
+    template<typename TAcc, typename TElem, typename TIdx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<TElem*, TElem, Idx, 1, alpaka::ReadAccess> A,
-        alpaka::Accessor<TElem*, TElem, Idx, 1, alpaka::ReadAccess> B,
-        alpaka::Accessor<TElem*, TElem, Idx, 1, alpaka::WriteAccess> C) const -> void
+        alpaka::Accessor<TElem*, TElem, TIdx, 1, alpaka::ReadAccess> A,
+        alpaka::Accessor<TElem*, TElem, TIdx, 1, alpaka::ReadAccess> B,
+        alpaka::Accessor<TElem*, TElem, TIdx, 1, alpaka::WriteAccess> C) const -> void
     {
         static_assert(alpaka::Dim<TAcc>::value == 1, "The VectorAddKernel expects 1-dimensional indices!");
 
-        using TIdx = alpaka::Idx<TAcc>;
-        TIdx const gridThreadIdx(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0u]);
-        TIdx const threadElemExtent(alpaka::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc)[0u]);
-        TIdx const threadFirstElemIdx(gridThreadIdx * threadElemExtent);
+        using Idx = alpaka::Idx<TAcc>;
+        Idx const gridThreadIdx(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0u]);
+        Idx const threadElemExtent(alpaka::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc)[0u]);
+        Idx const threadFirstElemIdx(gridThreadIdx * threadElemExtent);
 
         const auto numElements = C.extents[0];
         if(threadFirstElemIdx < numElements)
         {
             // Calculate the number of elements to compute in this thread.
             // The result is uniform for all but the last thread.
-            TIdx const threadLastElemIdx(threadFirstElemIdx + threadElemExtent);
-            TIdx const threadLastElemIdxClipped((numElements > threadLastElemIdx) ? threadLastElemIdx : numElements);
+            Idx const threadLastElemIdx(threadFirstElemIdx + threadElemExtent);
+            Idx const threadLastElemIdxClipped((numElements > threadLastElemIdx) ? threadLastElemIdx : numElements);
 
-            for(TIdx i(threadFirstElemIdx); i < threadLastElemIdxClipped; ++i)
+            for(Idx i(threadFirstElemIdx); i < threadLastElemIdxClipped; ++i)
             {
                 C[i] = A[i] + B[i];
             }
