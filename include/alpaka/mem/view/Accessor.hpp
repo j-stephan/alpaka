@@ -18,6 +18,8 @@
 #include <alpaka/dim/Traits.hpp>
 #include <alpaka/mem/view/Traits.hpp>
 
+#include <tuple>
+
 namespace alpaka
 {
     namespace internal
@@ -44,7 +46,7 @@ namespace alpaka
     {
     };
 
-    template<typename MemoryHandle, typename Elem, typename BufferIdx, std::size_t Dim, typename AccessModes>
+    template<typename TMemoryHandle, typename TElem, typename TBufferIdx, std::size_t TDim, typename TAccessModes>
     struct Accessor;
 
     namespace internal
@@ -67,124 +69,124 @@ namespace alpaka
             T& loc;
         };
 
-        template<typename Pointer, typename Elem, typename AccessModes>
+        template<typename TPointer, typename TElem, typename TAccessModes>
         struct AccessReturnTypeImpl;
 
-        template<typename Pointer, typename Elem>
-        struct AccessReturnTypeImpl<Pointer, Elem, ReadAccess>
+        template<typename TPointer, typename TElem>
+        struct AccessReturnTypeImpl<TPointer, TElem, ReadAccess>
         {
-            using type = Elem;
+            using type = TElem;
         };
 
-        template<typename Pointer, typename Elem>
-        struct AccessReturnTypeImpl<Pointer, Elem, WriteAccess>
+        template<typename TPointer, typename TElem>
+        struct AccessReturnTypeImpl<TPointer, TElem, WriteAccess>
         {
-            using type = WriteOnlyProxy<Elem>;
+            using type = WriteOnlyProxy<TElem>;
         };
 
-        template<typename Pointer, typename Elem>
-        struct AccessReturnTypeImpl<Pointer, Elem, ReadWriteAccess>
+        template<typename TPointer, typename TElem>
+        struct AccessReturnTypeImpl<TPointer, TElem, ReadWriteAccess>
         {
-            using type = Elem&;
+            using type = TElem&;
         };
 
-        template<typename Pointer, typename Elem, typename HeadAccessMode, typename... TailAccessModes>
-        struct AccessReturnTypeImpl<Pointer, Elem, std::tuple<HeadAccessMode, TailAccessModes...>>
-            : AccessReturnTypeImpl<Pointer, Elem, HeadAccessMode>
+        template<typename TPointer, typename TElem, typename THeadAccessMode, typename... TTailAccessModes>
+        struct AccessReturnTypeImpl<TPointer, TElem, std::tuple<THeadAccessMode, TTailAccessModes...>>
+            : AccessReturnTypeImpl<TPointer, TElem, THeadAccessMode>
         {
         };
     } // namespace internal
 
-    template<typename Pointer, typename Elem, typename AccessModes>
-    using AccessReturnType = typename internal::AccessReturnTypeImpl<Pointer, Elem, AccessModes>::type;
+    template<typename TPointer, typename TElem, typename TAccessModes>
+    using AccessReturnType = typename internal::AccessReturnTypeImpl<TPointer, TElem, TAccessModes>::type;
 
-    template<typename Pointer, typename Elem, typename BufferIdx, typename AccessModes>
-    struct Accessor<Pointer, Elem, BufferIdx, 1, AccessModes>
+    template<typename TPointer, typename TElem, typename TBufferIdx, typename TAccessModes>
+    struct Accessor<TPointer, TElem, TBufferIdx, 1, TAccessModes>
     {
-        using ReturnType = AccessReturnType<Pointer, Elem, AccessModes>;
+        using ReturnType = AccessReturnType<TPointer, TElem, TAccessModes>;
 
-        ALPAKA_FN_ACC Accessor(Pointer p_, Vec<DimInt<1>, BufferIdx> extents_) : p(p_), extents(extents_)
+        ALPAKA_FN_ACC Accessor(TPointer p_, Vec<DimInt<1>, TBufferIdx> extents_) : p(p_), extents(extents_)
         {
         }
 
-        template<typename OtherAccessModes>
-        ALPAKA_FN_ACC Accessor(const Accessor<Pointer, Elem, BufferIdx, 1, OtherAccessModes>& other)
+        template<typename TOtherAccessModes>
+        ALPAKA_FN_ACC Accessor(const Accessor<TPointer, TElem, TBufferIdx, 1, TOtherAccessModes>& other)
             : p(other.p)
             , extents(other.extents)
         {
         }
 
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<1>, BufferIdx> i) const -> ReturnType
+        ALPAKA_FN_ACC auto operator[](Vec<DimInt<1>, TBufferIdx> i) const -> ReturnType
         {
             return (*this)(i[0]);
         }
 
-        ALPAKA_FN_ACC auto operator[](BufferIdx i) const -> ReturnType
+        ALPAKA_FN_ACC auto operator[](TBufferIdx i) const -> ReturnType
         {
             return (*this)(i);
         }
 
-        ALPAKA_FN_ACC auto operator()(BufferIdx i) const -> ReturnType
+        ALPAKA_FN_ACC auto operator()(TBufferIdx i) const -> ReturnType
         {
             return p[i];
         }
 
-        Pointer p;
-        Vec<DimInt<1>, BufferIdx> extents;
+        TPointer p;
+        Vec<DimInt<1>, TBufferIdx> extents;
     };
 
-    template<typename Pointer, typename Elem, typename BufferIdx, typename AccessModes>
-    struct Accessor<Pointer, Elem, BufferIdx, 2, AccessModes>
+    template<typename TPointer, typename TElem, typename TBufferIdx, typename TAccessModes>
+    struct Accessor<TPointer, TElem, TBufferIdx, 2, TAccessModes>
     {
-        using ReturnType = AccessReturnType<Pointer, Elem, AccessModes>;
+        using ReturnType = AccessReturnType<TPointer, TElem, TAccessModes>;
 
-        ALPAKA_FN_ACC Accessor(Pointer p_, BufferIdx rowPitchInBytes_, Vec<DimInt<2>, BufferIdx> extents_)
+        ALPAKA_FN_ACC Accessor(TPointer p_, TBufferIdx rowPitchInBytes_, Vec<DimInt<2>, TBufferIdx> extents_)
             : p(p_)
             , rowPitchInBytes(rowPitchInBytes_)
             , extents(extents_)
         {
         }
 
-        template<typename OtherAccessModes>
-        ALPAKA_FN_ACC Accessor(const Accessor<Pointer, Elem, BufferIdx, 2, OtherAccessModes>& other)
+        template<typename TOtherAccessModes>
+        ALPAKA_FN_ACC Accessor(const Accessor<TPointer, TElem, TBufferIdx, 2, TOtherAccessModes>& other)
             : p(other.p)
             , rowPitchInBytes(other.rowPitchInBytes)
             , extents(other.extents)
         {
         }
 
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<2>, BufferIdx> i) const -> ReturnType
+        ALPAKA_FN_ACC auto operator[](Vec<DimInt<2>, TBufferIdx> i) const -> ReturnType
         {
             return (*this)(i[0], i[1]);
         }
 
-        ALPAKA_FN_ACC auto operator()(BufferIdx y, BufferIdx x) const -> ReturnType
+        ALPAKA_FN_ACC auto operator()(TBufferIdx y, TBufferIdx x) const -> ReturnType
         {
 #if BOOST_COMP_GNUC
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wcast-align"
 #endif
-            return *(reinterpret_cast<Elem*>(internal::asBytePtr(p) + y * rowPitchInBytes) + x);
+            return *(reinterpret_cast<TElem*>(internal::asBytePtr(p) + y * rowPitchInBytes) + x);
 #if BOOST_COMP_GNUC
 #    pragma GCC diagnostic pop
 #endif
         }
 
-        Pointer p;
-        BufferIdx rowPitchInBytes;
-        Vec<DimInt<2>, BufferIdx> extents;
+        TPointer p;
+        TBufferIdx rowPitchInBytes;
+        Vec<DimInt<2>, TBufferIdx> extents;
     };
 
-    template<typename Pointer, typename Elem, typename BufferIdx, typename AccessModes>
-    struct Accessor<Pointer, Elem, BufferIdx, 3, AccessModes>
+    template<typename TPointer, typename TElem, typename TBufferIdx, typename TAccessModes>
+    struct Accessor<TPointer, TElem, TBufferIdx, 3, TAccessModes>
     {
-        using ReturnType = AccessReturnType<Pointer, Elem, AccessModes>;
+        using ReturnType = AccessReturnType<TPointer, TElem, TAccessModes>;
 
         ALPAKA_FN_ACC Accessor(
-            Pointer p_,
-            BufferIdx slicePitchInBytes_,
-            BufferIdx rowPitchInBytes_,
-            Vec<DimInt<3>, BufferIdx> extents_)
+            TPointer p_,
+            TBufferIdx slicePitchInBytes_,
+            TBufferIdx rowPitchInBytes_,
+            Vec<DimInt<3>, TBufferIdx> extents_)
             : p(p_)
             , slicePitchInBytes(slicePitchInBytes_)
             , rowPitchInBytes(rowPitchInBytes_)
@@ -192,8 +194,8 @@ namespace alpaka
         {
         }
 
-        template<typename OtherAccessModes>
-        ALPAKA_FN_ACC Accessor(const Accessor<Pointer, Elem, BufferIdx, 3, OtherAccessModes>& other)
+        template<typename TOtherAccessModes>
+        ALPAKA_FN_ACC Accessor(const Accessor<TPointer, TElem, TBufferIdx, 3, TOtherAccessModes>& other)
             : p(other.p)
             , slicePitchInBytes(other.slicePitchInBytes)
             , rowPitchInBytes(other.rowPitchInBytes)
@@ -201,200 +203,200 @@ namespace alpaka
         {
         }
 
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<3>, BufferIdx> i) const -> ReturnType
+        ALPAKA_FN_ACC auto operator[](Vec<DimInt<3>, TBufferIdx> i) const -> ReturnType
         {
             return (*this)(i[0], i[1], i[2]);
         }
 
-        ALPAKA_FN_ACC auto operator()(BufferIdx z, BufferIdx y, BufferIdx x) const -> ReturnType
+        ALPAKA_FN_ACC auto operator()(TBufferIdx z, TBufferIdx y, TBufferIdx x) const -> ReturnType
         {
 #if BOOST_COMP_GNUC
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wcast-align"
 #endif
             return *(
-                reinterpret_cast<Pointer>(internal::asBytePtr(p) + z * slicePitchInBytes + y * rowPitchInBytes) + x);
+                reinterpret_cast<TPointer>(internal::asBytePtr(p) + z * slicePitchInBytes + y * rowPitchInBytes) + x);
 #if BOOST_COMP_GNUC
 #    pragma GCC diagnostic pop
 #endif
         }
 
-        Pointer p;
-        BufferIdx slicePitchInBytes;
-        BufferIdx rowPitchInBytes;
-        Vec<DimInt<3>, BufferIdx> extents;
+        TPointer p;
+        TBufferIdx slicePitchInBytes;
+        TBufferIdx rowPitchInBytes;
+        Vec<DimInt<3>, TBufferIdx> extents;
     };
 
 #if 0
     using Image = cudaTextureObject_t;
 
-    template<typename Elem, typename BufferIdx, typename AccessModes>
-    struct Accessor<Image, Elem, BufferIdx, 1, AccessModes>
+    template<typename TElem, typename TBufferIdx, typename TAccessModes>
+    struct Accessor<Image, TElem, TBufferIdx, 1, TAccessModes>
     {
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<1>, BufferIdx> i) const -> Elem
+        ALPAKA_FN_ACC auto operator[](Vec<DimInt<1>, TBufferIdx> i) const -> TElem
         {
             return (*this)(i[0]);
         }
 
-        ALPAKA_FN_ACC auto operator[](BufferIdx i) const -> Elem
+        ALPAKA_FN_ACC auto operator[](TBufferIdx i) const -> TElem
         {
             return (*this)(i);
         }
 
-        ALPAKA_FN_ACC auto operator()(BufferIdx i) const -> Elem
+        ALPAKA_FN_ACC auto operator()(TBufferIdx i) const -> TElem
         {
             return tex1Dfetch(texObj, i);
         }
 
-        ALPAKA_FN_ACC auto operator()(float i) const -> Elem
+        ALPAKA_FN_ACC auto operator()(float i) const -> TElem
         {
             return tex1D(texObj, i);
         }
 
         Image texObj;
-        Vec<DimInt<1>, BufferIdx> extents;
+        Vec<DimInt<1>, TBufferIdx> extents;
     };
 
-    template<typename Elem, typename BufferIdx, typename AccessModes>
-    struct Accessor<Image, Elem, BufferIdx, 2, AccessModes>
+    template<typename TElem, typename TBufferIdx, typename TAccessModes>
+    struct Accessor<Image, TElem, TBufferIdx, 2, TAccessModes>
     {
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<2>, BufferIdx> i) const -> Elem
+        ALPAKA_FN_ACC auto operator[](Vec<DimInt<2>, TBufferIdx> i) const -> TElem
         {
             return (*this)(i[0], i[1]);
         }
 
-        ALPAKA_FN_ACC auto operator()(BufferIdx y, BufferIdx x) const -> Elem
+        ALPAKA_FN_ACC auto operator()(TBufferIdx y, TBufferIdx x) const -> TElem
         {
             return tex1Dfetch(texObj, y * rowPitchInValues + x);
         }
 
-        ALPAKA_FN_ACC auto operator()(float y, float x) const -> Elem
+        ALPAKA_FN_ACC auto operator()(float y, float x) const -> TElem
         {
             return tex2D(texObj, x, y);
         }
 
         Image texObj;
-        BufferIdx rowPitchInValues;
-        Vec<DimInt<2>, BufferIdx> extents;
+        TBufferIdx rowPitchInValues;
+        Vec<DimInt<2>, TBufferIdx> extents;
     };
 
-    template<typename Elem, typename BufferIdx, typename AccessModes>
-    struct Accessor<Image, Elem, BufferIdx, 3, AccessModes>
+    template<typename TElem, typename TBufferIdx, typename TAccessModes>
+    struct Accessor<Image, TElem, TBufferIdx, 3, TAccessModes>
     {
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<3>, BufferIdx> i) const -> Elem
+        ALPAKA_FN_ACC auto operator[](Vec<DimInt<3>, TBufferIdx> i) const -> TElem
         {
             return (*this)(i[0], i[1], i[2]);
         }
 
-        ALPAKA_FN_ACC auto operator()(BufferIdx z, BufferIdx y, BufferIdx x) const -> Elem
+        ALPAKA_FN_ACC auto operator()(TBufferIdx z, TBufferIdx y, TBufferIdx x) const -> TElem
         {
             return tex1Dfetch(texObj, z * slicePitchInValues + y * rowPitchInValues + x);
         }
 
-        ALPAKA_FN_ACC auto operator()(float z, float y, float x) const -> Elem
+        ALPAKA_FN_ACC auto operator()(float z, float y, float x) const -> TElem
         {
             return tex3D(texObj, x, y, z);
         }
 
         Image texObj;
-        BufferIdx rowPitchInValues;
-        BufferIdx slicePitchInValues;
-        Vec<DimInt<3>, BufferIdx> extents;
+        TBufferIdx rowPitchInValues;
+        TBufferIdx slicePitchInValues;
+        Vec<DimInt<3>, TBufferIdx> extents;
     };
 #endif
 
     namespace internal
     {
-        template<typename... AccessModes>
+        template<typename... TAccessModes>
         struct BuildAccessModeList;
 
-        template<typename AccessMode>
-        struct BuildAccessModeList<AccessMode>
+        template<typename TAccessMode>
+        struct BuildAccessModeList<TAccessMode>
         {
-            using type = AccessMode;
+            using type = TAccessMode;
         };
 
-        template<typename AccessMode1, typename AccessMode2, typename... AccessModes>
-        struct BuildAccessModeList<AccessMode1, AccessMode2, AccessModes...>
+        template<typename TAccessMode1, typename TAccessMode2, typename... TAccessModes>
+        struct BuildAccessModeList<TAccessMode1, TAccessMode2, TAccessModes...>
         {
-            using type = std::tuple<AccessMode1, AccessMode2, AccessModes...>;
+            using type = std::tuple<TAccessMode1, TAccessMode2, TAccessModes...>;
         };
 
-        template<typename... AccessModes, typename Buf, std::size_t... PitchIs, std::size_t... ExtentIs>
-        auto buildAccessor(Buf&& buffer, std::index_sequence<PitchIs...>, std::index_sequence<ExtentIs...>)
+        template<typename... TAccessModes, typename TBuf, std::size_t... TPitchIs, std::size_t... TExtentIs>
+        auto buildAccessor(TBuf&& buffer, std::index_sequence<TPitchIs...>, std::index_sequence<TExtentIs...>)
         {
-            using DBuf = std::decay_t<Buf>;
-            using BufferIdx = Idx<DBuf>;
+            using DBuf = std::decay_t<TBuf>;
+            using TBufferIdx = Idx<DBuf>;
             constexpr auto dim = Dim<DBuf>::value;
             auto p = getPtrNative(buffer);
-            using AccessModeList = typename BuildAccessModeList<AccessModes...>::type;
-            return Accessor<decltype(p), Elem<DBuf>, BufferIdx, dim, AccessModeList>{
+            using AccessModeList = typename BuildAccessModeList<TAccessModes...>::type;
+            return Accessor<decltype(p), Elem<DBuf>, TBufferIdx, dim, AccessModeList>{
                 p,
-                getPitchBytes<PitchIs + 1>(buffer)...,
-                {extent::getExtent<ExtentIs>(buffer)...}};
+                getPitchBytes<TPitchIs + 1>(buffer)...,
+                {extent::getExtent<TExtentIs>(buffer)...}};
         }
 
         template<typename T>
         constexpr bool isAccessor = false;
 
-        template<typename MemoryHandle, typename Elem, typename BufferIdx, std::size_t Dim, typename AccessModes>
-        constexpr bool isAccessor<Accessor<MemoryHandle, Elem, BufferIdx, Dim, AccessModes>> = true;
+        template<typename TMemoryHandle, typename TElem, typename TBufferIdx, std::size_t Dim, typename TAccessModes>
+        constexpr bool isAccessor<Accessor<TMemoryHandle, TElem, TBufferIdx, Dim, TAccessModes>> = true;
     } // namespace internal
 
     template<
-        typename... AccessModes,
-        typename Buf,
-        typename = std::enable_if_t<!internal::isAccessor<std::decay_t<Buf>>>>
-    auto accessWith(Buf&& buffer)
+        typename... TAccessModes,
+        typename TBuf,
+        typename = std::enable_if_t<!internal::isAccessor<std::decay_t<TBuf>>>>
+    auto accessWith(TBuf&& buffer)
     {
-        using Dim = Dim<std::decay_t<Buf>>;
-        return internal::buildAccessor<AccessModes...>(
-            std::forward<Buf>(buffer),
+        using Dim = Dim<std::decay_t<TBuf>>;
+        return internal::buildAccessor<TAccessModes...>(
+            std::forward<TBuf>(buffer),
             std::make_index_sequence<Dim::value - 1>{},
             std::make_index_sequence<Dim::value>{});
     }
 
     // TODO: currently only allows constraining down to 1 access mode
     template<
-        typename NewAccessMode,
-        typename MemoryHandle,
-        typename Elem,
-        typename BufferIdx,
-        std::size_t Dim,
-        typename... PrevAccessModesBefore,
-        typename... PrevAccessModesAfter>
+        typename TNewAccessMode,
+        typename TMemoryHandle,
+        typename TElem,
+        typename TBufferIdx,
+        std::size_t TDim,
+        typename... TPrevAccessModesBefore,
+        typename... TPrevAccessModesAfter>
     auto accessWith(const Accessor<
-                    MemoryHandle,
-                    Elem,
-                    BufferIdx,
-                    Dim,
-                    std::tuple<PrevAccessModesBefore..., NewAccessMode, PrevAccessModesAfter...>>& acc)
+                    TMemoryHandle,
+                    TElem,
+                    TBufferIdx,
+                    TDim,
+                    std::tuple<TPrevAccessModesBefore..., TNewAccessMode, TPrevAccessModesAfter...>>& acc)
     {
-        return Accessor<MemoryHandle, Elem, BufferIdx, Dim, NewAccessMode>{acc};
+        return Accessor<TMemoryHandle, TElem, TBufferIdx, TDim, TNewAccessMode>{acc};
     }
 
     // constraining accessor to the same access mode again just passes through
-    template<typename AccessMode, typename MemoryHandle, typename Elem, typename BufferIdx, std::size_t Dim>
-    auto accessWith(const Accessor<MemoryHandle, Elem, BufferIdx, Dim, AccessMode>& acc)
+    template<typename TAccessMode, typename TMemoryHandle, typename TElem, typename TBufferIdx, std::size_t TDim>
+    auto accessWith(const Accessor<TMemoryHandle, TElem, TBufferIdx, TDim, TAccessMode>& acc)
     {
         return acc;
     }
 
-    template<typename BufOrAcc>
-    auto access(BufOrAcc&& bufOrAcc)
+    template<typename TBufOrAcc>
+    auto access(TBufOrAcc&& bufOrAcc)
     {
-        return accessWith<ReadWriteAccess>(std::forward<BufOrAcc>(bufOrAcc));
+        return accessWith<ReadWriteAccess>(std::forward<TBufOrAcc>(bufOrAcc));
     }
 
-    template<typename BufOrAcc>
-    auto readAccess(BufOrAcc&& bufOrAcc)
+    template<typename TBufOrAcc>
+    auto readAccess(TBufOrAcc&& bufOrAcc)
     {
-        return accessWith<ReadAccess>(std::forward<BufOrAcc>(bufOrAcc));
+        return accessWith<ReadAccess>(std::forward<TBufOrAcc>(bufOrAcc));
     }
 
-    template<typename BufOrAcc>
-    auto writeAccess(BufOrAcc&& bufOrAcc)
+    template<typename TBufOrAcc>
+    auto writeAccess(TBufOrAcc&& bufOrAcc)
     {
-        return accessWith<WriteAccess>(std::forward<BufOrAcc>(bufOrAcc));
+        return accessWith<WriteAccess>(std::forward<TBufOrAcc>(bufOrAcc));
     }
 } // namespace alpaka
