@@ -36,16 +36,28 @@ namespace alpaka
         }
     } // namespace internal
 
+    //! Access tag type indicating read-only access.
     struct ReadAccess
     {
     };
+
+    //! Access tag type indicating write-only access.
     struct WriteAccess
     {
     };
+
+    //! Access tag type indicating read-write access.
     struct ReadWriteAccess
     {
     };
 
+    //! An accessor is an abstraction for accessing memory objects such as views and buffers.
+    //! @tparam TMemoryHandle A handle to a memory object.
+    //! @tparam TElem The type of the element stored by the memory object. Values and references to this type are
+    //! returned on access.
+    //! @tparam TBufferIdx The integral type used for indexing and index computations.
+    //! @tparam TDim The dimensionality of the accessed data.
+    //! @tparam TAccessModes Either a single access tag type or a `std::tuple` containing multiple access tag types.
     template<typename TMemoryHandle, typename TElem, typename TBufferIdx, std::size_t TDim, typename TAccessModes>
     struct Accessor;
 
@@ -95,15 +107,16 @@ namespace alpaka
             : AccessReturnTypeImpl<TPointer, TElem, THeadAccessMode>
         {
         };
+
+        template<typename TPointer, typename TElem, typename TAccessModes>
+        using AccessReturnType = typename internal::AccessReturnTypeImpl<TPointer, TElem, TAccessModes>::type;
     } // namespace internal
 
-    template<typename TPointer, typename TElem, typename TAccessModes>
-    using AccessReturnType = typename internal::AccessReturnTypeImpl<TPointer, TElem, TAccessModes>::type;
-
+    //! 1D accessor to memory objects represented by a pointer.
     template<typename TPointer, typename TElem, typename TBufferIdx, typename TAccessModes>
     struct Accessor<TPointer, TElem, TBufferIdx, 1, TAccessModes>
     {
-        using ReturnType = AccessReturnType<TPointer, TElem, TAccessModes>;
+        using ReturnType = internal::AccessReturnType<TPointer, TElem, TAccessModes>;
 
         ALPAKA_FN_ACC Accessor(TPointer p_, Vec<DimInt<1>, TBufferIdx> extents_) : p(p_), extents(extents_)
         {
@@ -135,10 +148,11 @@ namespace alpaka
         Vec<DimInt<1>, TBufferIdx> extents;
     };
 
+    //! 2D accessor to memory objects represented by a pointer.
     template<typename TPointer, typename TElem, typename TBufferIdx, typename TAccessModes>
     struct Accessor<TPointer, TElem, TBufferIdx, 2, TAccessModes>
     {
-        using ReturnType = AccessReturnType<TPointer, TElem, TAccessModes>;
+        using ReturnType = internal::AccessReturnType<TPointer, TElem, TAccessModes>;
 
         ALPAKA_FN_ACC Accessor(TPointer p_, TBufferIdx rowPitchInBytes_, Vec<DimInt<2>, TBufferIdx> extents_)
             : p(p_)
@@ -177,10 +191,11 @@ namespace alpaka
         Vec<DimInt<2>, TBufferIdx> extents;
     };
 
+    //! 3D accessor to memory objects represented by a pointer.
     template<typename TPointer, typename TElem, typename TBufferIdx, typename TAccessModes>
     struct Accessor<TPointer, TElem, TBufferIdx, 3, TAccessModes>
     {
-        using ReturnType = AccessReturnType<TPointer, TElem, TAccessModes>;
+        using ReturnType = internal::AccessReturnType<TPointer, TElem, TAccessModes>;
 
         ALPAKA_FN_ACC Accessor(
             TPointer p_,
@@ -343,6 +358,7 @@ namespace alpaka
         constexpr bool isAccessor<Accessor<TMemoryHandle, TElem, TBufferIdx, Dim, TAccessModes>> = true;
     } // namespace internal
 
+    //! Creates an accessor for the given memory object (view or buffer) using the specified access modes.
     template<
         typename... TAccessModes,
         typename TBuf,
@@ -356,6 +372,7 @@ namespace alpaka
             std::make_index_sequence<Dim::value>{});
     }
 
+    //! Constrains an existing accessor to the specified access modes.
     // TODO: currently only allows constraining down to 1 access mode
     template<
         typename TNewAccessMode,
@@ -375,6 +392,7 @@ namespace alpaka
         return Accessor<TMemoryHandle, TElem, TBufferIdx, TDim, TNewAccessMode>{acc};
     }
 
+    //! Constrains an existing accessor to the specified access modes.
     // constraining accessor to the same access mode again just passes through
     template<typename TAccessMode, typename TMemoryHandle, typename TElem, typename TBufferIdx, std::size_t TDim>
     auto accessWith(const Accessor<TMemoryHandle, TElem, TBufferIdx, TDim, TAccessMode>& acc)
@@ -382,21 +400,24 @@ namespace alpaka
         return acc;
     }
 
-    template<typename TBufOrAcc>
-    auto access(TBufOrAcc&& bufOrAcc)
+    //! Creates a read-write accessor for the given memory object (view, buffer, accessor).
+    template<typename TViewOrAccessor>
+    auto access(TViewOrAccessor&& viewOrAccessor)
     {
-        return accessWith<ReadWriteAccess>(std::forward<TBufOrAcc>(bufOrAcc));
+        return accessWith<ReadWriteAccess>(std::forward<TViewOrAccessor>(viewOrAccessor));
     }
 
-    template<typename TBufOrAcc>
-    auto readAccess(TBufOrAcc&& bufOrAcc)
+    //! Creates a read-only accessor for the given memory object (view, buffer, accessor).
+    template<typename TViewOrAccessor>
+    auto readAccess(TViewOrAccessor&& viewOrAccessor)
     {
-        return accessWith<ReadAccess>(std::forward<TBufOrAcc>(bufOrAcc));
+        return accessWith<ReadAccess>(std::forward<TViewOrAccessor>(viewOrAccessor));
     }
 
-    template<typename TBufOrAcc>
-    auto writeAccess(TBufOrAcc&& bufOrAcc)
+    //! Creates a write-only accessor for the given memory object (view, buffer, accessor).
+    template<typename TViewOrAccessor>
+    auto writeAccess(TViewOrAccessor&& viewOrAccessor)
     {
-        return accessWith<WriteAccess>(std::forward<TBufOrAcc>(bufOrAcc));
+        return accessWith<WriteAccess>(std::forward<TViewOrAccessor>(viewOrAccessor));
     }
 } // namespace alpaka
