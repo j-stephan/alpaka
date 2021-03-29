@@ -25,12 +25,12 @@ namespace alpaka
     namespace internal
     {
         template<typename T>
-        auto asBytePtr(T* p)
+        ALPAKA_FN_HOST_ACC auto asBytePtr(T* p)
         {
             return reinterpret_cast<char*>(p);
         }
         template<typename T>
-        auto asBytePtr(const T* p)
+        ALPAKA_FN_HOST_ACC auto asBytePtr(const T* p)
         {
             return reinterpret_cast<const char*>(p);
         }
@@ -66,12 +66,12 @@ namespace alpaka
         template<typename T>
         struct WriteOnlyProxy
         {
-            WriteOnlyProxy(T& location) : loc(location)
+            ALPAKA_FN_HOST_ACC WriteOnlyProxy(T& location) : loc(location)
             {
             }
 
             template<typename U>
-            auto& operator=(U&& value)
+            ALPAKA_FN_HOST_ACC auto& operator=(U&& value)
             {
                 loc = std::forward<U>(value);
                 return *this;
@@ -118,28 +118,28 @@ namespace alpaka
     {
         using ReturnType = internal::AccessReturnType<TPointer, TElem, TAccessModes>;
 
-        ALPAKA_FN_ACC Accessor(TPointer p_, Vec<DimInt<1>, TBufferIdx> extents_) : p(p_), extents(extents_)
+        ALPAKA_FN_HOST_ACC Accessor(TPointer p_, Vec<DimInt<1>, TBufferIdx> extents_) : p(p_), extents(extents_)
         {
         }
 
         template<typename TOtherAccessModes>
-        ALPAKA_FN_ACC Accessor(const Accessor<TPointer, TElem, TBufferIdx, 1, TOtherAccessModes>& other)
+        ALPAKA_FN_HOST_ACC Accessor(const Accessor<TPointer, TElem, TBufferIdx, 1, TOtherAccessModes>& other)
             : p(other.p)
             , extents(other.extents)
         {
         }
 
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<1>, TBufferIdx> i) const -> ReturnType
+        ALPAKA_FN_HOST_ACC auto operator[](Vec<DimInt<1>, TBufferIdx> i) const -> ReturnType
         {
             return (*this)(i[0]);
         }
 
-        ALPAKA_FN_ACC auto operator[](TBufferIdx i) const -> ReturnType
+        ALPAKA_FN_HOST_ACC auto operator[](TBufferIdx i) const -> ReturnType
         {
             return (*this)(i);
         }
 
-        ALPAKA_FN_ACC auto operator()(TBufferIdx i) const -> ReturnType
+        ALPAKA_FN_HOST_ACC auto operator()(TBufferIdx i) const -> ReturnType
         {
             return p[i];
         }
@@ -154,7 +154,7 @@ namespace alpaka
     {
         using ReturnType = internal::AccessReturnType<TPointer, TElem, TAccessModes>;
 
-        ALPAKA_FN_ACC Accessor(TPointer p_, TBufferIdx rowPitchInBytes_, Vec<DimInt<2>, TBufferIdx> extents_)
+        ALPAKA_FN_HOST_ACC Accessor(TPointer p_, TBufferIdx rowPitchInBytes_, Vec<DimInt<2>, TBufferIdx> extents_)
             : p(p_)
             , rowPitchInBytes(rowPitchInBytes_)
             , extents(extents_)
@@ -162,19 +162,19 @@ namespace alpaka
         }
 
         template<typename TOtherAccessModes>
-        ALPAKA_FN_ACC Accessor(const Accessor<TPointer, TElem, TBufferIdx, 2, TOtherAccessModes>& other)
+        ALPAKA_FN_HOST_ACC Accessor(const Accessor<TPointer, TElem, TBufferIdx, 2, TOtherAccessModes>& other)
             : p(other.p)
             , rowPitchInBytes(other.rowPitchInBytes)
             , extents(other.extents)
         {
         }
 
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<2>, TBufferIdx> i) const -> ReturnType
+        ALPAKA_FN_HOST_ACC auto operator[](Vec<DimInt<2>, TBufferIdx> i) const -> ReturnType
         {
             return (*this)(i[0], i[1]);
         }
 
-        ALPAKA_FN_ACC auto operator()(TBufferIdx y, TBufferIdx x) const -> ReturnType
+        ALPAKA_FN_HOST_ACC auto operator()(TBufferIdx y, TBufferIdx x) const -> ReturnType
         {
 #if BOOST_COMP_GNUC
 #    pragma GCC diagnostic push
@@ -197,7 +197,7 @@ namespace alpaka
     {
         using ReturnType = internal::AccessReturnType<TPointer, TElem, TAccessModes>;
 
-        ALPAKA_FN_ACC Accessor(
+        ALPAKA_FN_HOST_ACC Accessor(
             TPointer p_,
             TBufferIdx slicePitchInBytes_,
             TBufferIdx rowPitchInBytes_,
@@ -210,7 +210,7 @@ namespace alpaka
         }
 
         template<typename TOtherAccessModes>
-        ALPAKA_FN_ACC Accessor(const Accessor<TPointer, TElem, TBufferIdx, 3, TOtherAccessModes>& other)
+        ALPAKA_FN_HOST_ACC Accessor(const Accessor<TPointer, TElem, TBufferIdx, 3, TOtherAccessModes>& other)
             : p(other.p)
             , slicePitchInBytes(other.slicePitchInBytes)
             , rowPitchInBytes(other.rowPitchInBytes)
@@ -218,12 +218,12 @@ namespace alpaka
         {
         }
 
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<3>, TBufferIdx> i) const -> ReturnType
+        ALPAKA_FN_HOST_ACC auto operator[](Vec<DimInt<3>, TBufferIdx> i) const -> ReturnType
         {
             return (*this)(i[0], i[1], i[2]);
         }
 
-        ALPAKA_FN_ACC auto operator()(TBufferIdx z, TBufferIdx y, TBufferIdx x) const -> ReturnType
+        ALPAKA_FN_HOST_ACC auto operator()(TBufferIdx z, TBufferIdx y, TBufferIdx x) const -> ReturnType
         {
 #if BOOST_COMP_GNUC
 #    pragma GCC diagnostic push
@@ -248,22 +248,22 @@ namespace alpaka
     template<typename TElem, typename TBufferIdx, typename TAccessModes>
     struct Accessor<Image, TElem, TBufferIdx, 1, TAccessModes>
     {
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<1>, TBufferIdx> i) const -> TElem
+        ALPAKA_FN_HOST_ACC auto operator[](Vec<DimInt<1>, TBufferIdx> i) const -> TElem
         {
             return (*this)(i[0]);
         }
 
-        ALPAKA_FN_ACC auto operator[](TBufferIdx i) const -> TElem
+        ALPAKA_FN_HOST_ACC auto operator[](TBufferIdx i) const -> TElem
         {
             return (*this)(i);
         }
 
-        ALPAKA_FN_ACC auto operator()(TBufferIdx i) const -> TElem
+        ALPAKA_FN_HOST_ACC auto operator()(TBufferIdx i) const -> TElem
         {
             return tex1Dfetch(texObj, i);
         }
 
-        ALPAKA_FN_ACC auto operator()(float i) const -> TElem
+        ALPAKA_FN_HOST_ACC auto operator()(float i) const -> TElem
         {
             return tex1D(texObj, i);
         }
@@ -275,17 +275,17 @@ namespace alpaka
     template<typename TElem, typename TBufferIdx, typename TAccessModes>
     struct Accessor<Image, TElem, TBufferIdx, 2, TAccessModes>
     {
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<2>, TBufferIdx> i) const -> TElem
+        ALPAKA_FN_HOST_ACC auto operator[](Vec<DimInt<2>, TBufferIdx> i) const -> TElem
         {
             return (*this)(i[0], i[1]);
         }
 
-        ALPAKA_FN_ACC auto operator()(TBufferIdx y, TBufferIdx x) const -> TElem
+        ALPAKA_FN_HOST_ACC auto operator()(TBufferIdx y, TBufferIdx x) const -> TElem
         {
             return tex1Dfetch(texObj, y * rowPitchInValues + x);
         }
 
-        ALPAKA_FN_ACC auto operator()(float y, float x) const -> TElem
+        ALPAKA_FN_HOST_ACC auto operator()(float y, float x) const -> TElem
         {
             return tex2D(texObj, x, y);
         }
@@ -298,17 +298,17 @@ namespace alpaka
     template<typename TElem, typename TBufferIdx, typename TAccessModes>
     struct Accessor<Image, TElem, TBufferIdx, 3, TAccessModes>
     {
-        ALPAKA_FN_ACC auto operator[](Vec<DimInt<3>, TBufferIdx> i) const -> TElem
+        ALPAKA_FN_HOST_ACC auto operator[](Vec<DimInt<3>, TBufferIdx> i) const -> TElem
         {
             return (*this)(i[0], i[1], i[2]);
         }
 
-        ALPAKA_FN_ACC auto operator()(TBufferIdx z, TBufferIdx y, TBufferIdx x) const -> TElem
+        ALPAKA_FN_HOST_ACC auto operator()(TBufferIdx z, TBufferIdx y, TBufferIdx x) const -> TElem
         {
             return tex1Dfetch(texObj, z * slicePitchInValues + y * rowPitchInValues + x);
         }
 
-        ALPAKA_FN_ACC auto operator()(float z, float y, float x) const -> TElem
+        ALPAKA_FN_HOST_ACC auto operator()(float z, float y, float x) const -> TElem
         {
             return tex3D(texObj, x, y, z);
         }
@@ -338,7 +338,10 @@ namespace alpaka
         };
 
         template<typename... TAccessModes, typename TBuf, std::size_t... TPitchIs, std::size_t... TExtentIs>
-        auto buildAccessor(TBuf&& buffer, std::index_sequence<TPitchIs...>, std::index_sequence<TExtentIs...>)
+        ALPAKA_FN_HOST_ACC auto buildAccessor(
+            TBuf&& buffer,
+            std::index_sequence<TPitchIs...>,
+            std::index_sequence<TExtentIs...>)
         {
             using DBuf = std::decay_t<TBuf>;
             using TBufferIdx = Idx<DBuf>;
@@ -363,7 +366,7 @@ namespace alpaka
         typename... TAccessModes,
         typename TBuf,
         typename = std::enable_if_t<!internal::isAccessor<std::decay_t<TBuf>>>>
-    auto accessWith(TBuf&& buffer)
+    ALPAKA_FN_HOST_ACC auto accessWith(TBuf&& buffer)
     {
         using Dim = Dim<std::decay_t<TBuf>>;
         return internal::buildAccessor<TAccessModes...>(
@@ -382,12 +385,13 @@ namespace alpaka
         std::size_t TDim,
         typename... TPrevAccessModesBefore,
         typename... TPrevAccessModesAfter>
-    auto accessWith(const Accessor<
-                    TMemoryHandle,
-                    TElem,
-                    TBufferIdx,
-                    TDim,
-                    std::tuple<TPrevAccessModesBefore..., TNewAccessMode, TPrevAccessModesAfter...>>& acc)
+    ALPAKA_FN_HOST_ACC auto accessWith(
+        const Accessor<
+            TMemoryHandle,
+            TElem,
+            TBufferIdx,
+            TDim,
+            std::tuple<TPrevAccessModesBefore..., TNewAccessMode, TPrevAccessModesAfter...>>& acc)
     {
         return Accessor<TMemoryHandle, TElem, TBufferIdx, TDim, TNewAccessMode>{acc};
     }
@@ -395,28 +399,28 @@ namespace alpaka
     //! Constrains an existing accessor to the specified access modes.
     // constraining accessor to the same access mode again just passes through
     template<typename TAccessMode, typename TMemoryHandle, typename TElem, typename TBufferIdx, std::size_t TDim>
-    auto accessWith(const Accessor<TMemoryHandle, TElem, TBufferIdx, TDim, TAccessMode>& acc)
+    ALPAKA_FN_HOST_ACC auto accessWith(const Accessor<TMemoryHandle, TElem, TBufferIdx, TDim, TAccessMode>& acc)
     {
         return acc;
     }
 
     //! Creates a read-write accessor for the given memory object (view, buffer, accessor).
     template<typename TViewOrAccessor>
-    auto access(TViewOrAccessor&& viewOrAccessor)
+    ALPAKA_FN_HOST_ACC auto access(TViewOrAccessor&& viewOrAccessor)
     {
         return accessWith<ReadWriteAccess>(std::forward<TViewOrAccessor>(viewOrAccessor));
     }
 
     //! Creates a read-only accessor for the given memory object (view, buffer, accessor).
     template<typename TViewOrAccessor>
-    auto readAccess(TViewOrAccessor&& viewOrAccessor)
+    ALPAKA_FN_HOST_ACC auto readAccess(TViewOrAccessor&& viewOrAccessor)
     {
         return accessWith<ReadAccess>(std::forward<TViewOrAccessor>(viewOrAccessor));
     }
 
     //! Creates a write-only accessor for the given memory object (view, buffer, accessor).
     template<typename TViewOrAccessor>
-    auto writeAccess(TViewOrAccessor&& viewOrAccessor)
+    ALPAKA_FN_HOST_ACC auto writeAccess(TViewOrAccessor&& viewOrAccessor)
     {
         return accessWith<WriteAccess>(std::forward<TViewOrAccessor>(viewOrAccessor));
     }
