@@ -366,6 +366,17 @@ namespace alpaka
         inline
 #endif
             constexpr bool isAccessor<Accessor<TMemoryHandle, TElem, TBufferIdx, Dim, TAccessModes>> = true;
+
+        template<typename List, typename Value>
+        struct MpContains : std::false_type
+        {
+        };
+
+        template<template<typename...> class List, typename Head, typename... Tail, typename Value>
+        struct MpContains<List<Head, Tail...>, Value>
+        {
+            static constexpr bool value = std::is_same<Head, Value>::value || MpContains<List<Tail...>, Value>::value;
+        };
     } // namespace internal
 
     //! Creates an accessor for the given memory object (view or buffer) using the specified access modes.
@@ -382,7 +393,7 @@ namespace alpaka
             std::make_index_sequence<Dim::value>{});
     }
 
-    //! Constrains an existing accessor to the specified access modes.
+    //! Constrains an existing accessor with multiple access modes to the specified access modes.
     // TODO: currently only allows constraining down to 1 access mode
     template<
         typename TNewAccessMode,
@@ -390,16 +401,13 @@ namespace alpaka
         typename TElem,
         typename TBufferIdx,
         std::size_t TDim,
-        typename... TPrevAccessModesBefore,
-        typename... TPrevAccessModesAfter>
+        typename... TPrevAccessModes>
     ALPAKA_FN_HOST_ACC auto accessWith(
-        const Accessor<
-            TMemoryHandle,
-            TElem,
-            TBufferIdx,
-            TDim,
-            std::tuple<TPrevAccessModesBefore..., TNewAccessMode, TPrevAccessModesAfter...>>& acc)
+        const Accessor<TMemoryHandle, TElem, TBufferIdx, TDim, std::tuple<TPrevAccessModes...>>& acc)
     {
+        static_assert(
+            internal::MpContains<std::tuple<TPrevAccessModes...>, TNewAccessMode>::value,
+            "The accessed accessor must already contain the requested access mode");
         return Accessor<TMemoryHandle, TElem, TBufferIdx, TDim, TNewAccessMode>{acc};
     }
 
