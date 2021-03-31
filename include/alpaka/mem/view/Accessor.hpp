@@ -355,10 +355,17 @@ namespace alpaka
         }
 
         template<typename T>
-        constexpr bool isAccessor = false;
+#ifdef __cpp_inline_variables
+        inline
+#endif
+            constexpr bool isAccessor
+            = false;
 
         template<typename TMemoryHandle, typename TElem, typename TBufferIdx, std::size_t Dim, typename TAccessModes>
-        constexpr bool isAccessor<Accessor<TMemoryHandle, TElem, TBufferIdx, Dim, TAccessModes>> = true;
+#ifdef __cpp_inline_variables
+        inline
+#endif
+            constexpr bool isAccessor<Accessor<TMemoryHandle, TElem, TBufferIdx, Dim, TAccessModes>> = true;
     } // namespace internal
 
     //! Creates an accessor for the given memory object (view or buffer) using the specified access modes.
