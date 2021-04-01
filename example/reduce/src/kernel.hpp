@@ -19,14 +19,12 @@
 
 #include <alpaka/alpaka.hpp>
 
-//#############################################################################
 //! A cheap wrapper around a C-style array in heap memory.
 template<typename T, uint64_t size>
 struct cheapArray
 {
     T data[size];
 
-    //-----------------------------------------------------------------------------
     //! Access operator.
     //!
     //! \param index The index of the element to be accessed.
@@ -37,7 +35,6 @@ struct cheapArray
         return data[index];
     }
 
-    //-----------------------------------------------------------------------------
     //! Access operator.
     //!
     //! \param index The index of the element to be accessed.
@@ -49,7 +46,6 @@ struct cheapArray
     }
 };
 
-//#############################################################################
 //! A reduction kernel.
 //!
 //! \tparam TBlockSize The block size.
@@ -60,24 +56,23 @@ struct ReduceKernel
 {
     ALPAKA_NO_HOST_ACC_WARNING
 
-    //-----------------------------------------------------------------------------
     //! The kernel entry point.
     //!
     //! \tparam TAcc The accelerator environment.
     //! \tparam TElem The element type.
-    //! \tparam TIdx The index type.
+    //! \tparam TExtent The index type.
     //!
     //! \param acc The accelerator object.
     //! \param source The source memory.
     //! \param destination The destination memory.
     //! \param n The problem size.
     //! \param func The reduction function.
-    template<typename TAcc, typename TElem, typename TIdx>
+    template<typename TAcc, typename TElem, typename TIdx, typename TExtent, std::size_t TDim>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        TElem const* const source,
-        TElem* destination,
-        TIdx const& n,
+        alpaka::Accessor<TElem*, TElem, TIdx, TDim, alpaka::ReadAccess> source,
+        alpaka::Accessor<TElem*, TElem, TIdx, TDim, alpaka::WriteAccess> destination,
+        TExtent const& n,
         TFunc func) const -> void
     {
         auto& sdata(alpaka::declareSharedVar<cheapArray<T, TBlockSize>, __COUNTER__>(acc));
@@ -89,7 +84,8 @@ struct ReduceKernel
         // equivalent to blockIndex * TBlockSize + threadIndex
         const uint32_t linearizedIndex(static_cast<uint32_t>(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0]));
 
-        typename GetIterator<T, TElem, TAcc>::Iterator it(acc, source, linearizedIndex, gridDimension * TBlockSize, n);
+        typename GetIterator<T, TElem, Idx, TAcc>::Iterator
+            it(acc, source, linearizedIndex, gridDimension * TBlockSize, n);
 
         T result = 0; // suppresses compiler warnings
 

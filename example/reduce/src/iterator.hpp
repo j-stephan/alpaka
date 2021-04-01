@@ -19,40 +19,37 @@
 
 #include <alpaka/alpaka.hpp>
 
-//#############################################################################
 //! An iterator base class.
 //!
 //! \tparam T The type.
 //! \tparam TBuf The buffer type (standard is T).
-template<typename T, typename TBuf = T>
+template<typename T, typename TIdx, typename TBuf = T>
 class Iterator
 {
 protected:
-    const TBuf* mData;
+    const alpaka::Accessor<TBuf*, TBuf, TIdx, 1, alpaka::ReadAccess> mData;
     uint64_t mIndex;
     const uint64_t mMaximum;
 
 public:
-    //-----------------------------------------------------------------------------
     //! Constructor.
     //!
     //! \param data A pointer to the data.
     //! \param index The index.
     //! \param maximum The first index outside of the iterator memory.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE Iterator(const TBuf* data, uint32_t index, uint64_t maximum)
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE
+    Iterator(alpaka::Accessor<TBuf*, TBuf, TIdx, 1, alpaka::ReadAccess> data, uint32_t index, uint64_t maximum)
         : mData(data)
         , mIndex(index)
         , mMaximum(maximum)
     {
     }
 
-    //-----------------------------------------------------------------------------
     //! Constructor.
     //!
     //! \param other The other iterator object.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE Iterator(const Iterator& other) = default;
 
-    //-----------------------------------------------------------------------------
     //! Compare operator.
     //!
     //! \param other The other object.
@@ -63,7 +60,6 @@ public:
         return (this->mData == other.mData) && (this->mIndex == other.mIndex) && (this->mMaximum == other.mMaximum);
     }
 
-    //-----------------------------------------------------------------------------
     //! Compare operator.
     //!
     //! \param other The other object.
@@ -74,7 +70,6 @@ public:
         return !operator==(other);
     }
 
-    //-----------------------------------------------------------------------------
     //! Compare operator.
     //!
     //! \param other The other object.
@@ -86,7 +81,6 @@ public:
         return mIndex < other.mIndex;
     }
 
-    //-----------------------------------------------------------------------------
     //! Compare operator.
     //!
     //! \param other The other object.
@@ -97,7 +91,6 @@ public:
         return mIndex > other.mIndex;
     }
 
-    //-----------------------------------------------------------------------------
     //! Compare operator.
     //!
     //! \param other The other object.
@@ -108,7 +101,6 @@ public:
         return mIndex <= other.mIndex;
     }
 
-    //-----------------------------------------------------------------------------
     //! Compare operator.
     //!
     //! \param other The other object.
@@ -120,27 +112,22 @@ public:
         return mIndex >= other.mIndex;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the current element.
-    //!
-    //! Returns a reference to the current index.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator*() -> const T&
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto operator*() -> T
     {
         return mData[mIndex];
     }
 };
 
-//#############################################################################
 //! A CPU memory iterator.
 //!
 //! \tparam TAcc The accelerator type.
 //! \tparam T The type.
 //! \tparam TBuf The buffer type (standard is T).
-template<typename TAcc, typename T, typename TBuf = T>
-class IteratorCpu : public Iterator<T, TBuf>
+template<typename TAcc, typename T, typename TIdx, typename TBuf = T>
+class IteratorCpu : public Iterator<T, TIdx, TBuf>
 {
 public:
-    //-----------------------------------------------------------------------------
     //! Constructor.
     //!
     //! \param acc The accelerator object.
@@ -148,9 +135,13 @@ public:
     //! \param linearizedIndex The linearized index.
     //! \param gridSize The grid size.
     //! \param n The problem size.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE
-    IteratorCpu(const TAcc& acc, const TBuf* data, uint32_t linearizedIndex, uint32_t gridSize, uint64_t n)
-        : Iterator<T, TBuf>(
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE IteratorCpu(
+        const TAcc& acc,
+        alpaka::Accessor<TBuf*, TBuf, TIdx, 1, alpaka::ReadAccess> data,
+        uint32_t linearizedIndex,
+        uint32_t gridSize,
+        uint64_t n)
+        : Iterator<T, TIdx, TBuf>(
             data,
             static_cast<uint32_t>((n * linearizedIndex) / alpaka::math::min(acc, static_cast<uint64_t>(gridSize), n)),
             static_cast<uint32_t>(
@@ -158,7 +149,6 @@ public:
     {
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the iterator for the last item.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto end() const -> IteratorCpu
     {
@@ -167,7 +157,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Increments the internal pointer to the next one and returns this
     //! element.
     //!
@@ -178,7 +167,6 @@ public:
         return *this;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the current element and increments the internal pointer to the
     //! next one.
     //!
@@ -190,7 +178,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Decrements the internal pointer to the previous one and returns the this
     //! element.
     //!
@@ -201,7 +188,6 @@ public:
         return *this;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the current element and decrements the internal pointer to the
     //! previous one.
     //!
@@ -213,7 +199,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the index + a supplied offset.
     //!
     //! \param n The offset.
@@ -224,7 +209,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the index - a supplied offset.
     //!
     //! \param n The offset.
@@ -235,7 +219,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Addition assignment.
     //!
     //! \param offset The offset.
@@ -247,7 +230,6 @@ public:
         return *this;
     }
 
-    //-----------------------------------------------------------------------------
     //! Substraction assignment.
     //!
     //! \param offset The offset.
@@ -260,34 +242,35 @@ public:
     }
 };
 
-//#############################################################################
 //! A GPU memory iterator.
 //!
 //! \tparam TAcc The accelerator type.
 //! \tparam T The type.
 //! \tparam TBuf The buffer type (standard is T).
-template<typename TAcc, typename T, typename TBuf = T>
-class IteratorGpu : public Iterator<T, TBuf>
+template<typename TAcc, typename T, typename TIdx, typename TBuf = T>
+class IteratorGpu : public Iterator<T, TIdx, TBuf>
 {
 private:
     const uint32_t mGridSize;
 
 public:
-    //-----------------------------------------------------------------------------
     //! Constructor.
     //!
     //! \param data A pointer to the data.
     //! \param linearizedIndex The linearized index.
     //! \param gridSize The grid size.
     //! \param n The problem size.
-    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE
-    IteratorGpu(const TAcc&, const TBuf* data, uint32_t linearizedIndex, uint32_t gridSize, uint64_t n)
-        : Iterator<T, TBuf>(data, linearizedIndex, n)
+    ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE IteratorGpu(
+        const TAcc&,
+        alpaka::Accessor<TBuf*, TBuf, TIdx, 1, alpaka::ReadAccess> data,
+        uint32_t linearizedIndex,
+        uint32_t gridSize,
+        uint64_t n)
+        : Iterator<T, TIdx, TBuf>(data, linearizedIndex, n)
         , mGridSize(gridSize)
     {
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the iterator for the last item.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE auto end() const -> IteratorGpu
     {
@@ -296,7 +279,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Increments the internal pointer to the next one and returns this
     //! element.
     //!
@@ -307,7 +289,6 @@ public:
         return *this;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the current element and increments the internal pointer to the
     //! next one.
     //!
@@ -319,7 +300,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Decrements the internal pointer to the previous one and returns the this
     //! element.
     //!
@@ -330,7 +310,6 @@ public:
         return *this;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the current element and decrements the internal pointer to the
     //! previous one.
     //!
@@ -342,7 +321,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the index + a supplied offset.
     //!
     //! \param n The offset.
@@ -353,7 +331,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Returns the index - a supplied offset.
     //!
     //! \param n The offset.
@@ -364,7 +341,6 @@ public:
         return ret;
     }
 
-    //-----------------------------------------------------------------------------
     //! Addition assignment.
     //!
     //! \param offset The offset.
@@ -376,7 +352,6 @@ public:
         return *this;
     }
 
-    //-----------------------------------------------------------------------------
     //! Substraction assignment.
     //!
     //! \param offset The offset.

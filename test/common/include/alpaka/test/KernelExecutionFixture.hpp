@@ -17,7 +17,6 @@ namespace alpaka
 {
     namespace test
     {
-        //#############################################################################
         //! The fixture for executing a kernel on a given accelerator.
         template<typename TAcc>
         class KernelExecutionFixture
@@ -32,7 +31,6 @@ namespace alpaka
             using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
 
         public:
-            //-----------------------------------------------------------------------------
             template<typename TExtent>
             KernelExecutionFixture(TExtent const& extent)
                 : m_devHost(alpaka::getDevByIdx<PltfCpu>(0u))
@@ -46,7 +44,6 @@ namespace alpaka
                       alpaka::GridBlockExtentSubDivRestrictions::Unrestricted))
             {
             }
-            //-----------------------------------------------------------------------------
             KernelExecutionFixture(WorkDiv const& workDiv)
                 : m_devHost(alpaka::getDevByIdx<PltfCpu>(0u))
                 , m_devAcc(alpaka::getDevByIdx<PltfAcc>(0u))
@@ -54,7 +51,6 @@ namespace alpaka
                 , m_workDiv(workDiv)
             {
             }
-            //-----------------------------------------------------------------------------
             template<typename TKernelFnObj, typename... TArgs>
             auto operator()(TKernelFnObj const& kernelFnObj, TArgs&&... args) -> bool
             {
@@ -66,7 +62,7 @@ namespace alpaka
                     m_queue,
                     m_workDiv,
                     kernelFnObj,
-                    alpaka::getPtrNative(bufAccResult),
+                    alpaka::writeAccess(bufAccResult),
                     std::forward<TArgs>(args)...);
 
                 // Copy the result value to the host
@@ -74,7 +70,7 @@ namespace alpaka
                 alpaka::memcpy(m_queue, bufHostResult, bufAccResult, bufAccResult);
                 alpaka::wait(m_queue);
 
-                auto const result(*alpaka::getPtrNative(bufHostResult));
+                auto const result(alpaka::readAccess(bufHostResult)[0]);
 
                 return result;
             }

@@ -29,11 +29,9 @@
 
 namespace alpaka
 {
-    //-----------------------------------------------------------------------------
     //! The test specifics.
     namespace test
     {
-        //-----------------------------------------------------------------------------
         //! The detail namespace is used to separate implementation details from user accessible code.
         namespace detail
         {
@@ -139,6 +137,7 @@ namespace alpaka
             template<typename TDim, typename TIdx>
             using AccGpuHipRtIfAvailableElseInt = int;
 #endif
+
 #if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_BACKEND_ONEAPI) && defined(ALPAKA_SYCL_TARGET_CPU)
             template<
                 typename TDim,
@@ -227,7 +226,6 @@ namespace alpaka
                 typename TIdx>
             using AccGpuSyclIntelIfAvailableElseInt = int;
 #endif
-            //#############################################################################
             //! A vector containing all available accelerators and void's.
             template<
                 typename TDim,
@@ -252,14 +250,12 @@ namespace alpaka
                 >;
         } // namespace detail
 
-        //#############################################################################
         //! A vector containing all available accelerators.
         template<typename TDim, typename TIdx>
         using EnabledAccs = typename alpaka::meta::Filter<detail::EnabledAccsElseInt<TDim, TIdx>, std::is_class>;
 
         namespace detail
         {
-            //#############################################################################
             //! The accelerator name write wrapper.
             struct StreamOutAccName
             {
@@ -272,7 +268,6 @@ namespace alpaka
             };
         } // namespace detail
 
-        //-----------------------------------------------------------------------------
         //! Writes the enabled accelerators to the given stream.
         template<typename TDim, typename TIdx>
         ALPAKA_FN_HOST auto writeEnabledAccs(std::ostream& os) -> void
@@ -286,7 +281,6 @@ namespace alpaka
 
         namespace detail
         {
-            //#############################################################################
             //! A std::tuple holding multiple std::tuple consisting of a dimension and a idx type.
             //!
             //! TestDimIdxTuples =
@@ -301,7 +295,6 @@ namespace alpaka
             template<typename TList>
             using ApplyEnabledAccs = alpaka::meta::Apply<TList, EnabledAccs>;
 
-            //#############################################################################
             //! A std::tuple containing std::tuple with fully instantiated accelerators.
             //!
             //! TestEnabledAccs =
@@ -313,7 +306,6 @@ namespace alpaka
             using InstantiatedEnabledAccs = alpaka::meta::Transform<TestDimIdxTuples, ApplyEnabledAccs>;
         } // namespace detail
 
-        //#############################################################################
         //! A std::tuple containing fully instantiated accelerators.
         //!
         //! TestAccs =

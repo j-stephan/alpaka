@@ -14,7 +14,6 @@
 
 #if defined(ALPAKA_ACC_GPU_CUDA_ONLY_MODE) && defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA
 
-//-----------------------------------------------------------------------------
 //! Native CUDA function.
 #    if BOOST_COMP_CLANG
 #        pragma clang diagnostic push
@@ -28,13 +27,12 @@ __device__ auto userDefinedThreadFence() -> void
 #        pragma clang diagnostic pop
 #    endif
 
-//#############################################################################
 class CudaOnlyTestKernel
 {
 public:
-    //-----------------------------------------------------------------------------
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success)
+        const -> void
     {
         alpaka::ignore_unused(acc);
 
@@ -43,12 +41,11 @@ public:
         userDefinedThreadFence();
         __threadfence_system();
 
-        *success = true;
+        success[0] = true;
     }
 };
 
 
-//-----------------------------------------------------------------------------
 TEST_CASE("cudaOnlyModeWorking", "[cudaOnly]")
 {
     using TAcc = alpaka::AccGpuCudaRt<alpaka::DimInt<1u>, std::uint32_t>;

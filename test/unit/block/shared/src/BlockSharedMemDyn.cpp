@@ -14,26 +14,25 @@
 
 #include <catch2/catch.hpp>
 
-//#############################################################################
 class BlockSharedMemDynTestKernel
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success)
+        const -> void
     {
         // Assure that the pointer is non null.
         auto a = alpaka::getDynSharedMem<std::uint32_t>(acc);
-        ALPAKA_CHECK(*success, static_cast<std::uint32_t*>(nullptr) != a);
+        ALPAKA_CHECK(success[0], static_cast<std::uint32_t*>(nullptr) != a);
 
         // Each call should return the same pointer ...
         auto b = alpaka::getDynSharedMem<std::uint32_t>(acc);
-        ALPAKA_CHECK(*success, a == b);
+        ALPAKA_CHECK(success[0], a == b);
 
         // ... even for different types.
         auto c = alpaka::getDynSharedMem<float>(acc);
-        ALPAKA_CHECK(*success, a == reinterpret_cast<std::uint32_t*>(c));
+        ALPAKA_CHECK(success[0], a == reinterpret_cast<std::uint32_t*>(c));
     }
 };
 
@@ -41,19 +40,17 @@ namespace alpaka
 {
     namespace traits
     {
-        //#############################################################################
         //! The trait for getting the size of the block shared dynamic memory for a kernel.
         template<typename TAcc>
         struct BlockSharedMemDynSizeBytes<BlockSharedMemDynTestKernel, TAcc>
         {
-            //-----------------------------------------------------------------------------
             //! \return The size of the shared memory allocated for a block.
             template<typename TVec>
             ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
                 BlockSharedMemDynTestKernel const& blockSharedMemDyn,
                 TVec const& blockThreadExtent,
                 TVec const& threadElemExtent,
-                bool* success) -> std::size_t
+                alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) -> std::size_t
             {
                 alpaka::ignore_unused(blockSharedMemDyn);
                 alpaka::ignore_unused(success);
@@ -64,7 +61,6 @@ namespace alpaka
     } // namespace traits
 } // namespace alpaka
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("sameNonNullAdress", "[blockSharedMemDyn]", alpaka::test::TestAccs)
 {
     using Acc = TestType;

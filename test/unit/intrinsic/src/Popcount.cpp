@@ -14,15 +14,14 @@
 
 #include <catch2/catch.hpp>
 
-//#############################################################################
 template<typename TInput>
 class PopcountTestKernel
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success)
+        const -> void
     {
         // Use negative values to get inputs near the max value of TInput type
         TInput const inputs[]
@@ -40,7 +39,7 @@ public:
         {
             int const expected = popcountNaive(input);
             int const actual = alpaka::popcount(acc, input);
-            ALPAKA_CHECK(*success, actual == expected);
+            ALPAKA_CHECK(success[0], actual == expected);
         }
     }
 
@@ -57,7 +56,6 @@ private:
     }
 };
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("popcount", "[intrinsic]", alpaka::test::TestAccs)
 {
     using Acc = TestType;

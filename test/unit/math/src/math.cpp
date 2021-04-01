@@ -35,9 +35,12 @@ struct TestKernel
     //! @param acc Accelerator given from alpaka.
     //! @param functor Accessible with operator().
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename TResults, typename TFunctor, typename TArgs>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, TResults* results, TFunctor const& functor, TArgs const* args)
-        const noexcept -> void
+    template<typename TAcc, typename TResults, typename TIdx, typename TFunctor, typename TArgs>
+    ALPAKA_FN_ACC auto operator()(
+        TAcc const& acc,
+        alpaka::Accessor<TResults*, TResults, TIdx, 1, alpaka::WriteAccess> const results,
+        TFunctor const& functor,
+        alpaka::Accessor<TArgs*, TArgs, TIdx, 1, alpaka::ReadAccess> const args) const noexcept -> void
     {
         for(size_t i = 0; i < TCapacity; ++i)
         {
@@ -46,7 +49,6 @@ struct TestKernel
     }
 };
 
-//#############################################################################
 template<typename TAcc, typename TFunctor>
 struct TestTemplate
 {
@@ -108,8 +110,12 @@ struct TestTemplate
         args.copyToDevice(queue);
         results.copyToDevice(queue);
 
-        auto const taskKernel(
-            alpaka::createTaskKernel<TAcc>(workDiv, kernel, results.pDevBuffer, functor, args.pDevBuffer));
+        auto const taskKernel(alpaka::createTaskKernel<TAcc>(
+            workDiv,
+            kernel,
+            alpaka::writeAccess(results.devBuffer),
+            functor,
+            alpaka::readAccess(args.devBuffer)));
         // Enqueue the kernel execution task.
         alpaka::enqueue(queue, taskKernel);
         // Copy back the results (encapsulated in the buffer class).
@@ -184,4 +190,267 @@ TEMPLATE_LIST_TEST_CASE("mathOps", "[math] [operator]", TestAccFunctorTuples)
     using Functor = std::tuple_element_t<1u, TestType>;
 
     alpaka::meta::forEachType<DataTypes>(TestTemplate<Acc, Functor>());
+}
+
+namespace custom
+{
+    enum Custom
+    {
+        Abs,
+        Acos,
+        Asin,
+        Atan,
+        Atan2,
+        Cbrt,
+        Ceil,
+        Cos,
+        Erf,
+        Exp,
+        Floor,
+        Fmod,
+        Log,
+        Max,
+        Min,
+        Pow,
+        Remainder,
+        Round,
+        Lround,
+        Llround,
+        Rsqrt,
+        Sin,
+        Sincos,
+        Sqrt,
+        Tan,
+        Trunc,
+
+        Arg1 = 1024,
+        Arg2 = 2048,
+        Arg3 = 4096,
+    };
+
+    // struct Custom
+    //{
+    //};
+
+    ALPAKA_FN_HOST_ACC auto abs(Custom c);
+    ALPAKA_FN_HOST_ACC auto abs(Custom c)
+    {
+        return Custom::Abs | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto acos(Custom c);
+    ALPAKA_FN_HOST_ACC auto acos(Custom c)
+    {
+        return Custom::Acos | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto asin(Custom c);
+    ALPAKA_FN_HOST_ACC auto asin(Custom c)
+    {
+        return Custom::Asin | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto atan(Custom c);
+    ALPAKA_FN_HOST_ACC auto atan(Custom c)
+    {
+        return Custom::Atan | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto atan2(Custom a, Custom b);
+    ALPAKA_FN_HOST_ACC auto atan2(Custom a, Custom b)
+    {
+        return Custom::Atan2 | a | b;
+    }
+
+    ALPAKA_FN_HOST_ACC auto cbrt(Custom c);
+    ALPAKA_FN_HOST_ACC auto cbrt(Custom c)
+    {
+        return Custom::Cbrt | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto ceil(Custom c);
+    ALPAKA_FN_HOST_ACC auto ceil(Custom c)
+    {
+        return Custom::Ceil | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto cos(Custom c);
+    ALPAKA_FN_HOST_ACC auto cos(Custom c)
+    {
+        return Custom::Cos | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto erf(Custom c);
+    ALPAKA_FN_HOST_ACC auto erf(Custom c)
+    {
+        return Custom::Erf | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto exp(Custom c);
+    ALPAKA_FN_HOST_ACC auto exp(Custom c)
+    {
+        return Custom::Exp | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto floor(Custom c);
+    ALPAKA_FN_HOST_ACC auto floor(Custom c)
+    {
+        return Custom::Floor | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto fmod(Custom a, Custom b);
+    ALPAKA_FN_HOST_ACC auto fmod(Custom a, Custom b)
+    {
+        return Custom::Fmod | a | b;
+    }
+
+    ALPAKA_FN_HOST_ACC auto log(Custom c);
+    ALPAKA_FN_HOST_ACC auto log(Custom c)
+    {
+        return Custom::Log | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto max(Custom a, Custom b);
+    ALPAKA_FN_HOST_ACC auto max(Custom a, Custom b)
+    {
+        return Custom::Max | a | b;
+    }
+
+    ALPAKA_FN_HOST_ACC auto min(Custom a, Custom b);
+    ALPAKA_FN_HOST_ACC auto min(Custom a, Custom b)
+    {
+        return Custom::Min | a | b;
+    }
+
+    ALPAKA_FN_HOST_ACC auto pow(Custom a, Custom b);
+    ALPAKA_FN_HOST_ACC auto pow(Custom a, Custom b)
+    {
+        return Custom::Pow | a | b;
+    }
+
+    ALPAKA_FN_HOST_ACC auto remainder(Custom a, Custom b);
+    ALPAKA_FN_HOST_ACC auto remainder(Custom a, Custom b)
+    {
+        return Custom::Remainder | a | b;
+    }
+
+    ALPAKA_FN_HOST_ACC auto round(Custom c);
+    ALPAKA_FN_HOST_ACC auto round(Custom c)
+    {
+        return Custom::Round | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto lround(Custom c);
+    ALPAKA_FN_HOST_ACC auto lround(Custom c)
+    {
+        return Custom::Lround | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto llround(Custom c);
+    ALPAKA_FN_HOST_ACC auto llround(Custom c)
+    {
+        return Custom::Llround | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto rsqrt(Custom c);
+    ALPAKA_FN_HOST_ACC auto rsqrt(Custom c)
+    {
+        return Custom::Rsqrt | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto sin(Custom c);
+    ALPAKA_FN_HOST_ACC auto sin(Custom c)
+    {
+        return Custom::Sin | c;
+    }
+
+    ALPAKA_FN_HOST_ACC void sincos(Custom c, Custom& a, Custom& b);
+    ALPAKA_FN_HOST_ACC void sincos(Custom c, Custom& a, Custom& b)
+    {
+        a = static_cast<Custom>(Custom::Sincos | c | Custom::Arg2);
+        b = static_cast<Custom>(Custom::Sincos | c | Custom::Arg3);
+    }
+
+    ALPAKA_FN_HOST_ACC auto sqrt(Custom c);
+    ALPAKA_FN_HOST_ACC auto sqrt(Custom c)
+    {
+        return Custom::Sqrt | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto tan(Custom c);
+    ALPAKA_FN_HOST_ACC auto tan(Custom c)
+    {
+        return Custom::Tan | c;
+    }
+
+    ALPAKA_FN_HOST_ACC auto trunc(Custom c);
+    ALPAKA_FN_HOST_ACC auto trunc(Custom c)
+    {
+        return Custom::Trunc | c;
+    }
+} // namespace custom
+
+struct AdlKernel
+{
+    template<typename TAcc, typename TIdx>
+    ALPAKA_FN_ACC void operator()(
+        TAcc const& acc,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success) const noexcept
+    {
+        using custom::Custom;
+
+        ALPAKA_CHECK(success[0], alpaka::math::abs(acc, Custom::Arg1) == (Custom::Abs | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::acos(acc, Custom::Arg1) == (Custom::Acos | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::asin(acc, Custom::Arg1) == (Custom::Asin | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::atan(acc, Custom::Arg1) == (Custom::Atan | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::cbrt(acc, Custom::Arg1) == (Custom::Cbrt | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::ceil(acc, Custom::Arg1) == (Custom::Ceil | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::cos(acc, Custom::Arg1) == (Custom::Cos | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::erf(acc, Custom::Arg1) == (Custom::Erf | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::exp(acc, Custom::Arg1) == (Custom::Exp | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::floor(acc, Custom::Arg1) == (Custom::Floor | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::log(acc, Custom::Arg1) == (Custom::Log | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::round(acc, Custom::Arg1) == (Custom::Round | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::lround(acc, Custom::Arg1) == (Custom::Lround | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::llround(acc, Custom::Arg1) == (Custom::Llround | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::rsqrt(acc, Custom::Arg1) == (Custom::Rsqrt | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::sin(acc, Custom::Arg1) == (Custom::Sin | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::sqrt(acc, Custom::Arg1) == (Custom::Sqrt | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::tan(acc, Custom::Arg1) == (Custom::Tan | Custom::Arg1));
+        ALPAKA_CHECK(success[0], alpaka::math::trunc(acc, Custom::Arg1) == (Custom::Trunc | Custom::Arg1));
+
+        ALPAKA_CHECK(
+            success[0],
+            alpaka::math::atan2(acc, Custom::Arg1, Custom::Arg2) == (Custom::Atan2 | Custom::Arg1 | Custom::Arg2));
+        ALPAKA_CHECK(
+            success[0],
+            alpaka::math::fmod(acc, Custom::Arg1, Custom::Arg2) == (Custom::Fmod | Custom::Arg1 | Custom::Arg2));
+        ALPAKA_CHECK(
+            success[0],
+            alpaka::math::max(acc, Custom::Arg1, Custom::Arg2) == (Custom::Max | Custom::Arg1 | Custom::Arg2));
+        ALPAKA_CHECK(
+            success[0],
+            alpaka::math::min(acc, Custom::Arg1, Custom::Arg2) == (Custom::Min | Custom::Arg1 | Custom::Arg2));
+        ALPAKA_CHECK(
+            success[0],
+            alpaka::math::pow(acc, Custom::Arg1, Custom::Arg2) == (Custom::Pow | Custom::Arg1 | Custom::Arg2));
+        ALPAKA_CHECK(
+            success[0],
+            alpaka::math::remainder(acc, Custom::Arg1, Custom::Arg2)
+                == (Custom::Remainder | Custom::Arg1 | Custom::Arg2));
+
+        Custom a, b;
+        alpaka::math::sincos(acc, Custom::Arg1, a, b);
+        ALPAKA_CHECK(success[0], a == (Custom::Sincos | Custom::Arg1 | Custom::Arg2));
+        ALPAKA_CHECK(success[0], b == (Custom::Sincos | Custom::Arg1 | Custom::Arg3));
+    }
+};
+
+TEMPLATE_LIST_TEST_CASE("mathOps", "[math] [operator] [adl]", TestAccs)
+{
+    using Acc = TestType;
+    using Dim = alpaka::Dim<Acc>;
+    using Idx = alpaka::Idx<Acc>;
+    auto fixture = alpaka::test::KernelExecutionFixture<Acc>{alpaka::Vec<Dim, Idx>::ones()};
+    REQUIRE(fixture(AdlKernel{}));
 }

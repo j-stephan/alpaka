@@ -13,16 +13,15 @@
 
 #include <catch2/catch.hpp>
 
-//#############################################################################
 class BlockSyncTestKernel
 {
 public:
     static const std::uint8_t gridThreadExtentPerDim = 4u;
 
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success)
+        const -> void
     {
         using Idx = alpaka::Idx<TAcc>;
 
@@ -44,7 +43,7 @@ public:
         // All other threads within the block should now have written their index into the shared memory.
         for(auto i(static_cast<Idx>(0u)); i < blockThreadExtent1D; ++i)
         {
-            ALPAKA_CHECK(*success, pBlockSharedArray[i] == i);
+            ALPAKA_CHECK(success[0], pBlockSharedArray[i] == i);
         }
     }
 };
@@ -53,19 +52,17 @@ namespace alpaka
 {
     namespace traits
     {
-        //#############################################################################
         //! The trait for getting the size of the block shared dynamic memory for a kernel.
         template<typename TAcc>
         struct BlockSharedMemDynSizeBytes<BlockSyncTestKernel, TAcc>
         {
-            //-----------------------------------------------------------------------------
             //! \return The size of the shared memory allocated for a block.
             template<typename TVec>
             ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
                 BlockSyncTestKernel const& blockSharedMemDyn,
                 TVec const& blockThreadExtent,
                 TVec const& threadElemExtent,
-                bool* success) -> std::size_t
+                alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) -> std::size_t
             {
                 using Idx = alpaka::Idx<TAcc>;
 
@@ -78,7 +75,6 @@ namespace alpaka
     } // namespace traits
 } // namespace alpaka
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("synchronize", "[blockSync]", alpaka::test::TestAccs)
 {
     using Acc = TestType;

@@ -16,25 +16,23 @@
 
 #include <type_traits>
 
-//#############################################################################
 template<typename T>
 class KernelFuntionObjectTemplate
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success)
+        const -> void
     {
         ALPAKA_CHECK(
-            *success,
+            success[0],
             static_cast<alpaka::Idx<TAcc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
 
         static_assert(std::is_same<std::int32_t, T>::value, "Incorrect additional kernel template parameter type!");
     }
 };
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("kernelFuntionObjectTemplate", "[kernel]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
@@ -48,24 +46,24 @@ TEMPLATE_LIST_TEST_CASE("kernelFuntionObjectTemplate", "[kernel]", alpaka::test:
     REQUIRE(fixture(kernel));
 }
 
-//#############################################################################
 class KernelInvocationWithAdditionalTemplate
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc, typename T>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success, T const&) const -> void
+    ALPAKA_FN_ACC auto operator()(
+        TAcc const& acc,
+        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
+        T const&) const -> void
     {
         ALPAKA_CHECK(
-            *success,
+            success[0],
             static_cast<alpaka::Idx<TAcc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
 
         static_assert(std::is_same<std::int32_t, T>::value, "Incorrect additional kernel template parameter type!");
     }
 };
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("kernelFuntionObjectExtraTemplate", "[kernel]", alpaka::test::TestAccs)
 {
     using Acc = TestType;

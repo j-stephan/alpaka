@@ -27,13 +27,6 @@ if(ALPAKA_ACC_GPU_HIP_ENABLE AND NOT ALPAKA_ACC_GPU_HIP_ONLY_MODE AND ALPAKA_HIP
     message(FATAL_ERROR "HIP back-end must be used together with ALPAKA_ACC_GPU_HIP_ONLY_MODE")
 endif()
 
-if(ALPAKA_ACC_GPU_HIP_ENABLE AND ALPAKA_HIP_PLATFORM MATCHES "clang")
-    message(WARNING
-        "The HIP back-end is currently experimental."
-        "alpaka HIP backend compiled with clang does not support callback functions."
-        )
-endif()
-
 option(ALPAKA_ACC_GPU_CUDA_ENABLE "Enable the CUDA GPU back-end" OFF)
 option(ALPAKA_ACC_GPU_CUDA_ONLY_MODE "Only back-ends using CUDA can be enabled in this mode (This allows to mix alpaka code with native CUDA code)." OFF)
 
@@ -111,7 +104,7 @@ endif()
 
 set(ALPAKA_OFFLOAD_MAX_BLOCK_SIZE "256" CACHE STRING "Maximum number threads per block to be suggested by any target offloading backends ANY_BT_OMP5 and ANY_BT_OACC.")
 option(ALPAKA_DEBUG_OFFLOAD_ASSUME_HOST "Allow host-only contructs like assert in offload code in debug mode." ON)
-set(ALPAKA_BLOCK_SHARED_DYN_MEMBER_ALLOC_KIB "30" CACHE STRING "Kibibytes (1024B) of memory to allocate for block shared memory for backends requiring static allocation (includes CPU_B_OMP2_T_SEQ, CPU_B_TBB_T_SEQ, CPU_B_SEQ_T_SEQ)")
+set(ALPAKA_BLOCK_SHARED_DYN_MEMBER_ALLOC_KIB "47" CACHE STRING "Kibibytes (1024B) of memory to allocate for block shared memory for backends requiring static allocation (includes CPU_B_OMP2_T_SEQ, CPU_B_TBB_T_SEQ, CPU_B_SEQ_T_SEQ)")
 
 #-------------------------------------------------------------------------------
 # Debug output of common variables.
@@ -480,9 +473,7 @@ if(ALPAKA_ACC_GPU_CUDA_ENABLE)
                     )
                 endforeach()
 
-                if(NOT MSVC OR MSVC_VERSION GREATER_EQUAL 1920)
-                    list(APPEND CUDA_NVCC_FLAGS -std=c++${ALPAKA_CXX_STANDARD})
-                endif()
+                list(APPEND CUDA_NVCC_FLAGS -std=c++${ALPAKA_CXX_STANDARD})
 
                 set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
 
@@ -552,11 +543,11 @@ endif()
 if(ALPAKA_ACC_GPU_HIP_ENABLE)
 
     if(NOT DEFINED ALPAKA_HIP_VERSION)
-        set(ALPAKA_HIP_VERSION 3.5)
+        set(ALPAKA_HIP_VERSION 4.0)
     endif()
 
-    if(ALPAKA_HIP_VERSION VERSION_LESS 3.5)
-        message(FATAL_ERROR "HIP < 3.5 is not supported!")
+    if(ALPAKA_HIP_VERSION VERSION_LESS 4.0)
+        message(FATAL_ERROR "HIP < 4.0 is not supported!")
     else()
         # must set this for HIP package (note that you also need certain env vars)
         set(HIP_PLATFORM "${ALPAKA_HIP_PLATFORM}" CACHE STRING "")
@@ -894,14 +885,7 @@ if(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLE)
 endif()
 if(ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLE)
     target_compile_definitions(alpaka INTERFACE "ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED")
-
-    if(MSVC AND (${CMAKE_SIZEOF_VOID_P} EQUAL 4))
-        # On Win32 boost context triggers:
-        # libboost_context-vc141-mt-gd-1_64.lib(jump_i386_ms_pe_masm.obj) : error LNK2026: module unsafe for SAFESEH image.
-        target_link_options(Boost::fiber INTERFACE "/SAFESEH:NO")
-    endif()
     target_link_libraries(alpaka INTERFACE Boost::fiber)
-
     message(STATUS ALPAKA_ACC_CPU_B_SEQ_T_FIBERS_ENABLED)
 endif()
 if(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLE)

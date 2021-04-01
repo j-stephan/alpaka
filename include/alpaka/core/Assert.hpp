@@ -23,16 +23,20 @@
     #define ALPAKA_ASSERT(EXPRESSION) assert(EXPRESSION)
 #endif
 
+#ifdef ALPAKA_DEBUG_OFFLOAD_ASSUME_HOST
+#    define ALPAKA_ASSERT_OFFLOAD(EXPRESSION) ALPAKA_ASSERT(EXPRESSION)
+#else
+#    define ALPAKA_ASSERT_OFFLOAD(EXPRESSION)
+#endif
+
 namespace alpaka
 {
     namespace core
     {
         namespace detail
         {
-            //#############################################################################
             template<typename TArg, typename TSfinae = void>
             struct AssertValueUnsigned;
-            //#############################################################################
             template<typename TArg>
             struct AssertValueUnsigned<TArg, std::enable_if_t<!std::is_unsigned<TArg>::value>>
             {
@@ -46,7 +50,6 @@ namespace alpaka
 #endif
                 }
             };
-            //#############################################################################
             template<typename TArg>
             struct AssertValueUnsigned<TArg, std::enable_if_t<std::is_unsigned<TArg>::value>>
             {
@@ -58,7 +61,6 @@ namespace alpaka
                 }
             };
         } // namespace detail
-        //-----------------------------------------------------------------------------
         //! This method checks integral values if they are greater or equal zero.
         //! The implementation prevents warnings for checking this for unsigned types.
         ALPAKA_NO_HOST_ACC_WARNING
@@ -70,10 +72,8 @@ namespace alpaka
 
         namespace detail
         {
-            //#############################################################################
             template<typename TLhs, typename TRhs, typename TSfinae = void>
             struct AssertGreaterThan;
-            //#############################################################################
             template<typename TLhs, typename TRhs>
             struct AssertGreaterThan<
                 TLhs,
@@ -90,7 +90,6 @@ namespace alpaka
 #endif
                 }
             };
-            //#############################################################################
             template<typename TLhs, typename TRhs>
             struct AssertGreaterThan<
                 TLhs,
@@ -105,7 +104,6 @@ namespace alpaka
                 }
             };
         } // namespace detail
-        //-----------------------------------------------------------------------------
         //! This method asserts that the integral value TArg is less than Tidx.
         ALPAKA_NO_HOST_ACC_WARNING
         template<typename TLhs, typename TRhs>

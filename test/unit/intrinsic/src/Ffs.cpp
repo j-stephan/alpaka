@@ -17,15 +17,14 @@
 #include <cstdint>
 #include <limits>
 
-//#############################################################################
 template<typename TInput>
 class FfsTestKernel
 {
 public:
-    //-----------------------------------------------------------------------------
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, bool* success) const -> void
+    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success)
+        const -> void
     {
         TInput const inputs[]
             = {0,
@@ -44,7 +43,7 @@ public:
         {
             std::int32_t const expected = ffsNaive(input);
             std::int32_t const actual = alpaka::ffs(acc, input);
-            ALPAKA_CHECK(*success, actual == expected);
+            ALPAKA_CHECK(success[0], actual == expected);
         }
     }
 
@@ -63,7 +62,6 @@ private:
     }
 };
 
-//-----------------------------------------------------------------------------
 TEMPLATE_LIST_TEST_CASE("ffs", "[intrinsic]", alpaka::test::TestAccs)
 {
     using Acc = TestType;
