@@ -12,11 +12,6 @@
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
 #include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/acc/Traits.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/mem/buf/Traits.hpp>
@@ -26,7 +21,7 @@
 #include <alpaka/wait/Traits.hpp>
 #include <alpaka/core/Sycl.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 #include <shared_mutex>
 #include <vector>
@@ -68,7 +63,7 @@ namespace alpaka
         friend class QueueGenericSyclNonBlocking<DevGenericSycl<TPltf>>;
 
     public:
-        DevGenericSycl(cl::sycl::device device, cl::sycl::context context)
+        DevGenericSycl(sycl::device device, sycl::context context)
         : m_device{device}, m_context{context}
         {}
 
@@ -96,9 +91,9 @@ namespace alpaka
     private:
         DevGenericSycl() = default;
 
-        cl::sycl::device m_device;
-        cl::sycl::context m_context;
-        std::vector<cl::sycl::event> m_dependencies = {};
+        sycl::device m_device;
+        sycl::context m_context;
+        std::vector<sycl::event> m_dependencies = {};
         std::shared_ptr<std::shared_mutex> mutable mutex_ptr{std::make_shared<std::shared_mutex>()};
     };
 
@@ -112,7 +107,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getName(DevGenericSycl<TPltf> const& dev) -> std::string
             {
-                return dev.m_device.template get_info<cl::sycl::info::device::name>();
+                return dev.m_device.template get_info<sycl::info::device::name>();
             }
         };
 
@@ -124,7 +119,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getMemBytes(DevGenericSycl<TPltf> const& dev) -> std::size_t
             {
-                return dev.m_device.template get_info<cl::sycl::info::device::global_mem_size>();
+                return dev.m_device.template get_info<sycl::info::device::global_mem_size>();
             }
         };
 
@@ -156,7 +151,7 @@ namespace alpaka
                 DevGenericSycl<TPltf> const & dev)
             -> std::size_t
             {
-                const auto sizes = dev.m_device.template get_info<cl::sycl::info::device::sub_group_sizes>();
+                const auto sizes = dev.m_device.template get_info<sycl::info::device::sub_group_sizes>();
                 return *(std::min_element(std::begin(sizes), std::end(sizes)));
             }
         };

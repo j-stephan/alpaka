@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -12,7 +12,7 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 #include <algorithm>
 #include <type_traits>
@@ -29,9 +29,9 @@ namespace alpaka::traits::detail
     {
     };
 
-    inline auto remove_completed(std::vector<cl::sycl::event>& events)
+    inline auto remove_completed(std::vector<sycl::event>& events)
     {
-        using namespace cl::sycl;
+        using namespace sycl;
 
         std::remove_if(begin(events), end(events), [](event const& ev)
         {

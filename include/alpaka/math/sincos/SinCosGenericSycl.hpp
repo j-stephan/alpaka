@@ -10,11 +10,10 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/math/sincos/Traits.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <type_traits>
 
 namespace alpaka
@@ -22,7 +21,7 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! sincos.
+        //! The SYCL sincos.
         class SinCosGenericSycl : public concepts::Implements<ConceptMathSinCos, SinCosGenericSycl>
         {
         };
@@ -31,13 +30,13 @@ namespace alpaka
         {
             //#############################################################################
 
-            //! sincos trait specialization.
+            //! The SYCL sincos trait specialization.
             template<typename TArg>
             struct SinCos<SinCosGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
                 static auto sincos(SinCosGenericSycl const &, TArg const & arg, TArg & result_sin, TArg & result_cos) -> void
                 {
-                    result_sin = cl::sycl::sincos(arg, &result_cos);
+                    result_sin = sycl::sincos(arg, &result_cos);
                 }
             };
         }

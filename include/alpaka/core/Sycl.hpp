@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -7,15 +7,9 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
- #pragma once
+#pragma once
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
-
-#include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
 
 #include <alpaka/elem/Traits.hpp>
 #include <alpaka/offset/Traits.hpp>
@@ -25,7 +19,7 @@
 #include <alpaka/meta/IntegerSequence.hpp>
 #include <alpaka/meta/Metafunctions.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 #include <array>
 #include <type_traits>
@@ -44,17 +38,6 @@ namespace alpaka
         // Remove std::is_same boilerplate
         template <typename T, typename... Ts>
         struct is_any : std::bool_constant<(std::is_same_v<T, Ts> || ...)> {};
-
-        // Extract cl::sycl::vec's number of elements which isn't constexpr
-        // despite being a template parameter
-        template <int N_arg>
-        struct val { static constexpr auto N = N_arg; };
-
-        template <typename T, int N>
-        constexpr auto extract_impl(const cl::sycl::vec<T, N>&) -> val<N>;
-
-        template <typename T>
-        constexpr auto extract = decltype(extract_impl(std::declval<T>()))::N;
     }
 
     namespace traits
@@ -68,73 +51,73 @@ namespace alpaka
         template<typename T>
         struct IsSyclBuiltInType :
             alpaka::detail::is_any<T,
-                // built-in scalar types - these are the standard C++ built-in types, std::size_t, std::byte and cl::sycl::half
-                cl::sycl::half,
+                // built-in scalar types - these are the standard C++ built-in types, std::size_t, std::byte and sycl::half
+                sycl::half,
 
                 // 2 component vector types
-                cl::sycl::char2, cl::sycl::schar2, cl::sycl::uchar2,
-                cl::sycl::short2, cl::sycl::ushort2,
-                cl::sycl::int2, cl::sycl::uint2,
-                cl::sycl::long2, cl::sycl::ulong2,
-                cl::sycl::longlong2, cl::sycl::ulonglong2,
-                cl::sycl::float2, cl::sycl::double2, cl::sycl::half2,
-                cl::sycl::cl_char2, cl::sycl::cl_uchar2,
-                cl::sycl::cl_short2, cl::sycl::cl_ushort2,
-                cl::sycl::cl_int2, cl::sycl::cl_uint2,
-                cl::sycl::cl_long2, cl::sycl::cl_ulong2,
-                cl::sycl::cl_float2, cl::sycl::cl_double2, cl::sycl::cl_half2,
+                sycl::char2, sycl::schar2, sycl::uchar2,
+                sycl::short2, sycl::ushort2,
+                sycl::int2, sycl::uint2,
+                sycl::long2, sycl::ulong2,
+                sycl::longlong2, sycl::ulonglong2,
+                sycl::float2, sycl::double2, sycl::half2,
+                sycl::cl_char2, sycl::cl_uchar2,
+                sycl::cl_short2, sycl::cl_ushort2,
+                sycl::cl_int2, sycl::cl_uint2,
+                sycl::cl_long2, sycl::cl_ulong2,
+                sycl::cl_float2, sycl::cl_double2, sycl::cl_half2,
 
                 // 3 component vector types
-                cl::sycl::char3, cl::sycl::schar3, cl::sycl::uchar3,
-                cl::sycl::short3, cl::sycl::ushort3,
-                cl::sycl::int3, cl::sycl::uint3,
-                cl::sycl::long3, cl::sycl::ulong3,
-                cl::sycl::longlong3, cl::sycl::ulonglong3,
-                cl::sycl::float3, cl::sycl::double3, cl::sycl::half3,
-                cl::sycl::cl_char3, cl::sycl::cl_uchar3,
-                cl::sycl::cl_short3, cl::sycl::cl_ushort3,
-                cl::sycl::cl_int3, cl::sycl::cl_uint3,
-                cl::sycl::cl_long3, cl::sycl::cl_ulong3,
-                cl::sycl::cl_float3, cl::sycl::cl_double3, cl::sycl::cl_half3,
+                sycl::char3, sycl::schar3, sycl::uchar3,
+                sycl::short3, sycl::ushort3,
+                sycl::int3, sycl::uint3,
+                sycl::long3, sycl::ulong3,
+                sycl::longlong3, sycl::ulonglong3,
+                sycl::float3, sycl::double3, sycl::half3,
+                sycl::cl_char3, sycl::cl_uchar3,
+                sycl::cl_short3, sycl::cl_ushort3,
+                sycl::cl_int3, sycl::cl_uint3,
+                sycl::cl_long3, sycl::cl_ulong3,
+                sycl::cl_float3, sycl::cl_double3, sycl::cl_half3,
 
                 // 4 component vector types
-                cl::sycl::char4, cl::sycl::schar4, cl::sycl::uchar4,
-                cl::sycl::short4, cl::sycl::ushort4,
-                cl::sycl::int4, cl::sycl::uint4,
-                cl::sycl::long4, cl::sycl::ulong4,
-                cl::sycl::longlong4, cl::sycl::ulonglong4,
-                cl::sycl::float4, cl::sycl::double4, cl::sycl::half4,
-                cl::sycl::cl_char4, cl::sycl::cl_uchar4,
-                cl::sycl::cl_short4, cl::sycl::cl_ushort4,
-                cl::sycl::cl_int4, cl::sycl::cl_uint4,
-                cl::sycl::cl_long4, cl::sycl::cl_ulong4,
-                cl::sycl::cl_float4, cl::sycl::cl_double4, cl::sycl::cl_half4,
+                sycl::char4, sycl::schar4, sycl::uchar4,
+                sycl::short4, sycl::ushort4,
+                sycl::int4, sycl::uint4,
+                sycl::long4, sycl::ulong4,
+                sycl::longlong4, sycl::ulonglong4,
+                sycl::float4, sycl::double4, sycl::half4,
+                sycl::cl_char4, sycl::cl_uchar4,
+                sycl::cl_short4, sycl::cl_ushort4,
+                sycl::cl_int4, sycl::cl_uint4,
+                sycl::cl_long4, sycl::cl_ulong4,
+                sycl::cl_float4, sycl::cl_double4, sycl::cl_half4,
 
                 // 8 component vector types
-                cl::sycl::char8, cl::sycl::schar8, cl::sycl::uchar8,
-                cl::sycl::short8, cl::sycl::ushort8,
-                cl::sycl::int8, cl::sycl::uint8,
-                cl::sycl::long8, cl::sycl::ulong8,
-                cl::sycl::longlong8, cl::sycl::ulonglong8,
-                cl::sycl::float8, cl::sycl::double8, cl::sycl::half8,
-                cl::sycl::cl_char8, cl::sycl::cl_uchar8,
-                cl::sycl::cl_short8, cl::sycl::cl_ushort8,
-                cl::sycl::cl_int8, cl::sycl::cl_uint8,
-                cl::sycl::cl_long8, cl::sycl::cl_ulong8,
-                cl::sycl::cl_float8, cl::sycl::cl_double8, cl::sycl::cl_half8,
+                sycl::char8, sycl::schar8, sycl::uchar8,
+                sycl::short8, sycl::ushort8,
+                sycl::int8, sycl::uint8,
+                sycl::long8, sycl::ulong8,
+                sycl::longlong8, sycl::ulonglong8,
+                sycl::float8, sycl::double8, sycl::half8,
+                sycl::cl_char8, sycl::cl_uchar8,
+                sycl::cl_short8, sycl::cl_ushort8,
+                sycl::cl_int8, sycl::cl_uint8,
+                sycl::cl_long8, sycl::cl_ulong8,
+                sycl::cl_float8, sycl::cl_double8, sycl::cl_half8,
 
                 // 16 component vector types
-                cl::sycl::char16, cl::sycl::schar16, cl::sycl::uchar16,
-                cl::sycl::short16, cl::sycl::ushort16,
-                cl::sycl::int16, cl::sycl::uint16,
-                cl::sycl::long16, cl::sycl::ulong16,
-                cl::sycl::longlong16, cl::sycl::ulonglong16,
-                cl::sycl::float16, cl::sycl::double16, cl::sycl::half16,
-                cl::sycl::cl_char16, cl::sycl::cl_uchar16,
-                cl::sycl::cl_short16, cl::sycl::cl_ushort16,
-                cl::sycl::cl_int16, cl::sycl::cl_uint16,
-                cl::sycl::cl_long16, cl::sycl::cl_ulong16,
-                cl::sycl::cl_float16, cl::sycl::cl_double16, cl::sycl::cl_half16
+                sycl::char16, sycl::schar16, sycl::uchar16,
+                sycl::short16, sycl::ushort16,
+                sycl::int16, sycl::uint16,
+                sycl::long16, sycl::ulong16,
+                sycl::longlong16, sycl::ulonglong16,
+                sycl::float16, sycl::double16, sycl::half16,
+                sycl::cl_char16, sycl::cl_uchar16,
+                sycl::cl_short16, sycl::cl_ushort16,
+                sycl::cl_int16, sycl::cl_uint16,
+                sycl::cl_long16, sycl::cl_ulong16,
+                sycl::cl_float16, sycl::cl_double16, sycl::cl_half16
             >
         {};
 
@@ -143,7 +126,7 @@ namespace alpaka
         template<typename T>
         struct DimType<T, std::enable_if_t<IsSyclBuiltInType<T>::value>>
         {
-            using type = DimInt<alpaka::detail::extract<T>>;
+            using type = std::conditional_t<std::is_scalar_v<T>, DimInt<std::size_t{1}>, DimInt<T::size()>>;
         };
 
         //##################################################################

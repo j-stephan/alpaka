@@ -12,11 +12,10 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/math/round/Traits.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <type_traits>
 
 namespace alpaka
@@ -38,7 +37,7 @@ namespace alpaka
             {
                 static auto round(RoundGenericSycl const &, TArg const & arg)
                 {
-                    return cl::sycl::round(arg);
+                    return sycl::round(arg);
                 }
             };
             //#############################################################################
@@ -48,7 +47,7 @@ namespace alpaka
             {
                 static auto lround(RoundGenericSycl const &, TArg const & arg)
                 {
-                    return static_cast<long int>(cl::sycl::round(arg));
+                    return static_cast<long int>(sycl::round(arg));
                 }
             };
             //#############################################################################
@@ -58,7 +57,7 @@ namespace alpaka
             {
                 static auto llround(RoundGenericSycl const &, TArg const & arg)
                 {
-                    return static_cast<long long int>(cl::sycl::round(arg));
+                    return static_cast<long long int>(sycl::round(arg));
                 }
             };
         }

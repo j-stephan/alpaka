@@ -11,7 +11,6 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
 #include <alpaka/math/abs/AbsGenericSycl.hpp>
 #include <alpaka/math/acos/AcosGenericSycl.hpp>
 #include <alpaka/math/asin/AsinGenericSycl.hpp>

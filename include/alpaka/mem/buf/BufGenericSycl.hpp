@@ -12,7 +12,6 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
 #include <alpaka/core/Sycl.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/dev/DevGenericSycl.hpp>
@@ -22,7 +21,7 @@
 #include <alpaka/mem/buf/BufCpu.hpp>
 #include <alpaka/vec/Vec.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 #include <memory>
 #include <type_traits>
@@ -54,7 +53,7 @@ namespace alpaka
         ALPAKA_FN_HOST BufGenericSycl(TDev const & dev, TElem* ptr, TIdx const& pitchBytes, TExtent const& extent)
         : m_dev{dev}
         , m_extentElements{extent::getExtentVecEnd<TDim>(extent)}
-        , m_ptr{ptr, [this](auto p) { cl::sycl::free(p, m_dev.m_context); }}
+        , m_ptr{ptr, [this](auto p) { sycl::free(p, m_dev.m_context); }}
         , m_pitchBytes{pitchBytes}
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
@@ -201,7 +200,7 @@ namespace alpaka
             {
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
-                using namespace cl::sycl;
+                using namespace sycl;
 
                 auto memPtr = static_cast<TElem*>(nullptr);
                 auto pitchBytes = TIdx{};

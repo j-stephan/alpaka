@@ -12,11 +12,10 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/math/atan2/Traits.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <type_traits>
 
 namespace alpaka
@@ -38,7 +37,7 @@ namespace alpaka
             {
                 static auto atan2(Atan2GenericSycl const &, Ty const & y, Tx const & x)
                 {
-                    return cl::sycl::atan2(y, x);
+                    return sycl::atan2(y, x);
                 }
             };
         }

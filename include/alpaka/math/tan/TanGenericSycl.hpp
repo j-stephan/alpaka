@@ -12,11 +12,10 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/math/tan/Traits.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <type_traits>
 
 namespace alpaka
@@ -24,7 +23,7 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The standard library tan.
+        //! The SYCL tan.
         class TanGenericSycl : public concepts::Implements<ConceptMathTan, TanGenericSycl>
         {
         };
@@ -32,13 +31,13 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The standard library tan trait specialization.
+            //! The SYCL tan trait specialization.
             template<typename TArg>
             struct Tan<TanGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto tan(TanGenericSycl const &, TArg const & arg)
                 {
-                    return cl::sycl::tan(arg);
+                    return sycl::tan(arg);
                 }
             };
         }

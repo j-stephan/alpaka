@@ -12,11 +12,10 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/math/fmod/Traits.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <type_traits>
 
 namespace alpaka
@@ -38,7 +37,7 @@ namespace alpaka
             {
                 static auto fmod(FmodGenericSycl const &, Tx const & x, Ty const & y)
                 {
-                    return cl::sycl::fmod(x, y);
+                    return sycl::fmod(x, y);
                 }
             };
         }

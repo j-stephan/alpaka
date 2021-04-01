@@ -12,8 +12,7 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/math/max/Traits.hpp>
 
 #include <CL/sycl.hpp>
@@ -38,7 +37,7 @@ namespace alpaka
             {
                 static auto max(MaxGenericSycl const &, Tx const & x, Ty const & y)
                 {
-                    return cl::sycl::max(x, y);
+                    return sycl::max(x, y);
                 }
             };
             //#############################################################################
@@ -49,7 +48,7 @@ namespace alpaka
             {
                 static auto max(MaxGenericSycl const &, Tx const & x, Ty const & y)
                 {
-                    return cl::sycl::fmax(x, y);
+                    return sycl::fmax(x, y);
                 }
             };
         }

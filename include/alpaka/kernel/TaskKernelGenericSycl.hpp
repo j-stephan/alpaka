@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -11,12 +11,6 @@
 #pragma once
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
-
-#include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
 
 #include <alpaka/acc/Traits.hpp>
 #include <alpaka/dev/Traits.hpp>
@@ -36,6 +30,8 @@
 #pragma clang diagnostic ignored "-Wnewline-eof"
 #include <stl-tuple/STLTuple.hpp> // computecpp-sdk
 #pragma clang diagnostic pop
+
+#include <sycl/sycl.hpp>
 
 #include <functional>
 #include <memory>
@@ -85,7 +81,7 @@ namespace alpaka
 
         struct TaskKernelGenericSyclImpl
         {
-            std::vector<cl::sycl::event> dependencies = {};
+            std::vector<sycl::event> dependencies = {};
             std::shared_mutex mutex{};
         };
     } // namespace detail
@@ -128,9 +124,9 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         ~TaskKernelGenericSycl() = default;
 
-        auto operator()(cl::sycl::handler& cgh) -> void // Don't remove the trailing void or DPCPP will complain.
+        auto operator()(sycl::handler& cgh) -> void // Don't remove the trailing void or DPCPP will complain.
         { 
-            using namespace cl::sycl;
+            using namespace sycl;
 
             // wait for previous kernels to complete
             cgh.depends_on(pimpl->dependencies);
@@ -192,7 +188,7 @@ namespace alpaka
     private:
         auto get_global_size(const Vec<TDim, TIdx>& work_groups, const Vec<TDim, TIdx>& group_items)
         {
-            using namespace cl::sycl;
+            using namespace sycl;
 
             if constexpr(TDim::value == 1)
                 return range<1>{static_cast<std::size_t>(work_groups[0] * group_items[0])};
@@ -211,7 +207,7 @@ namespace alpaka
 
         auto get_local_size(const Vec<TDim, TIdx>& group_items)
         {
-            using namespace cl::sycl;
+            using namespace sycl;
 
             if constexpr(TDim::value == 1)
                 return range<1>{static_cast<std::size_t>(group_items[0])};

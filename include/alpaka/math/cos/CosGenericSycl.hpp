@@ -12,11 +12,10 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/math/cos/Traits.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <type_traits>
 
 namespace alpaka
@@ -32,13 +31,13 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The standard library cos trait specialization.
+            //! The SYCL cos trait specialization.
             template<typename TArg>
             struct Cos<CosGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto cos(CosGenericSycl const &, TArg const & arg)
                 {
-                    return cl::sycl::cos(arg);
+                    return sycl::cos(arg);
                 }
             };
         }

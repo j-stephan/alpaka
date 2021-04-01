@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -11,12 +11,6 @@
 #pragma once
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
-
-#include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
 
 // Base classes.
 #include <alpaka/workdiv/WorkDivGenericSycl.hpp>
@@ -41,6 +35,8 @@
 #include <alpaka/core/BoostPredef.hpp>
 #include <alpaka/core/ClipCast.hpp>
 #include <alpaka/core/Sycl.hpp>
+
+#include <sycl/sycl.hpp>
 
 #include <cstddef>
 #include <string>
@@ -69,11 +65,11 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         AccGenericSycl(
             Vec<TDim, TIdx> const & threadElemExtent,
-            cl::sycl::nd_item<TDim::value> work_item,
-            cl::sycl::accessor<std::byte, 1,
-                               cl::sycl::access::mode::read_write,
-                               cl::sycl::access::target::local> shared_acc,
-            cl::sycl::stream output_stream) :
+            sycl::nd_item<TDim::value> work_item,
+            sycl::accessor<std::byte, 1,
+                               sycl::access::mode::read_write,
+                               sycl::access::target::local> shared_acc,
+            sycl::stream output_stream) :
                 WorkDivGenericSycl<TDim, TIdx>{threadElemExtent, work_item},
                 gb::IdxGbGenericSycl<TDim, TIdx>{work_item},
                 bt::IdxBtGenericSycl<TDim, TIdx>{work_item},
@@ -86,15 +82,15 @@ namespace alpaka
                 stream{output_stream}
         {}
 
-        cl::sycl::stream stream;
+        sycl::stream stream;
 #else
         //-----------------------------------------------------------------------------
         AccGenericSycl(
             Vec<TDim, TIdx> const & threadElemExtent,
-            cl::sycl::nd_item<TDim::value> work_item,
-            cl::sycl::accessor<std::byte, 1,
-                               cl::sycl::access::mode::read_write,
-                               cl::sycl::access::target::local> shared_acc) :
+            sycl::nd_item<TDim::value> work_item,
+            sycl::accessor<std::byte, 1,
+                               sycl::access::mode::read_write,
+                               sycl::access::target::local> shared_acc) :
                 WorkDivGenericSycl<TDim, TIdx>{threadElemExtent, work_item},
                 gb::IdxGbGenericSycl<TDim, TIdx>{work_item},
                 bt::IdxBtGenericSycl<TDim, TIdx>{work_item},
@@ -136,7 +132,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getAccDevProps(typename DevType<TAcc<TDim, TIdx>>::type const & dev) -> AccDevProps<TDim, TIdx>
             {
-                using namespace cl::sycl;
+                using namespace sycl;
 
                 auto max_threads_dim = dev.m_device.template get_info<info::device::max_work_item_sizes>();
                 return {

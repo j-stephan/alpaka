@@ -17,6 +17,7 @@
 
 # VIM project files
 .vimrc
+.exrc
 tags
 
 # IDE & tmp build

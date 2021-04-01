@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -23,7 +23,7 @@
 #include <alpaka/pltf/Traits.hpp>
 #include <alpaka/vec/Vec.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 #include <cstddef>
 #include <string>
@@ -36,16 +36,16 @@ namespace alpaka
     {
     public:
 #ifdef ALPAKA_SYCL_STREAM_ENABLED
-        AccCpuSyclIntel(Vec<TDim, TIdx> const & threadElemExtent, cl::sycl::nd_item<TDim::value> work_item,
-                        cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write,
-                                           cl::sycl::access::target::local> shared_acc,
-                        cl::sycl::stream output_stream)
+        AccCpuSyclIntel(Vec<TDim, TIdx> const & threadElemExtent, sycl::nd_item<TDim::value> work_item,
+                        sycl::accessor<std::byte, 1, sycl::access::mode::read_write,
+                                            sycl::access::target::local> shared_acc,
+                        sycl::stream output_stream)
         : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc, output_stream)
         {}
 #else
-        AccCpuSyclIntel(Vec<TDim, TIdx> const & threadElemExtent, cl::sycl::nd_item<TDim::value> work_item,
-                        cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write,
-                                           cl::sycl::access::target::local> shared_acc)
+        AccCpuSyclIntel(Vec<TDim, TIdx> const & threadElemExtent, sycl::nd_item<TDim::value> work_item,
+                        sycl::accessor<std::byte, 1, sycl::access::mode::read_write,
+                                            sycl::access::target::local> shared_acc)
         : AccGenericSycl<TDim, TIdx>(threadElemExtent, work_item, shared_acc)
         {}
 #endif

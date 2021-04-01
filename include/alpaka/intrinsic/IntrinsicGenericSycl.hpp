@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -12,7 +12,7 @@
 #include <alpaka/intrinsic/Traits.hpp>
 #include <alpaka/intrinsic/IntrinsicFallback.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 namespace alpaka
 {
@@ -48,7 +48,7 @@ namespace alpaka
                 std::uint32_t value)
             -> std::int32_t
             {
-                return static_cast<std::int32_t>(cl::sycl::popcount(value));
+                return static_cast<std::int32_t>(sycl::popcount(value));
             }
 
             //-----------------------------------------------------------------------------
@@ -57,7 +57,7 @@ namespace alpaka
                 std::uint64_t value)
             -> std::int32_t
             {
-                return static_cast<std::int32_t>(cl::sycl::popcount(value));
+                return static_cast<std::int32_t>(sycl::popcount(value));
             }
         };
 
@@ -73,7 +73,7 @@ namespace alpaka
             -> std::int32_t
             {
                 // There is no FFS operation in SYCL but we can emulate it using popcount.
-                return (value == 0) ? 0 : cl::sycl::popcount(value ^ ~(-value));
+                return (value == 0) ? 0 : sycl::popcount(value ^ ~(-value));
             }
 
             //-----------------------------------------------------------------------------
@@ -83,7 +83,7 @@ namespace alpaka
             -> std::int32_t
             {
                 // There is no FFS operation in SYCL but we can emulate it using popcount.
-                return (value == 0l) ? 0 : static_cast<std::int32_t>(cl::sycl::popcount(value ^ ~(-value)));
+                return (value == 0l) ? 0 : static_cast<std::int32_t>(sycl::popcount(value ^ ~(-value)));
             }
         };
     }

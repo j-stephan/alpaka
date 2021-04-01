@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -11,10 +11,9 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
 #include <alpaka/block/sync/Traits.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 namespace alpaka
 {
@@ -27,7 +26,7 @@ namespace alpaka
         using BlockSyncBase = BlockSyncGenericSycl<TDim>;
 
         //-----------------------------------------------------------------------------
-        BlockSyncGenericSycl(cl::sycl::nd_item<TDim::value> work_item)
+        BlockSyncGenericSycl(sycl::nd_item<TDim::value> work_item)
         : my_item{work_item}
         {
         }
@@ -42,7 +41,7 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         /*virtual*/ ~BlockSyncGenericSycl() = default;
 
-        cl::sycl::nd_item<TDim::value> my_item;
+        sycl::nd_item<TDim::value> my_item;
     };
 
     namespace traits
@@ -65,7 +64,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             static auto syncBlockThreadsPredicate(BlockSyncGenericSycl<TDim> const & blockSync, int predicate) -> int
             {
-                using namespace cl::sycl;
+                using namespace sycl;
 
                 const auto group = blockSync.my_item.get_group();
                 blockSync.my_item.barrier();
@@ -82,7 +81,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             static auto syncBlockThreadsPredicate(BlockSyncGenericSycl<TDim> const & blockSync, int predicate) -> int
             {
-                using namespace cl::sycl;
+                using namespace sycl;
 
                 const auto group = blockSync.my_item.get_group();
                 blockSync.my_item.barrier();
@@ -98,7 +97,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             static auto syncBlockThreadsPredicate(BlockSyncGenericSycl<TDim> const & blockSync, int predicate) -> int
             {
-                using namespace cl::sycl;
+                using namespace sycl;
 
                 const auto group = blockSync.my_item.get_group();
                 blockSync.my_item.barrier();

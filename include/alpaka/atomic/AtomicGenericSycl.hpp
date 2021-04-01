@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -12,19 +12,13 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/atomic/Op.hpp>
 #include <alpaka/atomic/Traits.hpp>
 #include <alpaka/core/Positioning.hpp>
 #include <alpaka/core/Unused.hpp>
 #include <alpaka/meta/DependentFalseType.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 #include <type_traits>
 
@@ -61,19 +55,19 @@ namespace alpaka
         template <>
         struct SyclMemoryScope<hierarchy::Grids>
         {
-            static constexpr auto value = cl::sycl::ONEAPI::memory_scope::device;
+            static constexpr auto value = sycl::ONEAPI::memory_scope::device;
         };
 
         template<>
         struct SyclMemoryScope<hierarchy::Blocks>
         {
-            static constexpr auto value = cl::sycl::ONEAPI::memory_scope::device;
+            static constexpr auto value = sycl::ONEAPI::memory_scope::device;
         };
 
         template<>
         struct SyclMemoryScope<hierarchy::Threads>
         {
-            static constexpr auto value = cl::sycl::ONEAPI::memory_scope::work_group;
+            static constexpr auto value = sycl::ONEAPI::memory_scope::work_group;
         };
 
         template <typename THierarchy>
@@ -82,23 +76,23 @@ namespace alpaka
         template <>
         struct SyclMemorySpace<hierarchy::Grids>
         {
-            static constexpr auto value = cl::sycl::access::address_space::global_device_space;
+            static constexpr auto value = sycl::access::address_space::global_device_space;
         };
 
         template <>
         struct SyclMemorySpace<hierarchy::Blocks>
         {
-            static constexpr auto value = cl::sycl::access::address_space::global_device_space;
+            static constexpr auto value = sycl::access::address_space::global_device_space;
         };
 
         template <>
         struct SyclMemorySpace<hierarchy::Threads>
         {
-            static constexpr auto value = cl::sycl::access::address_space::local_space;
+            static constexpr auto value = sycl::access::address_space::local_space;
         };
 
         template <typename T, typename THierarchy>
-        using atomic_ref = cl::sycl::ONEAPI::atomic_ref<T, cl::sycl::ONEAPI::memory_order_relaxed,
+        using atomic_ref = sycl::ONEAPI::atomic_ref<T, sycl::ONEAPI::memory_order_relaxed,
                                                         SyclMemoryScope<THierarchy>::value,
                                                         SyclMemorySpace<THierarchy>::value>;
     }
@@ -213,7 +207,7 @@ namespace alpaka
                 using Integral = std::conditional_t<std::is_integral_v<T>, T,
                                                     std::conditional_t<std::is_same_v<double, T>, unsigned long long,
                                                     std::conditional_t<std::is_same_v<float, T>, unsigned int,
-                                                    std::conditional_t<std::is_same_v<cl::sycl::half, T>, unsigned short, void>>>>;
+                                                    std::conditional_t<std::is_same_v<sycl::half, T>, unsigned short, void>>>>;
                 
                 auto ref = alpaka::detail::atomic_ref<Integral, THierarchy>{reinterpret_cast<Integral*>(*addr)};
 
@@ -249,7 +243,7 @@ namespace alpaka
                 using Integral = std::conditional_t<std::is_integral_v<T>, T,
                                                     std::conditional_t<std::is_same_v<double, T>, unsigned long long,
                                                     std::conditional_t<std::is_same_v<float, T>, unsigned int,
-                                                    std::conditional_t<std::is_same_v<cl::sycl::half, T>, unsigned short, void>>>>;
+                                                    std::conditional_t<std::is_same_v<sycl::half, T>, unsigned short, void>>>>;
                 
                 auto ref = alpaka::detail::atomic_ref<Integral, THierarchy>{reinterpret_cast<Integral*>(*addr)};
 

@@ -12,7 +12,6 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/dev/DevGenericSycl.hpp>
 #include <alpaka/dim/DimIntegralConst.hpp>
@@ -22,7 +21,7 @@
 #include <alpaka/core/Assert.hpp>
 #include <alpaka/core/Sycl.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 #include <vector>
 
@@ -46,7 +45,7 @@ namespace alpaka
             TElem* ptr;
             int value;
             std::size_t bytes;
-            std::vector<cl::sycl::event> dependencies = {};
+            std::vector<sycl::event> dependencies = {};
             std::shared_mutex mutex{};
         };
 
@@ -56,7 +55,7 @@ namespace alpaka
         struct TaskSetSycl
         {
             //-----------------------------------------------------------------------------
-            auto operator()(cl::sycl::handler& cgh) -> void
+            auto operator()(sycl::handler& cgh) -> void
             {
                 cgh.depends_on(pimpl->dependencies);
                 cgh.memset(pimpl->ptr, pimpl->value, pimpl->bytes);

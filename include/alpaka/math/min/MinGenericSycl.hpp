@@ -12,11 +12,10 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/math/min/Traits.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 #include <type_traits>
 
@@ -39,7 +38,7 @@ namespace alpaka
             {
                 static auto min(MinGenericSycl const &, Tx const & x, Ty const & y)
                 {
-                    return cl::sycl::min(x, y);
+                    return sycl::min(x, y);
                 }
             };
             //#############################################################################
@@ -50,7 +49,7 @@ namespace alpaka
             {
                 static auto min(MinGenericSycl const &, Tx const & x, Ty const & y)
                 {
-                    return cl::sycl::fmin(x, y);
+                    return sycl::fmin(x, y);
                 }
             };
         }

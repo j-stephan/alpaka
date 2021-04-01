@@ -12,11 +12,10 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/math/asin/Traits.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <type_traits>
 
 namespace alpaka
@@ -38,7 +37,7 @@ namespace alpaka
             {
                 static auto asin(AsinGenericSycl const&, TArg const & arg)
                 {
-                    return cl::sycl::asin(arg);
+                    return sycl::asin(arg);
                 }
             };
         }

@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner
+/* Copyright 2021 Axel Huebl, Benjamin Worpitz, Matthias Werner, Jan Stephan
  *
  * This file is part of alpaka.
  *
@@ -15,10 +15,10 @@
 #include <cassert>
 #include <type_traits>
 
-#if defined(BOOST_LANG_SYCL)
+#if defined(__SYCL_DEVICE_ONLY__)
     // using assert in OpenCL kernels forbidden
     #define ALPAKA_ASSERT(EXPRESSION) static_cast<void>(0)
-    //FIXME: write workaround
+    //FIXME: Write workaround. Can possibly be done with sycl::all_of but requires access to work group.
 #else
     #define ALPAKA_ASSERT(EXPRESSION) assert(EXPRESSION)
 #endif

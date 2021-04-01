@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -12,20 +12,11 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/workdiv/Traits.hpp>
 #include <alpaka/idx/Traits.hpp>
-
-#include <alpaka/core/Sycl.hpp>
-#include <alpaka/core/Unused.hpp>
 #include <alpaka/vec/Vec.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 namespace alpaka
 {
@@ -38,7 +29,7 @@ namespace alpaka
         using WorkDivBase = WorkDivGenericSycl;
 
         //-----------------------------------------------------------------------------
-        WorkDivGenericSycl(Vec<TDim, TIdx> const & threadElemExtent, cl::sycl::nd_item<TDim::value> work_item)
+        WorkDivGenericSycl(Vec<TDim, TIdx> const & threadElemExtent, sycl::nd_item<TDim::value> work_item)
         : m_threadElemExtent{threadElemExtent}, my_item{work_item}
         {}
         //-----------------------------------------------------------------------------
@@ -54,7 +45,7 @@ namespace alpaka
 
     public:
         Vec<TDim, TIdx> const & m_threadElemExtent;
-        cl::sycl::nd_item<TDim::value> my_item;
+        sycl::nd_item<TDim::value> my_item;
 
     };
 

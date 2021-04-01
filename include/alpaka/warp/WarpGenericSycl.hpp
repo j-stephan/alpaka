@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -11,10 +11,9 @@
 
 #if defined(ALPAKA_ACC_SYCL_ENABLED)
 
-#include <alpaka/core/Unused.hpp>
 #include <alpaka/warp/Traits.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 #include <cstdint>
 
@@ -34,7 +33,7 @@ namespace alpaka
             friend struct traits::Ballot<WarpGenericSycl<TDim>>;
         public:
             //-----------------------------------------------------------------------------
-            WarpGenericSycl(cl::sycl::nd_item<TDim::value> my_item)
+            WarpGenericSycl(sycl::nd_item<TDim::value> my_item)
             : m_item{my_item}
             {}
             //-----------------------------------------------------------------------------
@@ -49,7 +48,7 @@ namespace alpaka
             ~WarpGenericSycl() = default;
 
         private:
-            cl::sycl::nd_item<TDim::value> m_item;
+            sycl::nd_item<TDim::value> m_item;
         };
 
         namespace traits
@@ -76,7 +75,7 @@ namespace alpaka
                 static auto activemask(warp::WarpGenericSycl<TDim> const & warp) -> std::uint32_t
                 {
                     // No SYCL group algorithm for it, emulate via reduce
-                    using namespace cl::sycl;
+                    using namespace sycl;
 
                     const auto sub_group = warp.m_item.get_sub_group();
                     const auto id = sub_group.get_local_linear_id();
@@ -96,7 +95,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 static auto all(warp::WarpGenericSycl<TDim> const & warp, std::int32_t predicate) -> std::int32_t
                 {
-                    using namespace cl::sycl;
+                    using namespace sycl;
 
                     const auto sub_group = warp.m_item.get_sub_group();
                     return static_cast<std::int32_t>(ONEAPI::all_of(sub_group, static_cast<bool>(predicate))); 
@@ -110,7 +109,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 static auto any(warp::WarpGenericSycl<TDim> const & warp, std::int32_t predicate) -> std::int32_t
                 {
-                    using namespace cl::sycl;
+                    using namespace sycl;
 
                     const auto sub_group = warp.m_item.get_sub_group();
                     return static_cast<std::int32_t>(ONEAPI::any_of(sub_group, static_cast<bool>(predicate)));
@@ -125,7 +124,7 @@ namespace alpaka
                 //-----------------------------------------------------------------------------
                 static auto ballot(warp::WarpGenericSycl<TDim> const & warp, std::int32_t predicate) -> std::uint32_t
                 {
-                    using namespace cl::sycl;
+                    using namespace sycl;
 
                     const auto sub_group = warp.m_item.get_sub_group();
                     const auto id = sub_group.get_local_linear_id();

@@ -12,11 +12,10 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Unused.hpp>
+#include <alpaka/core/Concepts.hpp>
 #include <alpaka/math/sin/Traits.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <type_traits>
 
 namespace alpaka
@@ -24,7 +23,7 @@ namespace alpaka
     namespace math
     {
         //#############################################################################
-        //! The SYCL library sin.
+        //! The SYCL sin.
         class SinGenericSycl : public concepts::Implements<ConceptMathSin, SinGenericSycl>
         {
         };
@@ -32,13 +31,13 @@ namespace alpaka
         namespace traits
         {
             //#############################################################################
-            //! The SYCL library sin trait specialization.
+            //! The SYCL sin trait specialization.
             template<typename TArg>
             struct Sin<SinGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
                 static auto sin(SinGenericSycl const &, TArg const & arg)
                 {
-                    return cl::sycl::sin(arg);
+                    return sycl::sin(arg);
                 }
             };
         }

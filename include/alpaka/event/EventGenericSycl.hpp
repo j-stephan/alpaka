@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -12,7 +12,6 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
 #include <alpaka/core/Sycl.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/event/Traits.hpp>
@@ -20,7 +19,7 @@
 #include <alpaka/queue/QueueGenericSyclNonBlocking.hpp>
 #include <alpaka/wait/Traits.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 #include <stdexcept>
 #include <memory>
@@ -42,7 +41,7 @@ namespace alpaka
             ~EventGenericSyclImpl() = default;
 
             TDev dev;
-            cl::sycl::event event{};
+            sycl::event event{};
         };
     }
     //#############################################################################
@@ -112,7 +111,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto isComplete(EventGenericSycl<TDev> const & event) -> bool
             {
-                using namespace cl::sycl;
+                using namespace sycl;
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
                 const auto status = event.pimpl->event.template get_info<info::event::command_execution_status>();

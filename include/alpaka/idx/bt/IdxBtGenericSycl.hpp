@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -12,12 +12,6 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/idx/Traits.hpp>
 
 #include <alpaka/vec/Vec.hpp>
@@ -25,6 +19,8 @@
 #include <alpaka/core/Sycl.hpp>
 #include <alpaka/core/Positioning.hpp>
 #include <alpaka/core/Unused.hpp>
+
+#include <sycl/sycl.hpp>
 
 namespace alpaka
 {
@@ -41,8 +37,9 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             IdxBtGenericSycl() = default;
             //-----------------------------------------------------------------------------
-            explicit IdxBtGenericSycl(cl::sycl::nd_item<TDim::value> work_item)
-            : my_item{work_item} {}
+            explicit IdxBtGenericSycl(sycl::nd_item<TDim::value> work_item) : my_item{work_item}
+            {
+            }
             //-----------------------------------------------------------------------------
             IdxBtGenericSycl(IdxBtGenericSycl const &) = default;
             //-----------------------------------------------------------------------------
@@ -54,7 +51,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             /*virtual*/ ~IdxBtGenericSycl() = default;
 
-            cl::sycl::nd_item<TDim::value> my_item;
+            sycl::nd_item<TDim::value> my_item;
         };
     }
 

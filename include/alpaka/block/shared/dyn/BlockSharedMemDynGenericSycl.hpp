@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -12,15 +12,9 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
 #include <alpaka/block/shared/dyn/Traits.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 #include <cstddef>
 
@@ -34,9 +28,9 @@ namespace alpaka
         using BlockSharedMemDynBase = BlockSharedMemDynGenericSycl;
 
         //-----------------------------------------------------------------------------
-        BlockSharedMemDynGenericSycl(cl::sycl::accessor<std::byte, 1,
-                                                        cl::sycl::access::mode::read_write,
-                                                        cl::sycl::access::target::local> shared_acc)
+        BlockSharedMemDynGenericSycl(sycl::accessor<std::byte, 1,
+                                                        sycl::access::mode::read_write,
+                                                        sycl::access::target::local> shared_acc)
         : acc{shared_acc}
         {}
 
@@ -51,7 +45,7 @@ namespace alpaka
         //-----------------------------------------------------------------------------
         /*virtual*/ ~BlockSharedMemDynGenericSycl() = default;
 
-        cl::sycl::accessor<std::byte, 1, cl::sycl::access::mode::read_write, cl::sycl::access::target::local> acc;
+        sycl::accessor<std::byte, 1, sycl::access::mode::read_write, sycl::access::target::local> acc;
     };
 
     namespace traits
@@ -63,7 +57,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             static auto getMem(BlockSharedMemDynGenericSycl const & shared) -> T*
             {
-                using namespace cl::sycl;
+                using namespace sycl;
 
                 auto void_ptr = multi_ptr<void, access::address_space::local_space>{shared.acc};
                 auto T_ptr = static_cast<multi_ptr<T, access::address_space::local_space>>(void_ptr);

@@ -12,15 +12,13 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
-#include <alpaka/core/Sycl.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/event/Traits.hpp>
 #include <alpaka/queue/Traits.hpp>
 #include <alpaka/queue/sycl/Utility.hpp>
 #include <alpaka/wait/Traits.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 #include <algorithm>
 #include <iterator>
@@ -51,7 +49,7 @@ namespace alpaka
         ALPAKA_FN_HOST QueueGenericSyclNonBlocking(TDev const& dev)
         : m_dev{dev}
         , m_queue{dev.m_context, // This is important. In SYCL a device can belong to multiple contexts.
-                  dev.m_device, {cl::sycl::property::queue::enable_profiling{}, cl::sycl::property::queue::in_order{}}}
+                  dev.m_device, {sycl::property::queue::enable_profiling{}, sycl::property::queue::in_order{}}}
         {}
         //-----------------------------------------------------------------------------
         QueueGenericSyclNonBlocking(QueueGenericSyclNonBlocking const &) = default;
@@ -76,9 +74,9 @@ namespace alpaka
 
     private:
         TDev m_dev; //!< The device this queue is bound to.
-        cl::sycl::queue m_queue; //!< The underlying SYCL queue.
-        cl::sycl::event m_event{}; //!< The last event in the dependency graph.
-        std::vector<cl::sycl::event> m_dependencies = {}; //!< A list of events this queue should wait for.
+        sycl::queue m_queue; //!< The underlying SYCL queue.
+        sycl::event m_event{}; //!< The last event in the dependency graph.
+        std::vector<sycl::event> m_dependencies = {}; //!< A list of events this queue should wait for.
         std::shared_ptr<std::shared_mutex> mutable mutex_ptr{std::make_shared<std::shared_mutex>()};
     };
 
@@ -121,7 +119,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto enqueue(QueueGenericSyclNonBlocking<TDev>& queue, TTask const& task) -> void
             {
-                using namespace cl::sycl;
+                using namespace sycl;
 
                 if constexpr(detail::is_sycl_enqueueable<TTask>::value) // Device task
                 {
@@ -162,7 +160,7 @@ namespace alpaka
                         queue.m_dependencies.insert(end(queue.m_dependencies), begin(queue.m_dev.m_dependencies), end(queue.m_dev.m_dependencies));
                     
                     // Execute host task
-                    queue.m_event = queue.m_queue.submit([&queue, task](cl::sycl::handler& cgh)
+                    queue.m_event = queue.m_queue.submit([&queue, task](sycl::handler& cgh)
                     {
                         cgh.depends_on(queue.m_dependencies);
                         cgh.codeplay_host_task(task);
@@ -182,7 +180,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto empty(QueueGenericSyclNonBlocking<TDev> const& queue) -> bool
             {
-                using namespace cl::sycl;
+                using namespace sycl;
 
                 ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
                 std::shared_lock<std::shared_mutex> lock{*queue.mutex_ptr};

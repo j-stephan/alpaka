@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -12,23 +12,14 @@
 
 #if defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_BACKEND_ONEAPI)
 
-#include <alpaka/core/Common.hpp>
-
-#if !BOOST_LANG_SYCL
-    #error If ALPAKA_ACC_SYCL_ENABLED is set, the compiler has to support SYCL!
-#endif
-
-#include <alpaka/core/Sycl.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/pltf/PltfGenericSycl.hpp>
 #include <alpaka/dev/DevGenericSycl.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 #include <CL/sycl/INTEL/fpga_extensions.hpp>
 
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
+#include <string>
 
 namespace alpaka
 {
@@ -41,9 +32,9 @@ namespace alpaka
         ALPAKA_FN_HOST PltfFpgaSyclIntel() = delete;
 
 #ifdef ALPAKA_FPGA_EMULATION
-        using selector = cl::sycl::INTEL::fpga_emulator_selector;
+        using selector = sycl::INTEL::fpga_emulator_selector;
 #else
-        using selector = cl::sycl::INTEL::fpga_selector;
+        using selector = sycl::INTEL::fpga_selector;
 #endif
     };
 

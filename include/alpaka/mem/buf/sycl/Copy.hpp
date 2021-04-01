@@ -12,7 +12,6 @@
 
 #ifdef ALPAKA_ACC_SYCL_ENABLED
 
-#include <alpaka/core/Common.hpp>
 #include <alpaka/dev/DevCpu.hpp>
 #include <alpaka/dev/DevGenericSycl.hpp>
 #include <alpaka/dim/DimIntegralConst.hpp>
@@ -21,7 +20,7 @@
 #include <alpaka/mem/view/Traits.hpp>
 #include <alpaka/core/Sycl.hpp>
 
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 #include <memory>
 #include <shared_mutex>
@@ -48,7 +47,7 @@ namespace alpaka
             TElem const* src_ptr;
             TElem* dst_ptr;
             std::size_t bytes;
-            std::vector<cl::sycl::event> dependencies = {};
+            std::vector<sycl::event> dependencies = {};
             std::shared_mutex mutex{};
         };
 
@@ -57,7 +56,7 @@ namespace alpaka
         template <typename TElem>
         struct TaskCopySycl
         {
-            auto operator()(cl::sycl::handler& cgh) -> void
+            auto operator()(sycl::handler& cgh) -> void
             {
                 cgh.depends_on(pimpl->dependencies);
                 cgh.memcpy(pimpl->dst_ptr, pimpl->src_ptr, pimpl->bytes);
