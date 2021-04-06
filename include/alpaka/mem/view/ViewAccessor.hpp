@@ -248,6 +248,7 @@ namespace alpaka
                 using type = std::tuple<TAccessMode1, TAccessMode2, TAccessModes...>;
             };
 
+            ALPAKA_NO_HOST_ACC_WARNING
             template<
                 typename... TAccessModes,
                 typename TViewForwardRef,
