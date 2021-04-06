@@ -310,8 +310,9 @@ template<typename TAcc, typename T, typename Sfinae = void>
 class AtomicTestKernel
 {
 public:
+    ALPAKA_NO_HOST_ACC_WARNING
     template<typename TIdx>
-    ALPAKA_NO_HOST_ACC_WARNING ALPAKA_FN_ACC auto operator()(
+    ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
         alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         T operandOrig) const -> void
