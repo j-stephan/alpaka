@@ -17,6 +17,8 @@
 
 #include <alpaka/dim/Traits.hpp>
 #include <alpaka/mem/view/Traits.hpp>
+#include <alpaka/meta/DependentFalseType.hpp>
+#include <alpaka/meta/Void.hpp>
 
 #include <tuple>
 
@@ -320,40 +322,108 @@ namespace alpaka
     };
 #endif
 
+    namespace traits
+    {
+        //! The customization point for how to build an accessor for a given memory object.
+        template<typename TMemoryObject, typename SFINAE = void>
+        struct BuildAccessor
+        {
+            template<typename... TAccessModes, typename TMemoryObjectForwardRef>
+            ALPAKA_FN_HOST_ACC static auto buildAccessor(TMemoryObjectForwardRef&&)
+            {
+                static_assert(
+                    meta::DependentFalseType<TMemoryObject>::value,
+                    "BuildAccessor<TMemoryObject> is not specialized for your TMemoryObject.");
+            }
+        };
+
+        namespace internal
+        {
+            template<typename T, typename SFINAE = void>
+#ifdef __cpp_inline_variables
+            inline
+#endif
+                constexpr bool isView
+                = false;
+
+            // TODO: replace this by a concept in C++20
+            template<typename TView>
+#ifdef __cpp_inline_variables
+            inline
+#endif
+                constexpr bool isView<
+                    TView,
+                    meta::Void<
+                        Idx<TView>,
+                        Dim<TView>,
+                        decltype(alpaka::getPtrNative(std::declval<TView>())),
+                        decltype(getPitchBytes<0>(std::declval<TView>())),
+                        decltype(extent::getExtent<0>(std::declval<TView>()))>> = true;
+
+            template<typename... TAccessModes>
+            struct BuildAccessModeList;
+
+            template<typename TAccessMode>
+            struct BuildAccessModeList<TAccessMode>
+            {
+                using type = TAccessMode;
+            };
+
+            template<typename TAccessMode1, typename TAccessMode2, typename... TAccessModes>
+            struct BuildAccessModeList<TAccessMode1, TAccessMode2, TAccessModes...>
+            {
+                using type = std::tuple<TAccessMode1, TAccessMode2, TAccessModes...>;
+            };
+
+            template<
+                typename... TAccessModes,
+                typename TViewForwardRef,
+                std::size_t... TPitchIs,
+                std::size_t... TExtentIs>
+            ALPAKA_FN_HOST_ACC auto buildViewAccessor(
+                TViewForwardRef&& view,
+                std::index_sequence<TPitchIs...>,
+                std::index_sequence<TExtentIs...>)
+            {
+                using TView = std::decay_t<TViewForwardRef>;
+                static_assert(isView<TView>, "");
+                using TBufferIdx = Idx<TView>;
+                constexpr auto dim = Dim<TView>::value;
+                using Elem = Elem<TView>;
+                auto p = getPtrNative(view);
+                static_assert(
+                    std::is_same<decltype(p), const Elem*>::value || std::is_same<decltype(p), Elem*>::value,
+                    "We assume that getPtrNative() returns a raw pointer to the view's elements");
+                static_assert(
+                    !std::is_same<decltype(p), const Elem*>::value
+                        || std::is_same<std::tuple<TAccessModes...>, std::tuple<alpaka::ReadAccess>>::value,
+                    "When getPtrNative() returns a const raw pointer, the access mode must be ReadAccess");
+                using AccessModeList = typename BuildAccessModeList<TAccessModes...>::type;
+                return Accessor<Elem*, Elem, TBufferIdx, dim, AccessModeList>{
+                    const_cast<Elem*>(p), // strip constness, this is handled the the access modes
+                    getPitchBytes<TPitchIs + 1>(view)...,
+                    {extent::getExtent<TExtentIs>(view)...}};
+            }
+        } // namespace internal
+
+        //! Builds an accessor from view like memory objects.
+        template<typename TView>
+        struct BuildAccessor<TView, std::enable_if_t<internal::isView<TView>>>
+        {
+            template<typename... TAccessModes, typename TViewForwardRef>
+            ALPAKA_FN_HOST_ACC static auto buildAccessor(TViewForwardRef&& view)
+            {
+                using Dim = Dim<std::decay_t<TView>>;
+                return internal::buildViewAccessor<TAccessModes...>(
+                    std::forward<TViewForwardRef>(view),
+                    std::make_index_sequence<Dim::value - 1>{},
+                    std::make_index_sequence<Dim::value>{});
+            }
+        };
+    } // namespace traits
+
     namespace internal
     {
-        template<typename... TAccessModes>
-        struct BuildAccessModeList;
-
-        template<typename TAccessMode>
-        struct BuildAccessModeList<TAccessMode>
-        {
-            using type = TAccessMode;
-        };
-
-        template<typename TAccessMode1, typename TAccessMode2, typename... TAccessModes>
-        struct BuildAccessModeList<TAccessMode1, TAccessMode2, TAccessModes...>
-        {
-            using type = std::tuple<TAccessMode1, TAccessMode2, TAccessModes...>;
-        };
-
-        template<typename... TAccessModes, typename TBuf, std::size_t... TPitchIs, std::size_t... TExtentIs>
-        ALPAKA_FN_HOST_ACC auto buildAccessor(
-            TBuf&& buffer,
-            std::index_sequence<TPitchIs...>,
-            std::index_sequence<TExtentIs...>)
-        {
-            using DBuf = std::decay_t<TBuf>;
-            using TBufferIdx = Idx<DBuf>;
-            constexpr auto dim = Dim<DBuf>::value;
-            auto p = getPtrNative(buffer);
-            using AccessModeList = typename BuildAccessModeList<TAccessModes...>::type;
-            return Accessor<decltype(p), Elem<DBuf>, TBufferIdx, dim, AccessModeList>{
-                p,
-                getPitchBytes<TPitchIs + 1>(buffer)...,
-                {extent::getExtent<TExtentIs>(buffer)...}};
-        }
-
         template<typename T>
 #ifdef __cpp_inline_variables
         inline
@@ -366,7 +436,22 @@ namespace alpaka
         inline
 #endif
             constexpr bool isAccessor<Accessor<TMemoryHandle, TElem, TBufferIdx, Dim, TAccessModes>> = true;
+    } // namespace internal
 
+    //! Creates an accessor for the given memory object using the specified access modes. Memory objects are e.g.
+    //! alpaka views and buffers.
+    template<
+        typename... TAccessModes,
+        typename TMemoryObject,
+        typename = std::enable_if_t<!internal::isAccessor<std::decay_t<TMemoryObject>>>>
+    ALPAKA_FN_HOST_ACC auto accessWith(TMemoryObject&& memoryObject)
+    {
+        return traits::BuildAccessor<std::decay_t<TMemoryObject>>::template buildAccessor<TAccessModes...>(
+            memoryObject);
+    }
+
+    namespace internal
+    {
         template<typename List, typename Value>
         struct MpContains : std::false_type
         {
@@ -378,20 +463,6 @@ namespace alpaka
             static constexpr bool value = std::is_same<Head, Value>::value || MpContains<List<Tail...>, Value>::value;
         };
     } // namespace internal
-
-    //! Creates an accessor for the given memory object (view or buffer) using the specified access modes.
-    template<
-        typename... TAccessModes,
-        typename TBuf,
-        typename = std::enable_if_t<!internal::isAccessor<std::decay_t<TBuf>>>>
-    ALPAKA_FN_HOST_ACC auto accessWith(TBuf&& buffer)
-    {
-        using Dim = Dim<std::decay_t<TBuf>>;
-        return internal::buildAccessor<TAccessModes...>(
-            std::forward<TBuf>(buffer),
-            std::make_index_sequence<Dim::value - 1>{},
-            std::make_index_sequence<Dim::value>{});
-    }
 
     //! Constrains an existing accessor with multiple access modes to the specified access modes.
     // TODO: currently only allows constraining down to 1 access mode
@@ -413,30 +484,30 @@ namespace alpaka
 
     //! Constrains an existing accessor to the specified access modes.
     // constraining accessor to the same access mode again just passes through
-    template<typename TAccessMode, typename TMemoryHandle, typename TElem, typename TBufferIdx, std::size_t TDim>
-    ALPAKA_FN_HOST_ACC auto accessWith(const Accessor<TMemoryHandle, TElem, TBufferIdx, TDim, TAccessMode>& acc)
+    template<typename TNewAccessMode, typename TMemoryHandle, typename TElem, typename TBufferIdx, std::size_t TDim>
+    ALPAKA_FN_HOST_ACC auto accessWith(const Accessor<TMemoryHandle, TElem, TBufferIdx, TDim, TNewAccessMode>& acc)
     {
         return acc;
     }
 
-    //! Creates a read-write accessor for the given memory object (view, buffer, accessor).
-    template<typename TViewOrAccessor>
-    ALPAKA_FN_HOST_ACC auto access(TViewOrAccessor&& viewOrAccessor)
+    //! Creates a read-write accessor for the given memory object (view, buffer, ...) or accessor.
+    template<typename TMemoryObjectOrAccessor>
+    ALPAKA_FN_HOST_ACC auto access(TMemoryObjectOrAccessor&& viewOrAccessor)
     {
-        return accessWith<ReadWriteAccess>(std::forward<TViewOrAccessor>(viewOrAccessor));
+        return accessWith<ReadWriteAccess>(std::forward<TMemoryObjectOrAccessor>(viewOrAccessor));
     }
 
-    //! Creates a read-only accessor for the given memory object (view, buffer, accessor).
-    template<typename TViewOrAccessor>
-    ALPAKA_FN_HOST_ACC auto readAccess(TViewOrAccessor&& viewOrAccessor)
+    //! Creates a read-only accessor for the given memory object (view, buffer, ...) or accessor.
+    template<typename TMemoryObjectOrAccessor>
+    ALPAKA_FN_HOST_ACC auto readAccess(TMemoryObjectOrAccessor&& viewOrAccessor)
     {
-        return accessWith<ReadAccess>(std::forward<TViewOrAccessor>(viewOrAccessor));
+        return accessWith<ReadAccess>(std::forward<TMemoryObjectOrAccessor>(viewOrAccessor));
     }
 
-    //! Creates a write-only accessor for the given memory object (view, buffer, accessor).
-    template<typename TViewOrAccessor>
-    ALPAKA_FN_HOST_ACC auto writeAccess(TViewOrAccessor&& viewOrAccessor)
+    //! Creates a write-only accessor for the given memory object (view, buffer, ...) or accessor.
+    template<typename TMemoryObjectOrAccessor>
+    ALPAKA_FN_HOST_ACC auto writeAccess(TMemoryObjectOrAccessor&& viewOrAccessor)
     {
-        return accessWith<WriteAccess>(std::forward<TViewOrAccessor>(viewOrAccessor));
+        return accessWith<WriteAccess>(std::forward<TMemoryObjectOrAccessor>(viewOrAccessor));
     }
 } // namespace alpaka
