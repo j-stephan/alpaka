@@ -9,8 +9,37 @@
 
 #include <alpaka/example/ExampleDefaultAcc.hpp>
 #include <alpaka/mem/view/Accessor.hpp>
+#include <alpaka/mem/view/ViewPlainPtr.hpp>
+#include <alpaka/mem/view/ViewStdArray.hpp>
+#include <alpaka/mem/view/ViewStdVector.hpp>
+#include <alpaka/mem/view/ViewSubView.hpp>
 
 #include <catch2/catch.hpp>
+
+TEST_CASE("isView", "[accessor]")
+{
+    using alpaka::traits::internal::isView;
+
+    using Dim = alpaka::DimInt<1>;
+    using Size = std::size_t;
+    using Acc = alpaka::ExampleDefaultAcc<Dim, Size>;
+    using Dev = alpaka::Dev<Acc>;
+
+    // buffer
+    auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
+    auto buffer = alpaka::allocBuf<int, Size>(devAcc, Size{1});
+    STATIC_REQUIRE(isView<decltype(buffer)>);
+
+    // views
+    STATIC_REQUIRE(isView<alpaka::ViewPlainPtr<Dev, int, Dim, Size>>);
+    STATIC_REQUIRE(isView<std::array<int, 42>>);
+    STATIC_REQUIRE(isView<std::vector<int>>);
+    STATIC_REQUIRE(isView<alpaka::ViewSubView<Dev, int, Dim, Size>>);
+
+    // accessor
+    auto accessor = alpaka::access(buffer);
+    STATIC_REQUIRE(!isView<decltype(accessor)>);
+}
 
 namespace
 {
