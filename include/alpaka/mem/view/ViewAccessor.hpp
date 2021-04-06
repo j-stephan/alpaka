@@ -28,11 +28,6 @@ namespace alpaka
         {
             return reinterpret_cast<char*>(p);
         }
-        template<typename T>
-        ALPAKA_FN_HOST_ACC auto asBytePtr(const T* p)
-        {
-            return reinterpret_cast<const char*>(p);
-        }
 
         template<typename T>
         struct WriteOnlyProxy
@@ -52,49 +47,49 @@ namespace alpaka
             T& loc;
         };
 
-        template<typename TPointer, typename TElem, typename TAccessModes>
+        template<typename TElem, typename TAccessModes>
         struct AccessReturnTypeImpl;
 
-        template<typename TPointer, typename TElem>
-        struct AccessReturnTypeImpl<TPointer, TElem, ReadAccess>
+        template<typename TElem>
+        struct AccessReturnTypeImpl<TElem, ReadAccess>
         {
             using type = TElem;
         };
 
-        template<typename TPointer, typename TElem>
-        struct AccessReturnTypeImpl<TPointer, TElem, WriteAccess>
+        template<typename TElem>
+        struct AccessReturnTypeImpl<TElem, WriteAccess>
         {
             using type = WriteOnlyProxy<TElem>;
         };
 
-        template<typename TPointer, typename TElem>
-        struct AccessReturnTypeImpl<TPointer, TElem, ReadWriteAccess>
+        template<typename TElem>
+        struct AccessReturnTypeImpl<TElem, ReadWriteAccess>
         {
             using type = TElem&;
         };
 
-        template<typename TPointer, typename TElem, typename THeadAccessMode, typename... TTailAccessModes>
-        struct AccessReturnTypeImpl<TPointer, TElem, std::tuple<THeadAccessMode, TTailAccessModes...>>
-            : AccessReturnTypeImpl<TPointer, TElem, THeadAccessMode>
+        template<typename TElem, typename THeadAccessMode, typename... TTailAccessModes>
+        struct AccessReturnTypeImpl<TElem, std::tuple<THeadAccessMode, TTailAccessModes...>>
+            : AccessReturnTypeImpl<TElem, THeadAccessMode>
         {
         };
 
-        template<typename TPointer, typename TElem, typename TAccessModes>
-        using AccessReturnType = typename internal::AccessReturnTypeImpl<TPointer, TElem, TAccessModes>::type;
+        template<typename TElem, typename TAccessModes>
+        using AccessReturnType = typename internal::AccessReturnTypeImpl<TElem, TAccessModes>::type;
     } // namespace internal
 
     //! 1D accessor to memory objects represented by a pointer.
-    template<typename TPointer, typename TElem, typename TBufferIdx, typename TAccessModes>
-    struct Accessor<TPointer, TElem, TBufferIdx, 1, TAccessModes>
+    template<typename TElem, typename TBufferIdx, typename TAccessModes>
+    struct Accessor<TElem*, TElem, TBufferIdx, 1, TAccessModes>
     {
-        using ReturnType = internal::AccessReturnType<TPointer, TElem, TAccessModes>;
+        using ReturnType = internal::AccessReturnType<TElem, TAccessModes>;
 
-        ALPAKA_FN_HOST_ACC Accessor(TPointer p_, Vec<DimInt<1>, TBufferIdx> extents_) : p(p_), extents(extents_)
+        ALPAKA_FN_HOST_ACC Accessor(TElem* p_, Vec<DimInt<1>, TBufferIdx> extents_) : p(p_), extents(extents_)
         {
         }
 
         template<typename TOtherAccessModes>
-        ALPAKA_FN_HOST_ACC Accessor(const Accessor<TPointer, TElem, TBufferIdx, 1, TOtherAccessModes>& other)
+        ALPAKA_FN_HOST_ACC Accessor(const Accessor<TElem*, TElem, TBufferIdx, 1, TOtherAccessModes>& other)
             : p(other.p)
             , extents(other.extents)
         {
@@ -115,17 +110,17 @@ namespace alpaka
             return p[i];
         }
 
-        TPointer p;
+        TElem* p;
         Vec<DimInt<1>, TBufferIdx> extents;
     };
 
     //! 2D accessor to memory objects represented by a pointer.
-    template<typename TPointer, typename TElem, typename TBufferIdx, typename TAccessModes>
-    struct Accessor<TPointer, TElem, TBufferIdx, 2, TAccessModes>
+    template<typename TElem, typename TBufferIdx, typename TAccessModes>
+    struct Accessor<TElem*, TElem, TBufferIdx, 2, TAccessModes>
     {
-        using ReturnType = internal::AccessReturnType<TPointer, TElem, TAccessModes>;
+        using ReturnType = internal::AccessReturnType<TElem, TAccessModes>;
 
-        ALPAKA_FN_HOST_ACC Accessor(TPointer p_, TBufferIdx rowPitchInBytes_, Vec<DimInt<2>, TBufferIdx> extents_)
+        ALPAKA_FN_HOST_ACC Accessor(TElem* p_, TBufferIdx rowPitchInBytes_, Vec<DimInt<2>, TBufferIdx> extents_)
             : p(p_)
             , rowPitchInBytes(rowPitchInBytes_)
             , extents(extents_)
@@ -133,7 +128,7 @@ namespace alpaka
         }
 
         template<typename TOtherAccessModes>
-        ALPAKA_FN_HOST_ACC Accessor(const Accessor<TPointer, TElem, TBufferIdx, 2, TOtherAccessModes>& other)
+        ALPAKA_FN_HOST_ACC Accessor(const Accessor<TElem*, TElem, TBufferIdx, 2, TOtherAccessModes>& other)
             : p(other.p)
             , rowPitchInBytes(other.rowPitchInBytes)
             , extents(other.extents)
@@ -157,19 +152,19 @@ namespace alpaka
 #endif
         }
 
-        TPointer p;
+        TElem* p;
         TBufferIdx rowPitchInBytes;
         Vec<DimInt<2>, TBufferIdx> extents;
     };
 
     //! 3D accessor to memory objects represented by a pointer.
-    template<typename TPointer, typename TElem, typename TBufferIdx, typename TAccessModes>
-    struct Accessor<TPointer, TElem, TBufferIdx, 3, TAccessModes>
+    template<typename TElem, typename TBufferIdx, typename TAccessModes>
+    struct Accessor<TElem*, TElem, TBufferIdx, 3, TAccessModes>
     {
-        using ReturnType = internal::AccessReturnType<TPointer, TElem, TAccessModes>;
+        using ReturnType = internal::AccessReturnType<TElem, TAccessModes>;
 
         ALPAKA_FN_HOST_ACC Accessor(
-            TPointer p_,
+            TElem* p_,
             TBufferIdx slicePitchInBytes_,
             TBufferIdx rowPitchInBytes_,
             Vec<DimInt<3>, TBufferIdx> extents_)
@@ -181,7 +176,7 @@ namespace alpaka
         }
 
         template<typename TOtherAccessModes>
-        ALPAKA_FN_HOST_ACC Accessor(const Accessor<TPointer, TElem, TBufferIdx, 3, TOtherAccessModes>& other)
+        ALPAKA_FN_HOST_ACC Accessor(const Accessor<TElem*, TElem, TBufferIdx, 3, TOtherAccessModes>& other)
             : p(other.p)
             , slicePitchInBytes(other.slicePitchInBytes)
             , rowPitchInBytes(other.rowPitchInBytes)
@@ -201,13 +196,13 @@ namespace alpaka
 #    pragma GCC diagnostic ignored "-Wcast-align"
 #endif
             return *(
-                reinterpret_cast<TPointer>(internal::asBytePtr(p) + z * slicePitchInBytes + y * rowPitchInBytes) + x);
+                reinterpret_cast<TElem*>(internal::asBytePtr(p) + z * slicePitchInBytes + y * rowPitchInBytes) + x);
 #if BOOST_COMP_GNUC
 #    pragma GCC diagnostic pop
 #endif
         }
 
-        TPointer p;
+        TElem* p;
         TBufferIdx slicePitchInBytes;
         TBufferIdx rowPitchInBytes;
         Vec<DimInt<3>, TBufferIdx> extents;
