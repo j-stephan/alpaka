@@ -68,6 +68,8 @@ namespace alpaka
         template<typename T>
 #ifdef __cpp_inline_variables
         inline
+#else
+        static
 #endif
             constexpr bool isAccessor
             = false;
@@ -75,6 +77,8 @@ namespace alpaka
         template<typename TMemoryHandle, typename TElem, typename TBufferIdx, std::size_t Dim, typename TAccessModes>
 #ifdef __cpp_inline_variables
         inline
+#else
+        static
 #endif
             constexpr bool isAccessor<Accessor<TMemoryHandle, TElem, TBufferIdx, Dim, TAccessModes>> = true;
     } // namespace internal
