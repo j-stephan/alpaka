@@ -143,6 +143,8 @@ TEST_CASE("readWrite", "[accessor]")
     alpaka::exec<Acc>(queue, workdiv, ReadWriteKernelExplicit{}, alpaka::access(buffer));
 }
 
+// we do not allow custom pointer types for now
+#if 0
 namespace
 {
     struct MyPointer
@@ -189,6 +191,7 @@ TEST_CASE("customPointer", "[accessor]")
     alpaka::exec<Acc>(queue, workdiv, ReadKernelExplicit{}, readAccessor);
     alpaka::exec<Acc>(queue, workdiv, ReadWriteKernelExplicit{}, readWriteAccessor);
 }
+#endif
 
 namespace
 {
