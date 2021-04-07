@@ -15,13 +15,12 @@
 #include <alpaka/acc/Traits.hpp>
 #include <alpaka/dev/Traits.hpp>
 #include <alpaka/dim/Traits.hpp>
-#include <alpaka/pltf/Traits.hpp>
 #include <alpaka/idx/Traits.hpp>
-#include <alpaka/queue/Traits.hpp>
 #include <alpaka/kernel/Traits.hpp>
+#include <alpaka/mem/view/Accessor.hpp>
+#include <alpaka/pltf/Traits.hpp>
+#include <alpaka/queue/Traits.hpp>
 #include <alpaka/workdiv/WorkDivMembers.hpp>
-#include <alpaka/core/BoostPredef.hpp>
-#include <alpaka/core/Sycl.hpp>
 
 // Avoid clang warnings that refer to this header
 #pragma clang diagnostic push
@@ -49,6 +48,31 @@ namespace alpaka
         template <typename TAcc, typename TKernelFnObj, typename... TArgs>
         struct kernel {}; // SYCL kernel names must be globally visible
 
+        // Helpers for assigning placeholder accessors to the command group of our kernel
+        struct general {};
+        struct special : general {};
+
+        template <typename TElem, int TDim, typename TAccessModes, sycl::access_mode TSYCLMode>
+        inline auto require(sycl::handler& cgh,
+                            Accessor<sycl::accessor<TElem, TDim, TSYCLMode, sycl::access::target::global_buffer,
+                                     sycl::access::placeholder::true_t>, TElem, std::size_t, std::size_t{TDim},
+                                     TAccessModes>& acc, special)
+        {
+            cgh.require(acc.m_acc);
+        }
+
+        template <typename TParam>
+        inline auto require(sycl::handler&, TParam&&, general)
+        {
+        }
+
+        template <typename... TArgs>
+        inline auto require(sycl::handler& cgh, std::tuple<TArgs...>& args)
+        {
+            std::apply([&](auto&&... ps) { (require(cgh, std::forward<decltype(ps)>(ps), special{}), ...); }, args);
+        }
+
+        // Transform the std::tuple to a tuple that fulfills SYCL's standard layout requirements
         template <typename... TArgs, std::size_t... Is>
         constexpr auto make_device_args(std::tuple<TArgs...> args, std::index_sequence<Is...>)
         {
@@ -130,6 +154,9 @@ namespace alpaka
 
             // wait for previous kernels to complete
             cgh.depends_on(pimpl->dependencies);
+
+            // Assign placeholder accessors to this command group
+            detail::require(cgh, m_args);
 
             // transform arguments to device tuple so we can copy the arguments into device code. We can't use
             // std::tuple for this step because it isn't standard layout and thus prohibited to be copied into SYCL

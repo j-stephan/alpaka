@@ -16,6 +16,7 @@
 #include <alpaka/dev/DevGenericSycl.hpp>
 #include <alpaka/dim/DimIntegralConst.hpp>
 #include <alpaka/extent/Traits.hpp>
+#include <alpaka/mem/view/AccessorGenericSycl.hpp>
 #include <alpaka/mem/view/Traits.hpp>
 #include <alpaka/queue/Traits.hpp>
 #include <alpaka/core/Assert.hpp>
@@ -23,17 +24,18 @@
 
 #include <sycl/sycl.hpp>
 
+#include <cstddef>
 #include <vector>
 
 namespace alpaka
 {
     namespace detail
     {
-        template <typename TElem>
+        template <typename THandle>
         struct TaskSetSyclImpl
         {
-            TaskSetSyclImpl(TElem* p, int val, std::size_t size)
-            : ptr{p}, value{val}, bytes{size}
+            TaskSetSyclImpl(THandle acc, std::byte val)
+            : m_acc{acc}, m_val{val}
             {}
 
             TaskSetSyclImpl(TaskSetSyclImpl const&) = delete;
@@ -42,26 +44,26 @@ namespace alpaka
             auto operator=(TaskSetSyclImpl&&) -> TaskSetSyclImpl& = default;
             ~TaskSetSyclImpl() = default;
 
-            TElem* ptr;
-            int value;
-            std::size_t bytes;
+            THandle m_acc;
+            std::byte m_val;
             std::vector<sycl::event> dependencies = {};
             std::shared_mutex mutex{};
         };
 
         //#############################################################################
         //! The SYCL memory set trait.
-        template<typename TElem>
+        template<typename THandle>
         struct TaskSetSycl
         {
             //-----------------------------------------------------------------------------
             auto operator()(sycl::handler& cgh) -> void
             {
                 cgh.depends_on(pimpl->dependencies);
-                cgh.memset(pimpl->ptr, pimpl->value, pimpl->bytes);
+                cgh.require(pimpl->m_acc);
+                cgh.fill(pimpl->m_acc, pimpl->m_val);
             }
 
-            std::shared_ptr<TaskSetSyclImpl<TElem>> pimpl;
+            std::shared_ptr<TaskSetSyclImpl<THandle>> pimpl;
             // Distinguish from non-alpaka types (= host tasks)
             static constexpr auto is_sycl_enqueueable = true;
         };
@@ -78,18 +80,32 @@ namespace alpaka
             template<typename TExtent, typename TView>
             ALPAKA_FN_HOST static auto createTaskMemset(TView & view, std::uint8_t const& byte, TExtent const& ext)
             {
-                using Type = Elem<TView>;
-                constexpr auto TypeBytes = sizeof(Type);
+                using Handle = sycl::accessor<std::byte, Dim<TExtent>::value, sycl::access_mode::write,
+                                              sycl::access::target::global_buffer, sycl::access::placeholder::true_t>;
+                using TaskType = alpaka::detail::TaskSetSycl<Handle>;
+                using ImplType = alpaka::detail::TaskSetSyclImpl<Handle>;
 
-                auto bytes = std::size_t{};
                 if constexpr(Dim<TExtent>::value == 1)
-                    bytes = static_cast<std::size_t>(extent::getWidth(ext)) * TypeBytes;
+                {
+                    auto const range = sycl::range<1>{static_cast<std::size_t>(extent::getWidth(ext))};
+                    auto byteBuf = view.m_buf.template reinterpret<std::byte, 1>(range);
+                    return TaskType{std::make_shared<ImplType>>(accessWith<WriteAccess>(byteBuf).m_acc, std::byte{byte})};
+                }
                 else if constexpr(Dim<TExtent>::value == 2)
-                    bytes = static_cast<std::size_t>(extent::getWidth(ext) * extent::getHeight(ext)) * TypeBytes;
+                {
+                    auto const range = sycl::range<2>{static_cast<std::size_t>(extent::getWidth(ext)),
+                                                      static_cast<std::size_t>(extent::getHeight(ext))};
+                    auto byteBuf = view.m_buf.template reinterpret<std::byte, 2>(range);
+                    return TaskType{std::make_shared<ImplType>>(accessWith<WriteAccess>(byteBuf).m_acc, std::byte{byte})};
+                }
                 else
-                    bytes = static_cast<std::size_t>(extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext)) * TypeBytes;
-
-                return alpaka::detail::TaskSetSycl<Type>{std::make_shared<alpaka::detail::TaskSetSyclImpl<Type>>(getPtrNative(view), static_cast<int>(byte), bytes)};
+                {
+                    auto const range = sycl::range<3>{static_cast<std::size_t>(extent::getWidth(ext)),
+                                                      static_cast<std::size_t>(extent::getHeight(ext)),
+                                                      static_cast<std::size_t>(extent::getDepth(ext))};
+                    auto byteBuf = view.m_buf.template reinterpret<std::byte, 2>(range);
+                    return TaskType{std::make_shared<ImplType>>(accessWith<WriteAccess>(byteBuf).m_acc, std::byte{byte})};
+                }
             }
         };
     }

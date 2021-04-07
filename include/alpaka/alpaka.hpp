@@ -157,6 +157,7 @@
 #include <alpaka/mem/buf/BufUniformCudaHipRt.hpp>
 #include <alpaka/mem/buf/Traits.hpp>
 #include <alpaka/mem/view/Accessor.hpp>
+#include <alpaka/mem/view/AccessorGenericSycl.hpp>
 #include <alpaka/mem/view/Traits.hpp>
 #include <alpaka/mem/view/ViewAccessor.hpp>
 #include <alpaka/mem/view/ViewCompileTimeArray.hpp>
@@ -164,6 +165,7 @@
 #include <alpaka/mem/view/ViewStdArray.hpp>
 #include <alpaka/mem/view/ViewStdVector.hpp>
 #include <alpaka/mem/view/ViewSubView.hpp>
+#include <alpaka/mem/view/ViewSubViewGenericSycl.hpp>
 // meta
 #include <alpaka/meta/Apply.hpp>
 #include <alpaka/meta/ApplyTuple.hpp>

@@ -29,7 +29,7 @@
 namespace alpaka
 {
     template <typename TElem, typename TDim, typename TIdx, typename TDev>
-    class BufGenericSycl;
+    struct BufGenericSycl;
 
     template <typename TDev>
     class QueueGenericSyclBlocking;
@@ -58,7 +58,7 @@ namespace alpaka
         friend struct traits::Enqueue;
 
         template<typename TElem, typename TIdx, typename TDim, typename TDev>
-        friend class BufGenericSycl;
+        friend struct BufGenericSycl;
         friend class QueueGenericSyclBlocking<DevGenericSycl<TPltf>>;
         friend class QueueGenericSyclNonBlocking<DevGenericSycl<TPltf>>;
 

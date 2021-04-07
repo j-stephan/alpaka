@@ -19,6 +19,9 @@
 #include <alpaka/dim/Traits.hpp>
 #include <alpaka/mem/buf/Traits.hpp>
 #include <alpaka/mem/buf/BufCpu.hpp>
+#include <alpaka/mem/view/Accessor.hpp>
+#include <alpaka/mem/view/AccessorGenericSycl.hpp>
+#include <alpaka/mem/view/ViewAccessor.hpp>
 #include <alpaka/vec/Vec.hpp>
 
 #include <sycl/sycl.hpp>
@@ -28,33 +31,19 @@
 
 namespace alpaka
 {
-    //#############################################################################
     //! The SYCL memory buffer.
     template<typename TElem, typename TDim, typename TIdx, typename TDev>
-    class BufGenericSycl
+    struct BufGenericSycl
     {
-        friend struct traits::GetDev<BufGenericSycl<TElem, TDim, TIdx, TDev>>;
-
-        template <typename TIdxIntegralConst, typename TExtent, typename TSfinae>
-        friend struct extent::traits::GetExtent;
-
-        friend struct traits::GetPtrNative<BufGenericSycl<TElem, TDim, TIdx, TDev>>;
-        friend struct traits::GetPitchBytes<DimInt<TDim::value - 1u>, BufGenericSycl<TElem, TDim, TIdx, TDev>>;
-
         static_assert(!std::is_const_v<TElem>,
                       "The elem type of the buffer can not be const because the C++ Standard forbids containers of const elements!");
 
         static_assert(!std::is_const_v<TIdx>, "The idx type of the buffer can not be const!");
 
-    public:
-        //-----------------------------------------------------------------------------
         //! Constructor
         template<typename TExtent>
-        ALPAKA_FN_HOST BufGenericSycl(TDev const & dev, TElem* ptr, TIdx const& pitchBytes, TExtent const& extent)
-        : m_dev{dev}
-        , m_extentElements{extent::getExtentVecEnd<TDim>(extent)}
-        , m_ptr{ptr, [this](auto p) { sycl::free(p, m_dev.m_context); }}
-        , m_pitchBytes{pitchBytes}
+        ALPAKA_FN_HOST BufGenericSycl(TDev const & dev, sycl::buffer<TElem, TDim::value> buf, TExtent const& extent)
+        : m_dev{dev}, m_extentElements{extent::getExtentVecEnd<TDim>(extent)}, m_buf{buf}
         {
             ALPAKA_DEBUG_MINIMAL_LOG_SCOPE;
 
@@ -71,11 +60,9 @@ namespace alpaka
         ALPAKA_FN_HOST BufGenericSycl(BufGenericSycl&&) = default;
         ALPAKA_FN_HOST auto operator=(BufGenericSycl&&) -> BufGenericSycl& = default;
 
-    private:
         TDev m_dev;
         Vec<TDim, TIdx> m_extentElements;
-        std::shared_ptr<TElem> m_ptr;
-        TIdx m_pitchBytes; // SYCL does not support pitched allocations. This will simply return the bytes per row.
+        sycl::buffer<TElem, TDim::value> m_buf;
     };
 
     namespace traits
@@ -138,46 +125,6 @@ namespace alpaka
     namespace traits
     {
         //#############################################################################
-        //! The BufGenericSycl native pointer get trait specialization.
-        template<typename TElem, typename TDim, typename TIdx, typename TDev>
-        struct GetPtrNative<BufGenericSycl<TElem, TDim, TIdx, TDev>>
-        {
-            //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto getPtrNative(BufGenericSycl<TElem, TDim, TIdx, TDev> const& buf) -> TElem const*
-            {
-                return buf.m_ptr.get();
-            }
-            //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto getPtrNative(BufGenericSycl<TElem, TDim, TIdx, TDev>& buf) -> TElem*
-            {
-                return buf.m_ptr.get();
-            }
-        };
-
-        //#############################################################################
-        //! The BufGenericSycl pointer on device get trait specialization.
-        template<typename TElem, typename TDim, typename TIdx, typename TDev>
-        struct GetPtrDev<BufGenericSycl<TElem, TDim, TIdx, TDev>, TDev>
-        {
-            //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto getPtrDev(BufGenericSycl<TElem, TDim, TIdx, TDev> const& buf, TDev const& dev) -> TElem const*
-            {
-                if(dev != getDev(buf))
-                    throw std::runtime_error{"The buffer is not accessible from the given device!"};
-
-                return getPtrNative(buf);
-            }
-            //-----------------------------------------------------------------------------
-            ALPAKA_FN_HOST static auto getPtrDev(BufGenericSycl<TElem, TDim, TIdx, TDev>& buf, TDev const& dev) -> TElem*
-            {
-                if(dev != getDev(buf))
-                    throw std::runtime_error{"The buffer is not accessible from the given device!"};
-
-                return getPtrNative(buf);
-            }
-        };
-
-        //#############################################################################
         //! The BufGenericSycl pitch get trait specialization.
         template<typename TElem, typename TDim, typename TIdx, typename TDev>
         struct GetPitchBytes<DimInt<TDim::value - 1u>, BufGenericSycl<TElem, TDim, TIdx, TDev>>
@@ -185,7 +132,7 @@ namespace alpaka
             //-----------------------------------------------------------------------------
             ALPAKA_FN_HOST static auto getPitchBytes(BufGenericSycl<TElem, TDim, TIdx, TDev> const & buf) -> TIdx
             {
-                return buf.m_pitchBytes;
+                return static_cast<TIdx>(sizeof(TElem)) * static_cast<TIdx>(extent::getWidth(buf.m_extentElements));
             }
         };
 
@@ -202,69 +149,27 @@ namespace alpaka
 
                 using namespace sycl;
 
-                auto memPtr = static_cast<TElem*>(nullptr);
-                auto pitchBytes = TIdx{};
+                using buffer = BufGenericSycl<TElem, TDim, TIdx, DevGenericSycl<TPltf>>;
+                using handle = sycl::buffer<TElem, TDim::value>;
+
                 if constexpr(TDim::value == 1)
                 {
-                    auto const width = extent::getWidth(ext);
-                    auto const widthBytes = width * static_cast<TIdx>(sizeof(TElem));
-
-                    // Note that this allocates elements, not bytes!
-                    memPtr = malloc_device<TElem>(static_cast<std::size_t>(width), dev.m_device, dev.m_context);
-                    pitchBytes = static_cast<TIdx>(widthBytes);
-
-#if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                    std::cout << __func__
-                              << " ew: " << width
-                              << " ewb: " << widthBytes
-                              << " ptr: " << memPtr
-                              << '\n';
-#endif
+                    auto const range = sycl::range<1>{static_cast<std::size_t>(extent::getWidth(ext))};
+                    return buffer{dev, handle{range}, ext};
                 }
                 else if constexpr(TDim::value == 2)
                 {
-                    auto const width = extent::getWidth(ext);
-                    auto const widthBytes = width * static_cast<TIdx>(sizeof(TElem));
-                    auto const height = extent::getHeight(ext);
-
-                    // Note that this allocates elements, not bytes!
-                    memPtr = malloc_device<TElem>(static_cast<std::size_t>(width * height), dev.m_device, dev.m_context);
-                    pitchBytes = static_cast<TIdx>(widthBytes);
-
-#if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                    std::cout << __func__
-                              << " ew: " << width
-                              << " eh: " << height
-                              << " ewb: " << widthBytes 
-                              << " ptr: " << memPtr
-                              << " pitch: " << pitchBytes
-                              << '\n';
-#endif
+                    auto const range = sycl::range<2>{static_cast<std::size_t>(extent::getWidth(ext)),
+                                                      static_cast<std::size_t>(extent::getHeight(ext))};
+                    return buffer{dev, handle{range}, ext};
                 }
-                else if constexpr(TDim::value == 3)
+                else
                 {
-                    auto const width = extent::getWidth(ext);
-                    auto const widthBytes = width * static_cast<TIdx>(sizeof(TElem));
-                    auto const height = extent::getHeight(ext);
-                    auto const depth = extent::getDepth(ext);
-
-                    // Note that this allocates elements, not bytes!
-                    memPtr = malloc_device<TElem>(static_cast<std::size_t>(width * height * depth), dev.m_device, dev.m_context);
-                    pitchBytes = static_cast<TIdx>(widthBytes);
-
-#if ALPAKA_DEBUG >= ALPAKA_DEBUG_FULL
-                    std::cout << __func__
-                              << " ew: " << width
-                              << " eh: " << height
-                              << " ed: " << depth
-                              << " ewb: " << widthBytes 
-                              << " ptr: " << memPtr
-                              << " pitch: " << pitchBytes
-                              << '\n';
-#endif
+                    auto const range = sycl::range<3>{static_cast<std::size_t>(extent::getWidth(ext)),
+                                                      static_cast<std::size_t>(extent::getHeight(ext)),
+                                                      static_cast<std::size_t>(extent::getDepth(ext))};
+                    return buffer{dev, handle{range}, ext};
                 }
-
-                return BufGenericSycl<TElem, TDim, TIdx, DevGenericSycl<TPltf>>{dev, memPtr, pitchBytes, ext};
             }
         };
 
@@ -421,6 +326,27 @@ namespace alpaka
                 static_assert(sizeof(TElem) == 0, "SYCL does not map host pointers to devices");
             }
         };
+    }
+
+    namespace internal
+    {
+        // temporary until we have proper type traits
+        template <typename TElem, typename TDim, typename TIdx, typename TDev>
+        inline constexpr bool isAccessor<BufGenericSycl<TElem, TDim, TIdx, TDev>> = true;
+    }
+
+    template<typename... TAccessModes, typename TElem, typename TDim, typename TIdx, typename TDev>
+    auto accessWith(BufGenericSycl<TElem, TDim, TIdx, TDev> const& buffer)
+    {
+        constexpr auto SYCLMode = detail::SYCLMode<TAccessModes...>::value;
+        using SYCLAcc = sycl::accessor<TElem, static_cast<int>(TDim::value), SYCLMode, sycl::access::target::global_buffer,
+                                       sycl::access::placeholder::true_t>;
+        using Modes = typename traits::internal::BuildAccessModeList<TAccessModes...>::type;
+        using Acc = Accessor<SYCLAcc, TElem, TIdx, static_cast<std::size_t>(TDim::value), Modes>;
+
+        auto buf = buffer.m_buf; // buffers are reference counted, so we can copy to work around constness
+
+        return Acc{SYCLAcc{buf}, buffer.m_extentElements};
     }
 }
 

@@ -17,6 +17,7 @@
 #include <alpaka/dim/DimIntegralConst.hpp>
 #include <alpaka/elem/Traits.hpp>
 #include <alpaka/extent/Traits.hpp>
+#include <alpaka/mem/view/AccessorGenericSycl.hpp>
 #include <alpaka/mem/view/Traits.hpp>
 #include <alpaka/core/Sycl.hpp>
 
@@ -31,12 +32,12 @@ namespace alpaka
 {
     namespace detail
     {
-        template <typename TElem>
+        template <typename TSrc, typename TDst>
         struct TaskCopySyclImpl
         {
-            TaskCopySyclImpl(TElem const* src, TElem* dst, std::size_t size)
-            : src_ptr{src}, dst_ptr{dst}, bytes{size}
-            {}
+            TaskCopySyclImpl(TSrc const src, TDst dst) : m_src{src}, m_dst{dst}
+            {
+            }
 
             TaskCopySyclImpl(TaskCopySyclImpl const&) = delete;
             auto operator=(TaskCopySyclImpl const&) -> TaskCopySyclImpl& = delete;
@@ -44,25 +45,31 @@ namespace alpaka
             auto operator=(TaskCopySyclImpl&&) -> TaskCopySyclImpl& = default;
             ~TaskCopySyclImpl() = default;
 
-            TElem const* src_ptr;
-            TElem* dst_ptr;
-            std::size_t bytes;
+            TSrc m_src;
+            TDst m_dst;
             std::vector<sycl::event> dependencies = {};
             std::shared_mutex mutex{};
         };
 
         //#############################################################################
         //! The SYCL memory copy trait.
-        template <typename TElem>
+        template <typename TSrc, typename TDst>
         struct TaskCopySycl
         {
             auto operator()(sycl::handler& cgh) -> void
             {
                 cgh.depends_on(pimpl->dependencies);
-                cgh.memcpy(pimpl->dst_ptr, pimpl->src_ptr, pimpl->bytes);
+
+                if constexpr(!std::is_pointer_v<TSrc>)
+                    cgh.require(pimpl->m_src);
+
+                if constexpr(!std::is_pointer_v<TDst>)
+                    cgh.require(pimpl->m_dst);
+
+                cgh.copy(pimpl->m_src, pimpl->m_dst);
             }
 
-            std::shared_ptr<TaskCopySyclImpl<TElem>> pimpl;
+            std::shared_ptr<TaskCopySyclImpl<TSrc, TDst>> pimpl;
             // Distinguish from non-alpaka types (= host tasks)
             static constexpr auto is_sycl_enqueueable = true;
         };
@@ -72,7 +79,6 @@ namespace alpaka
     // Trait specializations for CreateTaskMemcpy.
     namespace traits
     {
-        //#############################################################################
         //! The SYCL host-to-device memory copy trait specialization.
         template<typename TDim, typename TPltf>
         struct CreateTaskMemcpy<TDim, DevGenericSycl<TPltf>, DevCpu>
@@ -97,16 +103,12 @@ namespace alpaka
 
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
-                auto bytes = std::size_t{};
+                using SrcHandle = decltype(getPtrNative(viewSrc));
+                using DstHandle = decltype(accessWith<WriteAccess>(viewDst).m_acc);
+                using TaskType = alpaka::detail::TaskCopySycl<SrcHandle, DstHandle>;
+                using ImplType = alpaka::detail::TaskCopySyclImpl<SrcHandle, DstHandle>;
 
-                if constexpr(Dim<TExtent>::value == 1)
-                    bytes = static_cast<std::size_t>(extent::getWidth(ext)) * SrcBytes;
-                else if constexpr(Dim<TExtent>::value == 2)
-                    bytes = static_cast<std::size_t>(extent::getWidth(ext) * extent::getHeight(ext)) * SrcBytes;
-                else
-                    bytes = static_cast<std::size_t>(extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext)) * SrcBytes;
-
-                return alpaka::detail::TaskCopySycl<SrcType>{std::make_shared<alpaka::detail::TaskCopySyclImpl<SrcType>>(getPtrNative(viewSrc), getPtrNative(viewDst), bytes)};
+                return TaskType{std::make_shared<ImplType>(getPtrNative(viewSrc), accessWith<WriteAccess>(viewDst).m_acc)};
             }
         };
 
@@ -135,16 +137,12 @@ namespace alpaka
 
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
-                auto bytes = std::size_t{};
+                using SrcHandle = decltype(accessWith<ReadAccess>(viewSrc).m_acc);
+                using DstHandle = decltype(getPtrNative(viewDst));
+                using TaskType = alpaka::detail::TaskCopySycl<SrcHandle, DstHandle>;
+                using ImplType = alpaka::detail::TaskCopySyclImpl<SrcHandle, DstHandle>;
 
-                if constexpr(Dim<TExtent>::value == 1)
-                    bytes = static_cast<std::size_t>(extent::getWidth(ext)) * SrcBytes;
-                else if constexpr(Dim<TExtent>::value == 2)
-                    bytes = static_cast<std::size_t>(extent::getWidth(ext) * extent::getHeight(ext)) * SrcBytes;
-                else
-                    bytes = static_cast<std::size_t>(extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext)) * SrcBytes;
-
-                return alpaka::detail::TaskCopySycl<SrcType>{std::make_shared<alpaka::detail::TaskCopySyclImpl<SrcType>>(getPtrNative(viewSrc), getPtrNative(viewDst), bytes)};
+                return TaskType{std::make_shared<ImplType>(accessWith<ReadAccess>(viewSrc).m_acc, getPtrNative(viewDst))};
             }
         };
 
@@ -173,16 +171,12 @@ namespace alpaka
 
                 ALPAKA_DEBUG_FULL_LOG_SCOPE;
 
-                auto bytes = std::size_t{};
+                using SrcHandle = decltype(accessWith<ReadAccess>(viewSrc).m_acc);
+                using DstHandle = decltype(accessWith<WriteAccess>(viewDst).m_acc);
+                using TaskType = alpaka::detail::TaskCopySycl<SrcHandle, DstHandle>;
+                using ImplType = alpaka::detail::TaskCopySyclImpl<SrcHandle, DstHandle>;
 
-                if constexpr(Dim<TExtent>::value == 1)
-                    bytes = static_cast<std::size_t>(extent::getWidth(ext)) * SrcBytes;
-                else if constexpr(Dim<TExtent>::value == 2)
-                    bytes = static_cast<std::size_t>(extent::getWidth(ext) * extent::getHeight(ext)) * SrcBytes;
-                else
-                    bytes = static_cast<std::size_t>(extent::getWidth(ext) * extent::getHeight(ext) * extent::getDepth(ext)) * SrcBytes;
-
-                return alpaka::detail::TaskCopySycl<SrcType>{std::make_shared<alpaka::detail::TaskCopySyclImpl<SrcType>>(getPtrNative(viewSrc), getPtrNative(viewDst), bytes)};
+                return TaskType{std::make_shared<ImplType>(accessWith<ReadAccess>(viewSrc).m_acc, accessWith<WriteAccess>(viewDst).m_acc)};
             }
         };
     }
