@@ -21,8 +21,9 @@ class BallotSingleThreadWarpTestKernel
 public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success)
-        const -> void
+    ALPAKA_FN_ACC auto operator()(
+        TAcc const& acc,
+        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
     {
         std::int32_t const warpExtent = alpaka::warp::getSize(acc);
         ALPAKA_CHECK(success[0], warpExtent == 1);
@@ -37,8 +38,9 @@ class BallotMultipleThreadWarpTestKernel
 public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success)
-        const -> void
+    ALPAKA_FN_ACC auto operator()(
+        TAcc const& acc,
+        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
     {
         std::int32_t const warpExtent = alpaka::warp::getSize(acc);
         ALPAKA_CHECK(success[0], warpExtent > 1);

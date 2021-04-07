@@ -68,8 +68,9 @@ class RandTestKernel
 public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success)
-        const -> void
+    ALPAKA_FN_ACC auto operator()(
+        TAcc const& acc,
+        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
     {
         // default generator for accelerator
         auto genDefault = alpaka::rand::generator::createDefault(acc, 12345u, 6789u);

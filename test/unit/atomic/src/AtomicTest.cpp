@@ -313,8 +313,9 @@ template<typename TAcc, typename T, typename Sfinae = void>
 class AtomicTestKernel
 {
 public:
+    ALPAKA_NO_HOST_ACC_WARNING
     template<typename TIdx>
-    ALPAKA_NO_HOST_ACC_WARNING ALPAKA_FN_ACC auto operator()(
+    ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
         alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         T operandOrig) const -> void
@@ -348,7 +349,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuUniformCudaHipRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         T operandOrig) const -> void
     {
         alpaka::ignore_unused(acc);
@@ -366,7 +367,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuCudaRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -397,7 +398,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuCudaRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         unsigned int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -426,7 +427,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuCudaRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         unsigned long int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -467,7 +468,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuCudaRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         unsigned long long int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -502,7 +503,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuCudaRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         float operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -536,7 +537,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuCudaRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         double operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -577,7 +578,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuCudaRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         T operandOrig) const -> void
     {
         alpaka::ignore_unused(acc);
@@ -597,7 +598,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuHipRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -628,7 +629,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuHipRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         unsigned int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -657,7 +658,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuHipRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         unsigned long int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -698,7 +699,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuHipRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         unsigned long long int operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -733,7 +734,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuHipRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         float operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -767,7 +768,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuHipRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         double operandOrig) const -> void
     {
         testAtomicAdd(acc, success, operandOrig);
@@ -808,7 +809,7 @@ public:
     ALPAKA_NO_HOST_ACC_WARNING
     ALPAKA_FN_ACC auto operator()(
         alpaka::AccGpuHipRt<TDim, TIdx> const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, alpaka::DimInt<1>, alpaka::WriteAccess> const success,
+        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
         T operandOrig) const -> void
     {
         alpaka::ignore_unused(acc);

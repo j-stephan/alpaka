@@ -19,8 +19,9 @@ class BlockSharedMemDynTestKernel
 public:
     ALPAKA_NO_HOST_ACC_WARNING
     template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(TAcc const& acc, alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success)
-        const -> void
+    ALPAKA_FN_ACC auto operator()(
+        TAcc const& acc,
+        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
     {
         // Assure that the pointer is non null.
         auto a = alpaka::getDynSharedMem<std::uint32_t>(acc);
