@@ -215,6 +215,8 @@ namespace alpaka
             template<typename T, typename SFINAE = void>
 #ifdef __cpp_inline_variables
             inline
+#else
+            static
 #endif
                 constexpr bool isView
                 = false;
@@ -223,6 +225,8 @@ namespace alpaka
             template<typename TView>
 #ifdef __cpp_inline_variables
             inline
+#else
+            static
 #endif
                 constexpr bool isView<
                     TView,
