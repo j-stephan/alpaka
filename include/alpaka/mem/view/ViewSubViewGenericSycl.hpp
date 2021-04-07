@@ -18,8 +18,8 @@
 #include <alpaka/idx/Traits.hpp>
 #include <alpaka/mem/view/Accessor.hpp>
 #include <alpaka/mem/view/AccessorGenericSycl.hpp>
-#include <alpaka/mem/view/ViewAccessor.hpp>
 #include <alpaka/mem/view/Traits.hpp>
+#include <alpaka/mem/view/ViewAccessor.hpp>
 #include <alpaka/mem/view/ViewSubView.hpp>
 #include <alpaka/offset/Traits.hpp>
 #include <alpaka/vec/Vec.hpp>
@@ -143,58 +143,61 @@ namespace alpaka
         Vec<TDim, TIdx> m_offsetsElements; // The offset relative to the parent view.
     };
 
-    namespace internal
+    namespace traits
     {
-        // temporary until we have proper type traits
+        namespace internal
+        {
+            template<typename TPltf, typename TElem, typename TDim, typename TIdx>
+            inline constexpr bool isView<ViewSubView<DevGenericSycl<TPltf>, TElem, TDim, TIdx>> = false;
+        }
+
+        //! The customization point for how to build an accessor for a given memory object.
         template<typename TPltf, typename TElem, typename TDim, typename TIdx>
-        inline constexpr bool isAccessor<ViewSubView<DevGenericSycl<TPltf>, TElem, TDim, TIdx>> = true;
-    }
-
-    template<typename... TAccessModes, typename TPltf, typename TElem, typename TDim, typename TIdx>
-    auto accessWith(ViewSubView<DevGenericSycl<TPltf>, TElem, TDim, TIdx> const& subView)
-    {
-        constexpr auto SYCLMode = detail::SYCLMode<TAccessModes...>::value;
-        using SYCLAcc = sycl::accessor<TElem, static_cast<int>(TDim::value), SYCLMode, sycl::access::target::global_buffer,
-                                       sycl::access::placeholder::true_t>;
-        using Modes = typename traits::internal::BuildAccessModeList<TAccessModes...>::type;
-        using Acc = Accessor<SYCLAcc, TElem, std::size_t, static_cast<std::size_t>(TDim::value), Modes>;
-
-        auto buf = subView.m_buf; // buffers are reference counted, so we can copy to work around constness
-
-        if constexpr(TDim::value == 1)
+        struct BuildAccessor<ViewSubView<DevGenericSycl<TPltf>, TElem, TDim, TIdx>>
         {
-            auto const range = sycl::range<1>{static_cast<std::size_t>(extent::getWidth(subView.m_extentElements))};
-            auto const offset = sycl::id<1>{static_cast<std::size_t>(extent::getWidth(subView.m_offsetsElements))};
-            return Acc{SYCLAcc{buf, range, offset}};
-        }
-        else if constexpr(TDim::value == 2)
-        {
-            auto const range = sycl::range<2>{static_cast<std::size_t>(extent::getWidth(subView.m_extentElements)),
-                                              static_cast<std::size_t>(extent::getHeight(subView.m_extentElements))};
-            auto const offset = sycl::id<2>{static_cast<std::size_t>(extent::getWidth(subView.m_offsetsElements)),
-                                            static_cast<std::size_t>(extent::getHeight(subView.m_offsetsElements))};
-            
-            std::cout << "Creating ranged accessor at (" << offset[0] << ", " << offset[1] << ") with dimensions ("
-                      << range[0] << ", " << range[1] << ").\n";
+            template<typename... TAccessModes>
+            ALPAKA_FN_HOST_ACC static auto buildAccessor(ViewSubView<DevGenericSycl<TPltf>, TElem, TDim, TIdx> const& subView)
+            {
+                constexpr auto SYCLMode = alpaka::detail::SYCLMode<TAccessModes...>::value;
+                using SYCLAcc = sycl::accessor<TElem, static_cast<int>(TDim::value), SYCLMode, sycl::access::target::global_buffer,
+                                               sycl::access::placeholder::true_t>;
+                using Modes = typename traits::internal::BuildAccessModeList<TAccessModes...>::type;
+                using Acc = Accessor<SYCLAcc, TElem, TIdx, static_cast<std::size_t>(TDim::value), Modes>;
 
-            return Acc{SYCLAcc{buf, range, offset}};
-        }
-        else
-        {
-            auto const range = sycl::range<3>{static_cast<std::size_t>(extent::getWidth(subView.m_extentElements)),
-                                              static_cast<std::size_t>(extent::getHeight(subView.m_extentElements)),
-                                              static_cast<std::size_t>(extent::getDepth(subView.m_extentElements))};
-            auto const offset = sycl::id<3>{static_cast<std::size_t>(extent::getWidth(subView.m_offsetsElements)),
-                                            static_cast<std::size_t>(extent::getHeight(subView.m_offsetsElements)),
-                                            static_cast<std::size_t>(extent::getDepth(subView.m_offsetsElements))};
+                auto buf = subView.m_buf; // buffers are reference counted, so we can copy to work around constness
 
-            std::cout << "Creating ranged accessor at (" << offset[0] << ", " << offset[1] << ", " << offset[2] << ") with dimensions ("
-                      << range[0] << ", " << range[1] << ", " << range[2] << ").\n";
+                // SYCL follows the same index ordering as alpaka. Do not change the index ordering here!
+                if constexpr(TDim::value == 1)
+                {
+                    auto const range = sycl::range<1>{static_cast<std::size_t>(subView.m_extentElements[0])};
+                    auto const offset = sycl::id<1>{static_cast<std::size_t>(subView.m_offsetsElements[0])};
+                    return Acc{SYCLAcc{buf, range, offset}, subView.m_extentElements};
+                }
+                else if constexpr(TDim::value == 2)
+                {
+                    auto const range = sycl::range<2>{static_cast<std::size_t>(subView.m_extentElements[0]),
+                                                      static_cast<std::size_t>(subView.m_extentElements[1])};
 
-            return Acc{SYCLAcc{buf, range, offset}};
-        }
-    }
+                    auto const offset = sycl::id<2>{static_cast<std::size_t>(subView.m_offsetsElements[0]),
+                                                    static_cast<std::size_t>(subView.m_offsetsElements[1])};
+                    
+                    return Acc{SYCLAcc{buf, range, offset}, subView.m_extentElements};
+                }
+                else
+                {
+                    auto const range = sycl::range<3>{static_cast<std::size_t>(subView.m_extentElements[0]),
+                                                      static_cast<std::size_t>(subView.m_extentElements[1]),
+                                                      static_cast<std::size_t>(subView.m_extentElements[2])};
 
+                    auto const offset = sycl::id<3>{static_cast<std::size_t>(subView.m_offsetsElements[0]),
+                                                    static_cast<std::size_t>(subView.m_offsetsElements[1]),
+                                                    static_cast<std::size_t>(subView.m_offsetsElements[2])};
+
+                    return Acc{SYCLAcc{buf, range, offset}, subView.m_extentElements};
+                }
+            }
+        };
+    } // namespace traits
 } // namespace alpaka
 
 #endif

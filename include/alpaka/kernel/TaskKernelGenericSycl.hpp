@@ -52,10 +52,10 @@ namespace alpaka
         struct general {};
         struct special : general {};
 
-        template <typename TElem, int TDim, typename TAccessModes, sycl::access_mode TSYCLMode>
+        template <typename TElem, typename TIdx, int TDim, typename TAccessModes, sycl::access_mode TSYCLMode>
         inline auto require(sycl::handler& cgh,
                             Accessor<sycl::accessor<TElem, TDim, TSYCLMode, sycl::access::target::global_buffer,
-                                     sycl::access::placeholder::true_t>, TElem, std::size_t, std::size_t{TDim},
+                                     sycl::access::placeholder::true_t>, TElem, TIdx, std::size_t{TDim},
                                      TAccessModes>& acc, special)
         {
             cgh.require(acc.m_acc);
@@ -221,14 +221,14 @@ namespace alpaka
                 return range<1>{static_cast<std::size_t>(work_groups[0] * group_items[0])};
             else if constexpr(TDim::value == 2)
             {
-                return range<2>{static_cast<std::size_t>(work_groups[1] * group_items[1]),
-                                static_cast<std::size_t>(work_groups[0] * group_items[0])};
+                return range<2>{static_cast<std::size_t>(work_groups[0] * group_items[0]),
+                                static_cast<std::size_t>(work_groups[1] * group_items[1])};
             }
             else
             {
-                return range<3>{static_cast<std::size_t>(work_groups[2] * group_items[2]),
+                return range<3>{static_cast<std::size_t>(work_groups[0] * group_items[0]),
                                 static_cast<std::size_t>(work_groups[1] * group_items[1]),
-                                static_cast<std::size_t>(work_groups[0] * group_items[0])};
+                                static_cast<std::size_t>(work_groups[2] * group_items[2])};
             }
         }
 
@@ -239,11 +239,11 @@ namespace alpaka
             if constexpr(TDim::value == 1)
                 return range<1>{static_cast<std::size_t>(group_items[0])};
             else if constexpr(TDim::value == 2)
-                return range<2>{static_cast<std::size_t>(group_items[1]), static_cast<std::size_t>(group_items[0])};
+                return range<2>{static_cast<std::size_t>(group_items[0]), static_cast<std::size_t>(group_items[1])};
             else
             {
-                return range<3>{static_cast<std::size_t>(group_items[2]), static_cast<std::size_t>(group_items[1]),
-                                static_cast<std::size_t>(group_items[0])};
+                return range<3>{static_cast<std::size_t>(group_items[0]), static_cast<std::size_t>(group_items[1]),
+                                static_cast<std::size_t>(group_items[2])};
             }
         }
 

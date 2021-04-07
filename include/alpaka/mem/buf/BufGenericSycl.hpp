@@ -152,22 +152,23 @@ namespace alpaka
                 using buffer = BufGenericSycl<TElem, TDim, TIdx, DevGenericSycl<TPltf>>;
                 using handle = sycl::buffer<TElem, TDim::value>;
 
+                // SYCL follows the same index ordering as alpaka. Do not change the index ordering here!
                 if constexpr(TDim::value == 1)
                 {
-                    auto const range = sycl::range<1>{static_cast<std::size_t>(extent::getWidth(ext))};
+                    auto const range = sycl::range<1>{static_cast<std::size_t>(ext[0])};
                     return buffer{dev, handle{range}, ext};
                 }
                 else if constexpr(TDim::value == 2)
                 {
-                    auto const range = sycl::range<2>{static_cast<std::size_t>(extent::getWidth(ext)),
-                                                      static_cast<std::size_t>(extent::getHeight(ext))};
+                    auto const range = sycl::range<2>{static_cast<std::size_t>(ext[0]),
+                                                      static_cast<std::size_t>(ext[1])};
                     return buffer{dev, handle{range}, ext};
                 }
                 else
                 {
-                    auto const range = sycl::range<3>{static_cast<std::size_t>(extent::getWidth(ext)),
-                                                      static_cast<std::size_t>(extent::getHeight(ext)),
-                                                      static_cast<std::size_t>(extent::getDepth(ext))};
+                    auto const range = sycl::range<3>{static_cast<std::size_t>(ext[0]),
+                                                      static_cast<std::size_t>(ext[1]),
+                                                      static_cast<std::size_t>(ext[2])};
                     return buffer{dev, handle{range}, ext};
                 }
             }
@@ -326,27 +327,36 @@ namespace alpaka
                 static_assert(sizeof(TElem) == 0, "SYCL does not map host pointers to devices");
             }
         };
+
     }
 
-    namespace internal
+
+    namespace traits
     {
-        // temporary until we have proper type traits
-        template <typename TElem, typename TDim, typename TIdx, typename TDev>
-        inline constexpr bool isAccessor<BufGenericSycl<TElem, TDim, TIdx, TDev>> = true;
-    }
+        namespace internal
+        {
+            template<typename TElem, typename TDim, typename TIdx, typename TDev>
+            inline constexpr bool isView<BufGenericSycl<TElem, TDim, TIdx, TDev>> = false;
+        }
 
-    template<typename... TAccessModes, typename TElem, typename TDim, typename TIdx, typename TDev>
-    auto accessWith(BufGenericSycl<TElem, TDim, TIdx, TDev> const& buffer)
-    {
-        constexpr auto SYCLMode = detail::SYCLMode<TAccessModes...>::value;
-        using SYCLAcc = sycl::accessor<TElem, static_cast<int>(TDim::value), SYCLMode, sycl::access::target::global_buffer,
-                                       sycl::access::placeholder::true_t>;
-        using Modes = typename traits::internal::BuildAccessModeList<TAccessModes...>::type;
-        using Acc = Accessor<SYCLAcc, TElem, TIdx, static_cast<std::size_t>(TDim::value), Modes>;
+        //! The customization point for how to build an accessor for a given memory object.
+        template<typename TElem, typename TDim, typename TIdx, typename TDev>
+        struct BuildAccessor<BufGenericSycl<TElem, TDim, TIdx, TDev>>
+        {
+            template<typename... TAccessModes>
+            ALPAKA_FN_HOST_ACC static auto buildAccessor(BufGenericSycl<TElem, TDim, TIdx, TDev> const& buffer)
+            {
+                constexpr auto SYCLMode = alpaka::detail::SYCLMode<TAccessModes...>::value;
+                using SYCLAcc = sycl::accessor<TElem, static_cast<int>(TDim::value), SYCLMode, sycl::access::target::global_buffer,
+                                           sycl::access::placeholder::true_t>;
+                using Modes = typename traits::internal::BuildAccessModeList<TAccessModes...>::type;
+                using Acc = Accessor<SYCLAcc, TElem, TIdx, static_cast<std::size_t>(TDim::value), Modes>;
 
-        auto buf = buffer.m_buf; // buffers are reference counted, so we can copy to work around constness
+                auto buf = buffer.m_buf; // buffers are reference counted, so we can copy to work around constness
 
-        return Acc{SYCLAcc{buf}, buffer.m_extentElements};
+                return Acc{SYCLAcc{buf}, buffer.m_extentElements};
+            }
+        };
     }
 }
 

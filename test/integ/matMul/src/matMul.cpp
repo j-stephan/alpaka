@@ -42,10 +42,16 @@ public:
         TIndex const& n,
         TIndex const& k,
         TElem const& alpha,
-        alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const A,
-        alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const B,
+        // alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const A,
+        alpaka::Accessor<sycl::accessor<TElem, 2, sycl::access::mode::read, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>,
+                         TElem, TIndex, 2, alpaka::ReadAccess> A,
+        // alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const B,
+        alpaka::Accessor<sycl::accessor<TElem, 2, sycl::access::mode::read, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>,
+                         TElem, TIndex, 2, alpaka::ReadAccess> B,
         TElem const& beta,
-        alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadWriteAccess> const C) const -> void
+        // alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadWriteAccess> const C) const -> void
+        alpaka::Accessor<sycl::accessor<TElem, 2, sycl::access::mode::read_write, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>,
+                                        TElem, TIndex, 2, alpaka::ReadWriteAccess> C) const -> void
     {
         static_assert(
             alpaka::Dim<TAcc>::value == 2u,
@@ -144,10 +150,16 @@ namespace alpaka
                 TIndex const& n,
                 TIndex const& k,
                 TElem const& alpha,
-                alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const A,
-                alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const B,
+                //alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const A,
+                alpaka::Accessor<sycl::accessor<TElem, 2, sycl::access::mode::read, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>,
+                                 TElem, TIndex, 2, alpaka::ReadAccess> A,
+                //alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const B,
+                alpaka::Accessor<sycl::accessor<TElem, 2, sycl::access::mode::read, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>,
+                                 TElem, TIndex, 2, alpaka::ReadAccess> B,
                 TElem const& beta,
-                alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadWriteAccess> const C)
+                //alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadWriteAccess> const C)
+                alpaka::Accessor<sycl::accessor<TElem, 2, sycl::access::mode::read_write, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>,
+                                                TElem, TIndex, 2, alpaka::ReadWriteAccess> C)
             {
                 alpaka::ignore_unused(matMulKernel);
                 alpaka::ignore_unused(m);

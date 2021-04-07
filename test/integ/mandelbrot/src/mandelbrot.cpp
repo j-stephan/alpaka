@@ -100,7 +100,9 @@ public:
     template<typename TAcc, typename TIdx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<std::uint32_t*, std::uint32_t, TIdx, 2, alpaka::WriteAccess> const colors,
+        //alpaka::Accessor<std::uint32_t*, std::uint32_t, TIdx, 2, alpaka::WriteAccess> const colors,
+        alpaka::Accessor<sycl::accessor<std::uint32_t, 2, sycl::access::mode::write, sycl::access::target::global_buffer,
+                                        sycl::access::placeholder::true_t>, std::uint32_t, TIdx, 2, alpaka::WriteAccess> colors,
         float const& fMinR,
         float const& fMaxR,
         float const& fMinI,

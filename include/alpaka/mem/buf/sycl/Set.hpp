@@ -85,25 +85,26 @@ namespace alpaka
                 using TaskType = alpaka::detail::TaskSetSycl<Handle>;
                 using ImplType = alpaka::detail::TaskSetSyclImpl<Handle>;
 
+                // SYCL follows the same index ordering as alpaka. Do not change the index ordering here!
                 if constexpr(Dim<TExtent>::value == 1)
                 {
-                    auto const range = sycl::range<1>{static_cast<std::size_t>(extent::getWidth(ext))};
+                    auto const range = sycl::range<1>{static_cast<std::size_t>(ext[0]) * sizeof(std::byte)};
                     auto byteBuf = view.m_buf.template reinterpret<std::byte, 1>(range);
                     return TaskType{std::make_shared<ImplType>>(accessWith<WriteAccess>(byteBuf).m_acc, std::byte{byte})};
                 }
                 else if constexpr(Dim<TExtent>::value == 2)
                 {
-                    auto const range = sycl::range<2>{static_cast<std::size_t>(extent::getWidth(ext)),
-                                                      static_cast<std::size_t>(extent::getHeight(ext))};
+                    auto const range = sycl::range<2>{static_cast<std::size_t>(ext[0]),
+                                                      static_cast<std::size_t>(ext[1]) * sizeof(std::byte)};
                     auto byteBuf = view.m_buf.template reinterpret<std::byte, 2>(range);
                     return TaskType{std::make_shared<ImplType>>(accessWith<WriteAccess>(byteBuf).m_acc, std::byte{byte})};
                 }
                 else
                 {
-                    auto const range = sycl::range<3>{static_cast<std::size_t>(extent::getWidth(ext)),
-                                                      static_cast<std::size_t>(extent::getHeight(ext)),
-                                                      static_cast<std::size_t>(extent::getDepth(ext))};
-                    auto byteBuf = view.m_buf.template reinterpret<std::byte, 2>(range);
+                    auto const range = sycl::range<3>{static_cast<std::size_t>(ext[0]),
+                                                      static_cast<std::size_t>(ext[1]),
+                                                      static_cast<std::size_t>(ext[2]) * sizeof(std::byte)};
+                    auto byteBuf = view.m_buf.template reinterpret<std::byte, 3>(range);
                     return TaskType{std::make_shared<ImplType>>(accessWith<WriteAccess>(byteBuf).m_acc, std::byte{byte})};
                 }
             }
