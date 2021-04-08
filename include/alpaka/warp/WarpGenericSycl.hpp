@@ -9,7 +9,7 @@
 
 #pragma once
 
-#if defined(ALPAKA_ACC_SYCL_ENABLED)
+#ifdef ALPAKA_ACC_SYCL_ENABLED
 
 #include <alpaka/warp/Traits.hpp>
 

@@ -35,7 +35,10 @@ namespace alpaka
             ALPAKA_FN_HOST static auto malloc(AllocCpuAligned<TAlignment> const& alloc, std::size_t const& sizeElems)
                 -> T*
             {
-#if(defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA) || (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP)
+#if (defined(ALPAKA_ACC_GPU_CUDA_ENABLED) && BOOST_LANG_CUDA) || \
+    (defined(ALPAKA_ACC_GPU_HIP_ENABLED) && BOOST_LANG_HIP) || \
+    (defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_BACKEND_XILINX))
+
                 // For CUDA host memory must be aligned to 4 kib to pin it with `cudaHostRegister`,
                 // this was described in older programming guides but was removed later.
                 // From testing with PIConGPU and cuda-memcheck we found out that the alignment is still required.
@@ -45,7 +48,13 @@ namespace alpaka
                 // To avoid issues with HIP(cuda) the alignment will be set also for HIP(clang)
                 // to 4kib.
                 // @todo evaluate requirements when the HIP ecosystem is more stable
+                //
+                // For Xilinx FPGAs the recommended alignment is 4 KiB. Otherwise XRT will introduce additional hidden
+                // copies.
                 constexpr size_t minAlignement = 4096;
+#elif (defined(ALPAKA_ACC_SYCL_ENABLED) && defined(ALPAKA_SYCL_ONEAPI_FPGA))
+                // The minimal alignment for host memory in combination with Intel FPGAs is 64 byte.
+                constexpr size_t minAlignement = 64;
 #else
                 constexpr size_t minAlignement = TAlignment::value;
 #endif

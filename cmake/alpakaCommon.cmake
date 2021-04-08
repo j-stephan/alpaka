@@ -733,7 +733,7 @@ if(ALPAKA_ACC_SYCL_ENABLE)
 
     # Enable device-side printing to stdout
     cmake_dependent_option(ALPAKA_SYCL_ENABLE_STREAM "Enable device-side printing to stdout" OFF "ALPAKA_ACC_SYCL_ENABLE" OFF)
-    if(BUILD_TESTING AND NOT ALPAKA_SYCL_ONEAPI_FPGA)
+    if(BUILD_TESTING AND NOT (ALPAKA_SYCL_ONEAPI_FPGA OR ALPAKA_SYCL_PLATFORM_XILINX))
         set(ALPAKA_SYCL_ENABLE_STREAM ON CACHE BOOL "Enable device-side printing to stdout" FORCE)
     endif()
 
