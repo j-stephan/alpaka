@@ -60,5 +60,22 @@ namespace alpaka
         // TODO: Replace with C++17 std::negation
         template<typename B>
         using Negation = std::integral_constant<bool, !B::value>;
+
+        namespace detail
+        {
+            template<typename List>
+            struct Front
+            {
+            };
+
+            template<template<typename...> class List, typename Head, typename... Tail>
+            struct Front<List<Head, Tail...>>
+            {
+                using type = Head;
+            };
+        } // namespace detail
+
+        template<typename List>
+        using Front = typename detail::Front<List>::type;
     } // namespace meta
 } // namespace alpaka
