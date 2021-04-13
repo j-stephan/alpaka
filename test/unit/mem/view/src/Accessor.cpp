@@ -253,7 +253,7 @@ namespace
 
     struct DoubleValue
     {
-        auto operator()(int i) const
+        ALPAKA_FN_ACC auto operator()(int i) const
         {
             return i * 2;
         }
