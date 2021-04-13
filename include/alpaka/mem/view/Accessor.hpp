@@ -65,6 +65,24 @@ namespace alpaka
 
     namespace internal
     {
+        template<typename Accessor>
+        struct MemoryHandle
+        {
+        };
+
+        template<typename TMemoryHandle, typename TElem, typename TBufferIdx, std::size_t TDim, typename TAccessModes>
+        struct MemoryHandle<Accessor<TMemoryHandle, TElem, TBufferIdx, TDim, TAccessModes>>
+        {
+            using type = TMemoryHandle;
+        };
+    } // namespace internal
+
+    /// Get the memory handle type of the given accessor type.
+    template<typename Accessor>
+    using MemoryHandle = typename internal::MemoryHandle<Accessor>::type;
+
+    namespace internal
+    {
         template<typename T>
 #ifdef __cpp_inline_variables
         inline
