@@ -13,8 +13,6 @@
 #include <alpaka/test/Check.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
-#include <boost/mp11/list.hpp>
-
 namespace alpaka
 {
     namespace test
