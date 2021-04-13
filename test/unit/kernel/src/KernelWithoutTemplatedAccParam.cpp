@@ -44,13 +44,12 @@ using AccGpu = alpaka::AccGpuCudaRt<Dim, Idx>;
 struct KernelNoTemplateCpu
 {
     ALPAKA_FN_ACC
-    auto operator()(
-        AccCpu const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
+    auto operator()(AccCpu const& acc, alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success) const
+        -> void
     {
         ALPAKA_CHECK(
             success[0],
-            static_cast<alpaka::Idx<AccCpu>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
+            static_cast<Idx>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
     }
 };
 
@@ -71,12 +70,12 @@ struct KernelNoTemplateGpu
     ALPAKA_FN_ACC
     auto operator()(
         AccGpu const & acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const
+        alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success) const
     -> void
     {
         ALPAKA_CHECK(
             success[0],
-            static_cast<alpaka::Idx<AccGpu>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
+            static_cast<Idx>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
     }
 };
 
@@ -97,11 +96,11 @@ struct KernelWithoutTemplateParamCpu
     template<typename TNotUsed = void>
     ALPAKA_FN_ACC auto operator()(
         AccCpu const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
+        alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success) const -> void
     {
         ALPAKA_CHECK(
             success[0],
-            static_cast<alpaka::Idx<AccCpu>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
+            static_cast<Idx>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
     }
 };
 
@@ -121,11 +120,11 @@ struct KernelWithoutTemplateParamGpu
     template<typename TNotUsed = void>
     ALPAKA_FN_ACC auto operator()(
         AccGpu const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
+        alpaka::Accessor<bool*, bool, Idx, 1, alpaka::WriteAccess> const success) const -> void
     {
         ALPAKA_CHECK(
             success[0],
-            static_cast<alpaka::Idx<AccGpu>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
+            static_cast<Idx>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
     }
 };
 
