@@ -79,13 +79,20 @@ namespace alpaka
     } // namespace internal
 
     //! 1D accessor to memory objects represented by a pointer.
+    // We keep this specialization to not store the zero-dim pitch vector and provide one more operator[].
     template<typename TElem, typename TBufferIdx, typename TAccessModes>
     struct Accessor<TElem*, TElem, TBufferIdx, 1, TAccessModes>
     {
         using ReturnType = internal::AccessReturnType<TElem, TAccessModes>;
 
-        ALPAKA_FN_HOST_ACC Accessor(TElem* p_, Vec<DimInt<1>, TBufferIdx> extents_) : p(p_), extents(extents_)
+        ALPAKA_FN_HOST_ACC Accessor(
+            TElem* p_,
+            Vec<DimInt<0>, TBufferIdx> pitchesInBytes_,
+            Vec<DimInt<1>, TBufferIdx> extents_)
+            : p(p_)
+            , extents(extents_)
         {
+            (void) pitchesInBytes_;
         }
 
         template<typename TOtherAccessModes>
@@ -114,98 +121,67 @@ namespace alpaka
         Vec<DimInt<1>, TBufferIdx> extents;
     };
 
-    //! 2D accessor to memory objects represented by a pointer.
-    template<typename TElem, typename TBufferIdx, typename TAccessModes>
-    struct Accessor<TElem*, TElem, TBufferIdx, 2, TAccessModes>
-    {
-        using ReturnType = internal::AccessReturnType<TElem, TAccessModes>;
-
-        ALPAKA_FN_HOST_ACC Accessor(TElem* p_, TBufferIdx rowPitchInBytes_, Vec<DimInt<2>, TBufferIdx> extents_)
-            : p(p_)
-            , rowPitchInBytes(rowPitchInBytes_)
-            , extents(extents_)
-        {
-        }
-
-        template<typename TOtherAccessModes>
-        ALPAKA_FN_HOST_ACC Accessor(const Accessor<TElem*, TElem, TBufferIdx, 2, TOtherAccessModes>& other)
-            : p(other.p)
-            , rowPitchInBytes(other.rowPitchInBytes)
-            , extents(other.extents)
-        {
-        }
-
-        ALPAKA_FN_HOST_ACC auto operator[](Vec<DimInt<2>, TBufferIdx> i) const -> ReturnType
-        {
-            return (*this)(i[0], i[1]);
-        }
-
-        ALPAKA_FN_HOST_ACC auto operator()(TBufferIdx y, TBufferIdx x) const -> ReturnType
-        {
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic push
-#    pragma GCC diagnostic ignored "-Wcast-align"
-#endif
-            return *(reinterpret_cast<TElem*>(internal::asBytePtr(p) + y * rowPitchInBytes) + x);
-#if BOOST_COMP_GNUC
-#    pragma GCC diagnostic pop
-#endif
-        }
-
-        TElem* p;
-        TBufferIdx rowPitchInBytes;
-        Vec<DimInt<2>, TBufferIdx> extents;
-    };
-
-    //! 3D accessor to memory objects represented by a pointer.
-    template<typename TElem, typename TBufferIdx, typename TAccessModes>
-    struct Accessor<TElem*, TElem, TBufferIdx, 3, TAccessModes>
+    //! Higher than 1D accessor to memory objects represented by a pointer.
+    template<typename TElem, typename TBufferIdx, std::size_t TDim, typename TAccessModes>
+    struct Accessor<TElem*, TElem, TBufferIdx, TDim, TAccessModes>
     {
         using ReturnType = internal::AccessReturnType<TElem, TAccessModes>;
 
         ALPAKA_FN_HOST_ACC Accessor(
             TElem* p_,
-            TBufferIdx slicePitchInBytes_,
-            TBufferIdx rowPitchInBytes_,
-            Vec<DimInt<3>, TBufferIdx> extents_)
+            Vec<DimInt<TDim - 1>, TBufferIdx> pitchesInBytes_,
+            Vec<DimInt<TDim>, TBufferIdx> extents_)
             : p(p_)
-            , slicePitchInBytes(slicePitchInBytes_)
-            , rowPitchInBytes(rowPitchInBytes_)
+            , pitchesInBytes(pitchesInBytes_)
             , extents(extents_)
         {
         }
 
         template<typename TOtherAccessModes>
-        ALPAKA_FN_HOST_ACC Accessor(const Accessor<TElem*, TElem, TBufferIdx, 3, TOtherAccessModes>& other)
+        ALPAKA_FN_HOST_ACC Accessor(const Accessor<TElem*, TElem, TBufferIdx, TDim, TOtherAccessModes>& other)
             : p(other.p)
-            , slicePitchInBytes(other.slicePitchInBytes)
-            , rowPitchInBytes(other.rowPitchInBytes)
+            , pitchesInBytes(other.pitchesInBytes)
             , extents(other.extents)
         {
         }
 
-        ALPAKA_FN_HOST_ACC auto operator[](Vec<DimInt<3>, TBufferIdx> i) const -> ReturnType
-        {
-            return (*this)(i[0], i[1], i[2]);
-        }
-
-        ALPAKA_FN_HOST_ACC auto operator()(TBufferIdx z, TBufferIdx y, TBufferIdx x) const -> ReturnType
+    private:
+        template<std::size_t... TIs>
+        ALPAKA_FN_HOST_ACC auto subscript(Vec<DimInt<TDim>, TBufferIdx> i, std::index_sequence<TIs...>) const
+            -> ReturnType
         {
 #if BOOST_COMP_GNUC
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wcast-align"
 #endif
-            return *(
-                reinterpret_cast<TElem*>(internal::asBytePtr(p) + z * slicePitchInBytes + y * rowPitchInBytes) + x);
+            auto bp = internal::asBytePtr(p);
+            (void) std::initializer_list<int>{
+                (bp += (i[TIs] * (TIs < TDim - 1 ? pitchesInBytes[TIs] : static_cast<TBufferIdx>(sizeof(TElem)))),
+                 0)...};
+            return *reinterpret_cast<TElem*>(bp);
 #if BOOST_COMP_GNUC
 #    pragma GCC diagnostic pop
 #endif
         }
 
+    public:
+        ALPAKA_FN_HOST_ACC auto operator[](Vec<DimInt<TDim>, TBufferIdx> i) const -> ReturnType
+        {
+            return subscript(i, std::make_index_sequence<TDim>{});
+        }
+
+        template<typename... Ts>
+        ALPAKA_FN_HOST_ACC auto operator()(Ts... i) const -> ReturnType
+        {
+            static_assert(sizeof...(Ts) == TDim, "You need to specify TDim indices.");
+            return subscript(
+                Vec<DimInt<TDim>, TBufferIdx>{static_cast<TBufferIdx>(i)...},
+                std::make_index_sequence<TDim>{});
+        }
+
         TElem* p;
-        TBufferIdx slicePitchInBytes;
-        TBufferIdx rowPitchInBytes;
-        Vec<DimInt<3>, TBufferIdx> extents;
+        Vec<DimInt<TDim - 1>, TBufferIdx> pitchesInBytes;
+        Vec<DimInt<TDim>, TBufferIdx> extents;
     };
 
     namespace traits
@@ -279,7 +255,7 @@ namespace alpaka
                 using AccessModeList = typename BuildAccessModeList<TAccessModes...>::type;
                 return Accessor<Elem*, Elem, TBufferIdx, dim, AccessModeList>{
                     const_cast<Elem*>(p), // strip constness, this is handled the the access modes
-                    getPitchBytes<TPitchIs + 1>(view)...,
+                    {getPitchBytes<TPitchIs + 1>(view)...},
                     {extent::getExtent<TExtentIs>(view)...}};
             }
         } // namespace internal
