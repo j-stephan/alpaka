@@ -47,11 +47,11 @@ struct Kernel
     //! \param numPoints The total number of points to be calculated.
     //! \param globalCounter The sum of all local results.
     //! \param functor The function for which the integral is to be computed.
-    template<typename TAcc, typename TIdx, typename TFunctor>
+    template<typename TAcc, typename TMemoryHandle, typename TIdx, typename TFunctor>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
         size_t const numPoints,
-        alpaka::Accessor<uint32_t*, uint32_t, TIdx, 1, alpaka::ReadWriteAccess> globalCounter,
+        alpaka::Accessor<TMemoryHandle, uint32_t, TIdx, 1, alpaka::ReadWriteAccess> globalCounter,
         TFunctor functor) const -> void
     {
         // Get the global linearized thread idx.

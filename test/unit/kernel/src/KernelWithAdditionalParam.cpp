@@ -18,10 +18,10 @@ class KernelWithAdditionalParamByValue
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc>
+    template<typename TAcc, typename TMemoryHandle>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
+        alpaka::Accessor<TMemoryHandle, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
         std::int32_t val) const -> void
     {
         alpaka::ignore_unused(acc);
@@ -52,10 +52,10 @@ class KernelWithAdditionalParamByRef
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    template <typename TAcc>
+    template <typename TAcc, typename TMemoryHandle>
     ALPAKA_FN_ACC auto operator()(
         TAcc const &acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
+        alpaka::Accessor<TMemoryHandle, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
         std::int32_t &val) const -> void {
         alpaka::ignore_unused(acc);
 
@@ -81,10 +81,10 @@ class KernelWithAdditionalParamByConstRef
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc>
+    template<typename TAcc, typename TMemoryHandle>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
+        alpaka::Accessor<TMemoryHandle, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
         std::int32_t const& val) const -> void
     {
         alpaka::ignore_unused(acc);

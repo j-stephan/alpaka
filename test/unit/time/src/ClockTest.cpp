@@ -17,10 +17,10 @@ class ClockTestKernel
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc>
+    template<typename TAcc, typename TMemoryHandle>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
+        alpaka::Accessor<TMemoryHandle, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
     {
         std::uint64_t const start(alpaka::clock(acc));
         ALPAKA_CHECK(success[0], 0u != start);

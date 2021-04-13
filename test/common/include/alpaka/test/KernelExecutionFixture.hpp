@@ -13,6 +13,8 @@
 #include <alpaka/test/Check.hpp>
 #include <alpaka/test/queue/Queue.hpp>
 
+#include <boost/mp11/list.hpp>
+
 namespace alpaka
 {
     namespace test
@@ -29,6 +31,8 @@ namespace alpaka
             using PltfAcc = alpaka::Pltf<DevAcc>;
             using QueueAcc = alpaka::test::DefaultQueue<DevAcc>;
             using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
+            using ResultBuf = alpaka::Buf<DevAcc, bool, Dim, Idx>;
+            using ResultMemoryHandle = alpaka::MemoryHandle<decltype(alpaka::writeAccess(std::declval<ResultBuf>()))>;
 
         public:
             template<typename TExtent>

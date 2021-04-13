@@ -25,10 +25,10 @@ class SharedMemKernel
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename Idx>
+    template<typename TAcc, typename TMemoryHandle, typename Idx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<Val*, Val, Idx, 1, alpaka::WriteAccess> const puiBlockRetVals) const -> void
+        alpaka::Accessor<TMemoryHandle, Val, Idx, 1, alpaka::WriteAccess> const puiBlockRetVals) const -> void
     {
         static_assert(alpaka::Dim<TAcc>::value == 1, "The SharedMemKernel expects 1-dimensional indices!");
 

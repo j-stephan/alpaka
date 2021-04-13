@@ -40,11 +40,11 @@
 
 struct HeatEquationKernel
 {
-    template<typename TAcc, typename TIdx>
+    template<typename TAcc, typename TMemoryHandle, typename TIdx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<double*, double, TIdx, 1, alpaka::ReadAccess> const uCurrBuf,
-        alpaka::Accessor<double*, double, TIdx, 1, alpaka::WriteAccess> const uNextBuf,
+        alpaka::Accessor<TMemoryHandle, double, TIdx, 1, alpaka::ReadAccess> const uCurrBuf,
+        alpaka::Accessor<TMemoryHandle, double, TIdx, 1, alpaka::WriteAccess> const uNextBuf,
         double const dx,
         double const dt) const -> void
     {

@@ -36,10 +36,10 @@ class SinCosTestKernel
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename FP>
+    template<typename TAcc, typename TMemoryHandle, typename FP>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
+        alpaka::Accessor<TMemoryHandle, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
         FP const arg) const -> void
     {
         // if arg is hardcoded then compiler can optimize it out

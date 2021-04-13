@@ -35,17 +35,17 @@ public:
     //! \param B The accessor to the matrix B data.
     //! \param C The accessor to the matrix C data.
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename TElem, typename TIndex>
+    template<typename TAcc, typename TMemoryHandle, typename TElem, typename TIndex>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
         TIndex const& m,
         TIndex const& n,
         TIndex const& k,
         TElem const& alpha,
-        alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const A,
-        alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const B,
+        alpaka::Accessor<TMemoryHandle, TElem, TIndex, 2, alpaka::ReadAccess> const A,
+        alpaka::Accessor<TMemoryHandle, TElem, TIndex, 2, alpaka::ReadAccess> const B,
         TElem const& beta,
-        alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadWriteAccess> const C) const -> void
+        alpaka::Accessor<TMemoryHandle, TElem, TIndex, 2, alpaka::ReadWriteAccess> const C) const -> void
     {
         static_assert(
             alpaka::Dim<TAcc>::value == 2u,
