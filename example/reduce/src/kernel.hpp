@@ -67,11 +67,11 @@ struct ReduceKernel
     //! \param destination The destination memory.
     //! \param n The problem size.
     //! \param func The reduction function.
-    template<typename TAcc, typename TElem, typename TIdx, typename TExtent, std::size_t TDim>
+    template<typename TAcc, typename TMemoryHandle, typename TElem, typename TIdx, typename TExtent, std::size_t TDim>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<TElem*, TElem, TIdx, TDim, alpaka::ReadAccess> source,
-        alpaka::Accessor<TElem*, TElem, TIdx, TDim, alpaka::WriteAccess> destination,
+        alpaka::Accessor<TMemoryHandle, TElem, TIdx, TDim, alpaka::ReadAccess> source,
+        alpaka::Accessor<TMemoryHandle, TElem, TIdx, TDim, alpaka::WriteAccess> destination,
         TExtent const& n,
         TFunc func) const -> void
     {
@@ -84,7 +84,7 @@ struct ReduceKernel
         // equivalent to blockIndex * TBlockSize + threadIndex
         const uint32_t linearizedIndex(static_cast<uint32_t>(alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0]));
 
-        typename GetIterator<T, TElem, Idx, TAcc>::Iterator
+        typename GetIterator<T, TElem, TMemoryHandle, Idx, TAcc>::Iterator
             it(acc, source, linearizedIndex, gridDimension * TBlockSize, n);
 
         T result = 0; // suppresses compiler warnings

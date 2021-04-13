@@ -24,9 +24,9 @@
 
 struct QueueCollectiveTestKernel
 {
-    template<typename TAcc, typename TIdx>
-    auto operator()(TAcc const& acc, alpaka::Accessor<int*, int, TIdx, 1, alpaka::WriteAccess> const results) const
-        -> void
+    template<typename TAcc, typename TMemoryHandle, typename TIdx>
+    auto operator()(TAcc const& acc, alpaka::Accessor<TMemoryHandle, int, TIdx, 1, alpaka::WriteAccess> const results)
+        const -> void
     {
         size_t threadId = alpaka::getIdx<alpaka::Grid, alpaka::Blocks>(acc)[0];
         // avoid that one thread is doing all the work

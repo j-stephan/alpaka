@@ -45,10 +45,10 @@ static constexpr uint64_t getMaxBlockSize()
 //! \tparam TAcc The accelerator type.
 //!
 //! Defines the appropriate iterator for an accelerator.
-template<typename T, typename TBuf, typename Idx, typename TAcc>
+template<typename T, typename TBuf, typename TMemoryHandle, typename Idx, typename TAcc>
 struct GetIterator
 {
-    using Iterator = IteratorCpu<TAcc, T, Idx, TBuf>;
+    using Iterator = IteratorCpu<TAcc, TMemoryHandle, T, Idx, TBuf>;
 };
 
 // Note: Boost Fibers, OpenMP 2 Threads and TBB Blocks accelerators aren't implented
@@ -65,10 +65,10 @@ struct CpuOmp2Blocks
     using MaxBlockSize = alpaka::DimInt<1u>;
 };
 
-template<typename T, typename TBuf, typename Idx, typename... TArgs>
-struct GetIterator<T, TBuf, Idx, alpaka::AccCpuOmp2Blocks<TArgs...>>
+template<typename T, typename TBuf, typename TMemoryHandle, typename Idx, typename... TArgs>
+struct GetIterator<T, TBuf, TMemoryHandle, Idx, alpaka::AccCpuOmp2Blocks<TArgs...>>
 {
-    using Iterator = IteratorCpu<alpaka::AccCpuOmp2Blocks<TArgs...>, T, Idx, TBuf>;
+    using Iterator = IteratorCpu<alpaka::AccCpuOmp2Blocks<TArgs...>, TMemoryHandle, T, Idx, TBuf>;
 };
 #endif
 
@@ -90,10 +90,10 @@ struct Omp5
     using MaxBlockSize = alpaka::DimInt<1u>;
 };
 
-template<typename T, typename TBuf, typename Idx, typename... TArgs>
-struct GetIterator<T, TBuf, Idx, alpaka::AccOmp5<TArgs...>>
+template<typename T, typename TBuf, typename TMemoryHandle, typename Idx, typename... TArgs>
+struct GetIterator<T, TBuf, TMemoryHandle, Idx, alpaka::AccOmp5<TArgs...>>
 {
-    using Iterator = IteratorCpu<alpaka::AccOmp5<TArgs...>, T, Idx, TBuf>;
+    using Iterator = IteratorCpu<alpaka::AccOmp5<TArgs...>, TMemoryHandle, T, Idx, TBuf>;
 };
 #    endif
 #endif
@@ -109,10 +109,10 @@ struct CpuSerial
     using MaxBlockSize = alpaka::DimInt<1u>;
 };
 
-template<typename T, typename TBuf, typename Idx, typename... TArgs>
-struct GetIterator<T, TBuf, Idx, alpaka::AccCpuSerial<TArgs...>>
+template<typename T, typename TBuf, typename TMemoryHandle, typename Idx, typename... TArgs>
+struct GetIterator<T, TBuf, TMemoryHandle, Idx, alpaka::AccCpuSerial<TArgs...>>
 {
-    using Iterator = IteratorCpu<alpaka::AccCpuSerial<TArgs...>, T, Idx, TBuf>;
+    using Iterator = IteratorCpu<alpaka::AccCpuSerial<TArgs...>, TMemoryHandle, T, Idx, TBuf>;
 };
 #endif
 
@@ -127,10 +127,10 @@ struct CpuThreads
     using MaxBlockSize = alpaka::DimInt<1u>;
 };
 
-template<typename T, typename TBuf, typename Idx, typename... TArgs>
-struct GetIterator<T, TBuf, Idx, alpaka::AccCpuThreads<TArgs...>>
+template<typename T, typename TBuf, typename TMemoryHandle, typename Idx, typename... TArgs>
+struct GetIterator<T, TBuf, TMemoryHandle, Idx, alpaka::AccCpuThreads<TArgs...>>
 {
-    using Iterator = IteratorCpu<alpaka::AccCpuThreads<TArgs...>, T, Idx, TBuf>;
+    using Iterator = IteratorCpu<alpaka::AccCpuThreads<TArgs...>, TMemoryHandle, T, Idx, TBuf>;
 };
 #endif
 
@@ -146,10 +146,10 @@ struct GpuCudaRt
     using MaxBlockSize = alpaka::DimInt<1024u>;
 };
 
-template<typename T, typename TBuf, typename Idx, typename... TArgs>
-struct GetIterator<T, TBuf, Idx, alpaka::AccGpuUniformCudaHipRt<TArgs...>>
+template<typename T, typename TBuf, typename TMemoryHandle, typename Idx, typename... TArgs>
+struct GetIterator<T, TBuf, TMemoryHandle, Idx, alpaka::AccGpuUniformCudaHipRt<TArgs...>>
 {
-    using Iterator = IteratorGpu<alpaka::AccGpuUniformCudaHipRt<TArgs...>, T, Idx, TBuf>;
+    using Iterator = IteratorGpu<alpaka::AccGpuUniformCudaHipRt<TArgs...>, TMemoryHandle, T, Idx, TBuf>;
 };
 #    endif
 #endif

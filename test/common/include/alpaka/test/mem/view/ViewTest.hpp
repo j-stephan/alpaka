@@ -123,10 +123,10 @@ namespace alpaka
         struct VerifyBytesSetKernel
         {
             ALPAKA_NO_HOST_ACC_WARNING
-            template<typename TAcc, typename TIter>
+            template<typename TAcc, typename TMemoryHandle, typename TIter>
             ALPAKA_FN_ACC void operator()(
                 TAcc const& acc,
-                alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
+                alpaka::Accessor<TMemoryHandle, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
                 TIter const& begin,
                 TIter const& end,
                 std::uint8_t const& byte) const
@@ -166,10 +166,10 @@ namespace alpaka
         struct VerifyViewsEqualKernel
         {
             ALPAKA_NO_HOST_ACC_WARNING
-            template<typename TAcc, typename TIterA, typename TIterB>
+            template<typename TAcc, typename TMemoryHandle, typename TIterA, typename TIterB>
             ALPAKA_FN_ACC void operator()(
                 TAcc const& acc,
-                alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
+                alpaka::Accessor<TMemoryHandle, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
                 TIterA beginA,
                 TIterA const& endA,
                 TIterB beginB) const

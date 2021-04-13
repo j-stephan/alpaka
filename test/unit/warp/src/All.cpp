@@ -20,10 +20,10 @@ class AllSingleThreadWarpTestKernel
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc>
+    template<typename TAcc, typename TMemoryHandle>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
+        alpaka::Accessor<TMemoryHandle, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
     {
         std::int32_t const warpExtent = alpaka::warp::getSize(acc);
         ALPAKA_CHECK(success[0], warpExtent == 1);
@@ -37,10 +37,10 @@ class AllMultipleThreadWarpTestKernel
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc>
+    template<typename TAcc, typename TMemoryHandle>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
+        alpaka::Accessor<TMemoryHandle, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
     {
         std::int32_t const warpExtent = alpaka::warp::getSize(acc);
         ALPAKA_CHECK(success[0], warpExtent > 1);
