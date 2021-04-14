@@ -124,14 +124,14 @@ namespace alpaka
 
         ~Accessor() = default;
 
-        auto operator[](Vec<DimInt<2>, std::size_t> i) -> ReturnType
+        auto operator[](Vec<DimInt<2>, std::size_t> i) const -> ReturnType
         {
             return operator()(i[0], i[1]);
         }
 
-        auto operator()(std::size_t y, std::size_t x) -> ReturnType
+        auto operator()(std::size_t y, std::size_t x) const -> ReturnType
         {
-            auto const id = sycl::id<2>{x, y};
+            auto const id = sycl::id<2>{y, x};
             return m_acc[id];
         }
 
@@ -164,14 +164,14 @@ namespace alpaka
 
         ~Accessor() = default;
 
-        auto operator[](Vec<DimInt<3>, std::size_t> i) -> ReturnType
+        auto operator[](Vec<DimInt<3>, std::size_t> i) const -> ReturnType
         {
             return operator()(i[0], i[1], i[2]);
         }
 
-        auto operator()(std::size_t z, std::size_t y, std::size_t x) -> ReturnType
+        auto operator()(std::size_t z, std::size_t y, std::size_t x) const -> ReturnType
         {
-            auto const id = sycl::id<3>{x, y, z};
+            auto const id = sycl::id<3>{z, y, x};
             return m_acc[id];
         }
 

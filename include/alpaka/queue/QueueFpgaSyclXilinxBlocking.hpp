@@ -44,27 +44,7 @@ namespace alpaka
         , m_queue{dev.m_context, // This is important. In SYCL a device can belong to multiple contexts.
                   dev.m_device, {sycl::property::queue::enable_profiling{}, sycl::property::queue::in_order{}}}
         {
-            // This is a workaround for a known bug in the Xilinx SYCL implementation:
-            // https://github.com/triSYCL/sycl/issues/40. Unless we jumpstart the runtime by executing a NOOP kernel,
-            // copies / memsets preceding the first kernel launch will fail because XRT fails to map them to the
-            // virtual devices in sw_emu / hw_emu mode.
-
-            // We align the data to 4KiB to prevent XRT's warnings about unaligned memory.
-            constexpr auto size = 10;
-            auto data = std::shared_ptr<int[]>{new(std::align_val_t{4096}) int[size]};
-
-            // Another issue: All kernels must have at least 1 accessor or xocc will complain.
-            auto buf = sycl::buffer<int, 1>{data, sycl::range<1>{size}};
-
-            m_queue.submit([&](sycl::handler& cgh)
-            {
-                auto acc = buf.get_access<sycl::access::mode::write>(cgh);
-                cgh.single_task<detail::xilinx_noop_kernel<QueueGenericSyclBlocking>>([=]()
-                {
-                    acc[0] = 1;
-                });
-            });
-            m_queue.wait_and_throw();
+            detail::jumpstart_device(m_queue);
         }
         //-----------------------------------------------------------------------------
         QueueGenericSyclBlocking(QueueGenericSyclBlocking const &) = default;
