@@ -31,36 +31,36 @@ namespace alpaka
         template <>
         struct SYCLMode<ReadAccess>
         {
-            static constexpr auto value = sycl::access_mode::read;
+            static constexpr auto value = sycl::access::mode::read;
         };
 
         template <>
         struct SYCLMode<WriteAccess>
         {
-            static constexpr auto value = sycl::access_mode::write;
+            static constexpr auto value = sycl::access::mode::write;
         };
 
         template <>
         struct SYCLMode<ReadWriteAccess>
         {
-            static constexpr auto value = sycl::access_mode::read_write;
+            static constexpr auto value = sycl::access::mode::read_write;
         };
 
 
         template <typename... TAccessModes>
         struct SYCLMode<std::tuple<TAccessModes...>>
         {
-            static constexpr auto value = sycl::access_mode::read_write;
+            static constexpr auto value = sycl::access::mode::read_write;
         };
     }
 
-    template <typename TElem, typename TIdx, typename TAccessModes, sycl::access_mode TSYCLMode>
+    template <typename TElem, typename TIdx, typename TAccessModes, sycl::access::mode TSYCLMode, typename TProperties>
     struct Accessor<sycl::accessor<TElem, 1, TSYCLMode, sycl::access::target::global_buffer,
-                                   sycl::access::placeholder::true_t>,
+                                   sycl::access::placeholder::true_t, TProperties>,
                     TElem, TIdx, std::size_t{1}, TAccessModes>
     {
         using HandleType = sycl::accessor<TElem, 1, TSYCLMode, sycl::access::target::global_buffer,
-                                          sycl::access::placeholder::true_t>;
+                                          sycl::access::placeholder::true_t, TProperties>;
         using ReturnType = std::conditional_t<(TSYCLMode == sycl::access::mode::read), typename HandleType::value_type, typename HandleType::reference>;
 
         Accessor(HandleType acc, Vec<DimInt<1>, TIdx> ext) : m_acc{acc}, extents{ext}
@@ -99,13 +99,13 @@ namespace alpaka
         Vec<DimInt<1>, TIdx> extents;
     };
 
-    template <typename TElem, typename TIdx, typename TAccessModes, sycl::access_mode TSYCLMode>
+    template <typename TElem, typename TIdx, typename TAccessModes, sycl::access::mode TSYCLMode, typename TProperties>
     struct Accessor<sycl::accessor<TElem, 2, TSYCLMode, sycl::access::target::global_buffer,
-                                   sycl::access::placeholder::true_t>,
+                                   sycl::access::placeholder::true_t, TProperties>,
                     TElem, TIdx, std::size_t{2}, TAccessModes>
     {
         using HandleType = sycl::accessor<TElem, 2, TSYCLMode, sycl::access::target::global_buffer,
-                                          sycl::access::placeholder::true_t>;
+                                          sycl::access::placeholder::true_t, TProperties>;
         using ReturnType = std::conditional_t<(TSYCLMode == sycl::access::mode::read), typename HandleType::value_type, typename HandleType::reference>;
 
         Accessor(HandleType acc, Vec<DimInt<2>, TIdx> ext) : m_acc{acc}, extents{ext}
@@ -139,9 +139,9 @@ namespace alpaka
         Vec<DimInt<2>, TIdx> extents;
     };
 
-    template <typename TElem, typename TIdx, typename TAccessModes, sycl::access_mode TSYCLMode>
+    template <typename TElem, typename TIdx, typename TAccessModes, sycl::access::mode TSYCLMode, typename TProperties>
     struct Accessor<sycl::accessor<TElem, 3, TSYCLMode, sycl::access::target::global_buffer,
-                                   sycl::access::placeholder::true_t>,
+                                   sycl::access::placeholder::true_t, TProperties>,
                     TElem, TIdx, std::size_t{3}, TAccessModes>
     {
         using HandleType = sycl::accessor<TElem, 3, TSYCLMode, sycl::access::target::global_buffer,

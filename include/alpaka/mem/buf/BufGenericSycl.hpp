@@ -347,10 +347,10 @@ namespace alpaka
             ALPAKA_FN_HOST_ACC static auto buildAccessor(BufGenericSycl<TElem, TDim, TIdx, TDev> const& buffer)
             {
                 constexpr auto SYCLMode = alpaka::detail::SYCLMode<TAccessModes...>::value;
-                using SYCLAcc = sycl::accessor<TElem, static_cast<int>(TDim::value), SYCLMode, sycl::access::target::global_buffer,
-                                           sycl::access::placeholder::true_t>;
+                using SYCLAcc = sycl::accessor<TElem, int{TDim::value}, SYCLMode, sycl::access::target::global_buffer,
+                                               sycl::access::placeholder::true_t>;
                 using Modes = typename traits::internal::BuildAccessModeList<TAccessModes...>::type;
-                using Acc = Accessor<SYCLAcc, TElem, TIdx, static_cast<std::size_t>(TDim::value), Modes>;
+                using Acc = Accessor<SYCLAcc, TElem, TIdx, std::size_t{TDim::value}, Modes>;
 
                 auto buf = buffer.m_buf; // buffers are reference counted, so we can copy to work around constness
 

@@ -717,7 +717,7 @@ if(ALPAKA_ACC_SYCL_ENABLE)
     message(WARNING "The SYCL back-end is currently experimental. Use at your own risk.")
 
     # Both Intel and Xilinx require their respective OpenCL runtimes
-    find_package(OpenCL REQUIRED)
+    # find_package(OpenCL REQUIRED)
     # target_link_libraries(alpaka INTERFACE OpenCL::OpenCL)
 
     # Possible SYCL platforms
@@ -730,6 +730,10 @@ if(ALPAKA_ACC_SYCL_ENABLE)
     # Intel FPGA emulation / simulation
     cmake_dependent_option(ALPAKA_SYCL_ONEAPI_FPGA_EMULATION "Enable oneAPI FPGA emulator" ON "ALPAKA_SYCL_ONEAPI_FPGA" OFF)
     cmake_dependent_option(ALPAKA_SYCL_ONEAPI_FPGA_SIMULATION "Enable oneAPI FPGA simulator" OFF "ALPAKA_SYCL_ONEAPI_FPGA" OFF)
+    # Xilinx FPGA emulation / hardware
+    cmake_dependent_option(ALPAKA_SYCL_XILINX_SOFTWARE_EMULATION "Enable Xilinx software simulation" ON "ALPAKA_SYCL_PLATFORM_XILINX" OFF)
+    cmake_dependent_option(ALPAKA_SYCL_XILINX_HARDWARE_EMULATION "Enable Xilinx hardware simulation" OFF "ALPAKA_SYCL_PLATFORM_XILINX" OFF)
+    cmake_dependent_option(ALPAKA_SYCL_XILINX_HARDWARE "Enable Xilinx hardware synthesis" OFF "ALPAKA_SYCL_PLATFORM_XILINX" OFF)
 
     # Enable device-side printing to stdout
     cmake_dependent_option(ALPAKA_SYCL_ENABLE_STREAM "Enable device-side printing to stdout" OFF "ALPAKA_ACC_SYCL_ENABLE" OFF)
@@ -737,10 +741,10 @@ if(ALPAKA_ACC_SYCL_ENABLE)
         set(ALPAKA_SYCL_ENABLE_STREAM ON CACHE BOOL "Enable device-side printing to stdout" FORCE)
     endif()
 
-    # Intel FPGAs apparently don't like SYCL streams
-    if(ALPAKA_SYCL_ENABLE_STREAM AND ALPAKA_SYCL_ONEAPI_FPGA)
+    # FPGAs apparently don't like SYCL streams
+    if(ALPAKA_SYCL_ENABLE_STREAM AND (ALPAKA_SYCL_ONEAPI_FPGA OR ALPAKA_SYCL_PLATFORM_XILINX))
         set(ALPAKA_SYCL_ENABLE_STREAM OFF CACHE BOOL "Enable device-side printing to stdout" FORCE)
-        message(WARNING "You are compiling for Intel FPGAs. Disabling device-side printing.")
+        message(WARNING "You are compiling for FPGAs. Disabling device-side printing.")
     endif()
 
     if(NOT (ALPAKA_SYCL_PLATFORM_ONEAPI OR ALPAKA_SYCL_PLATFORM_XILINX))
@@ -756,7 +760,6 @@ if(ALPAKA_ACC_SYCL_ENABLE)
     set(ALPAKA_ONEAPI_CPU_TARGET "spir64_x86_64-unknown-unknown-sycldevice")
     set(ALPAKA_ONEAPI_FPGA_TARGET "spir64_fpga-unknown-unknown-sycldevice")
     set(ALPAKA_ONEAPI_GPU_TARGET "spir64_gen-unknown-unknown-sycldevice")
-    set(ALPAKA_XILINX_FPGA_TARGET "fpga64-xilinx-unknown-unknown-sycldevice")
 
     if(ALPAKA_SYCL_PLATFORM_ONEAPI)
         if(ALPAKA_SYCL_ONEAPI_CPU)
@@ -766,7 +769,6 @@ if(ALPAKA_ACC_SYCL_ENABLE)
         if(ALPAKA_SYCL_ONEAPI_FPGA)
             target_compile_options(alpaka INTERFACE "-fintelfpga")
             target_link_options(alpaka INTERFACE "-fintelfpga")
-            #list(APPEND ALPAKA_SYCL_TARGETS ${ALPAKA_ONEAPI_FPGA_TARGET})
         endif()
 
         if(ALPAKA_SYCL_ONEAPI_GPU)
@@ -778,19 +780,31 @@ if(ALPAKA_ACC_SYCL_ENABLE)
         endif()
     endif()
 
-    if(ALPAKA_SYCL_PLATFORM_XILINX)
-        list(APPEND ALPAKA_SYCL_TARGETS ${ALPAKA_XILINX_FPGA_TARGET})
-    endif()
-
     list(JOIN ALPAKA_SYCL_TARGETS "," ALPAKA_SYCL_TARGETS_CONCAT)
-    if(NOT ALPAKA_SYCL_ONEAPI_FPGA)
-        target_compile_options(alpaka INTERFACE "-fsycl-targets=${ALPAKA_SYCL_TARGETS_CONCAT}")
-        target_link_options(alpaka INTERFACE "-fsycl-targets=${ALPAKA_SYCL_TARGETS_CONCAT}")
-    else()
+    if(ALPAKA_SYCL_ONEAPI_FPGA)
         message(WARNING "You have enabled compilation for Intel FPGAs. Disabling other backends.")
         set(ALPAKA_SYCL_ONEAPI_CPU OFF CACHE BOOL "Enable oneAPI CPU targets for the SYCL back-end" FORCE)
         set(ALPAKA_SYCL_ONEAPI_GPU OFF CACHE BOOL "Enable oneAPI GPU targets for the SYCL back-end" FORCE)
         set(ALPAKA_SYCL_PLATFORM_XILINX OFF CACHE BOOL "Enable Xilinx platform for the SYCL back-end" FORCE)
+    elseif(ALPAKA_SYCL_PLATFORM_XILINX)
+        message(WARNING "You have enabled compilation for Xilinx FPGAs. Disabling other backends.")
+        set(ALPAKA_SYCL_ONEAPI_CPU OFF CACHE BOOL "Enable oneAPI CPU targets for the SYCL back-end" FORCE)
+        set(ALPAKA_SYCL_ONEAPI_FPGA OFF CACHE BOOL "Enable oneAPI FPGA targets for the SYCL back-end" FORCE) 
+        set(ALPAKA_SYCL_ONEAPI_GPU OFF CACHE BOOL "Enable oneAPI GPU targets for the SYCL back-end" FORCE)
+
+        if(ALPAKA_SYCL_XILINX_SOFTWARE_EMULATION)
+            set(ALPAKA_XILINX_FPGA_TARGET "fpga64_sw_emu")
+        elseif(ALPAKA_SYCL_XILINX_HARDWARE_EMULATION)
+            set(ALPAKA_XILINX_FPGA_TARGET "fpga64_hw_emu")
+        else()
+            set(ALPAKA_XILINX_FPGA_TARGET "fpga64_hw")
+        endif()
+
+        target_compile_options(alpaka INTERFACE "-fsycl-targets=${ALPAKA_XILINX_FPGA_TARGET}")
+        target_link_options(alpaka INTERFACE "-fsycl-targets=${ALPAKA_XILINX_FPGA_TARGET}")
+    else()
+        target_compile_options(alpaka INTERFACE "-fsycl-targets=${ALPAKA_SYCL_TARGETS_CONCAT}")
+        target_link_options(alpaka INTERFACE "-fsycl-targets=${ALPAKA_SYCL_TARGETS_CONCAT}")
     endif()
     
     #-----------------------------------------------------------------------------------------------------------------
@@ -835,6 +849,13 @@ if(ALPAKA_ACC_SYCL_ENABLE)
         
         target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_GPU")
         target_link_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_ONEAPI_GPU_TARGET} \"-device ${ALPAKA_ONEAPI_GPU_DEVICES}\"")
+    endif()
+
+    if(ALPAKA_SYCL_PLATFORM_XILINX)
+        set(ALPAKA_XILINX_DDR_BANKS "4" CACHE STRING "Number of available DDR banks on your Xilinx FPGA")
+        set_property(CACHE ALPAKA_XILINX_DDR_BANKS PROPERTY STRINGS "1;2;4")
+
+        target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_XILINX_DDR_BANKS=${ALPAKA_XILINX_DDR_BANKS}")
     endif()
 
     #-----------------------------------------------------------------------------------------------------------------

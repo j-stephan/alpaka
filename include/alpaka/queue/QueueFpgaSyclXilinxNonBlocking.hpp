@@ -1,4 +1,4 @@
-/* Copyright 2020 Jan Stephan
+/* Copyright 2021 Jan Stephan
  *
  * This file is part of Alpaka.
  *
@@ -21,7 +21,8 @@
 
 #include <sycl/sycl.hpp>
 
-#include <array>
+#include <memory>
+#include <new>
 
 namespace alpaka
 {
@@ -48,11 +49,12 @@ namespace alpaka
             // copies / memsets preceding the first kernel launch will fail because XRT fails to map them to the
             // virtual devices in sw_emu / hw_emu mode.
 
+            // We align the data to 4KiB to prevent XRT's warnings about unaligned memory.
             constexpr auto size = 10;
-            auto data = std::array<int, size>{};
+            auto data = std::shared_ptr<int[]>{new(std::align_val_t{4096}) int[size]};
 
             // Another issue: All kernels must have at least 1 accessor or xocc will complain.
-            auto buf = sycl::buffer<int, 1>{data};
+            auto buf = sycl::buffer<int, 1>{data, sycl::range<1>{size}};
 
             m_queue.submit([&](sycl::handler& cgh)
             {
