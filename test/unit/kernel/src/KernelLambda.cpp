@@ -26,12 +26,13 @@ struct TestTemplateLambda
         using Idx = alpaka::Idx<TAcc>;
 
         alpaka::test::KernelExecutionFixture<TAcc> fixture(alpaka::Vec<Dim, Idx>::ones());
+        using ResultAccessor = typename alpaka::test::KernelExecutionFixture<TAcc>::ResultAccessor;
 
 #    if BOOST_COMP_MSVC || defined(BOOST_COMP_MSVC_EMULATED)
 #        pragma warning(push)
 #        pragma warning(disable : 4702) // warning C4702: unreachable code
 #    endif
-        auto kernel = [] ALPAKA_FN_ACC(TAcc const& acc, auto const success) -> void {
+        auto kernel = [] ALPAKA_FN_ACC(TAcc const& acc, ResultAccessor const success) -> void {
             ALPAKA_CHECK(
                 success[0],
                 static_cast<alpaka::Idx<TAcc>>(1) == (alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc)).prod());
@@ -53,9 +54,11 @@ struct TestTemplateArg
         using Idx = alpaka::Idx<TAcc>;
 
         alpaka::test::KernelExecutionFixture<TAcc> fixture(alpaka::Vec<Dim, Idx>::ones());
+        using ResultAccessor = typename alpaka::test::KernelExecutionFixture<TAcc>::ResultAccessor;
 
         std::uint32_t const arg = 42u;
-        auto kernel = [] ALPAKA_FN_ACC(TAcc const& acc, auto const success, std::uint32_t const& arg1) -> void {
+        auto kernel
+            = [] ALPAKA_FN_ACC(TAcc const& acc, ResultAccessor const success, std::uint32_t const& arg1) -> void {
             alpaka::ignore_unused(acc);
 
             ALPAKA_CHECK(success[0], 42u == arg1);
@@ -74,6 +77,7 @@ struct TestTemplateCapture
         using Idx = alpaka::Idx<TAcc>;
 
         alpaka::test::KernelExecutionFixture<TAcc> fixture(alpaka::Vec<Dim, Idx>::ones());
+        using ResultAccessor = typename alpaka::test::KernelExecutionFixture<TAcc>::ResultAccessor;
 
         std::uint32_t const arg = 42u;
 
@@ -81,7 +85,7 @@ struct TestTemplateCapture
 #        pragma clang diagnostic push
 #        pragma clang diagnostic ignored "-Wunused-lambda-capture"
 #    endif
-        auto kernel = [arg] ALPAKA_FN_ACC(TAcc const& acc, auto const success) -> void {
+        auto kernel = [arg] ALPAKA_FN_ACC(TAcc const& acc, ResultAccessor const success) -> void {
             alpaka::ignore_unused(acc);
 
             ALPAKA_CHECK(success[0], 42u == arg);

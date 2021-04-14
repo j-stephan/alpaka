@@ -44,12 +44,11 @@ TEMPLATE_LIST_TEST_CASE("stdFunctionKernelIsWorking", "[kernel]", alpaka::test::
     using Idx = alpaka::Idx<Acc>;
 
     alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::ones());
-    using MemoryHandle = typename alpaka::test::KernelExecutionFixture<Acc>::ResultMemoryHandle;
+    using ResultAccessor = typename alpaka::test::KernelExecutionFixture<Acc>::ResultAccessor;
+    using MemoryHandle = alpaka::MemoryHandle<ResultAccessor>;
 
-    const auto kernel = std::function<void(
-        Acc const&,
-        alpaka::Accessor<MemoryHandle, bool, alpaka::Idx<Acc>, 1, alpaka::WriteAccess> const,
-        std::int32_t)>(kernelFn<Acc, MemoryHandle>);
+    const auto kernel
+        = std::function<void(Acc const&, ResultAccessor const, std::int32_t)>(kernelFn<Acc, MemoryHandle>);
     REQUIRE(fixture(kernel, 42));
 }
 
@@ -82,12 +81,11 @@ TEMPLATE_LIST_TEST_CASE("nvstdFunctionKernelIsWorking", "[kernel]", alpaka::test
     using Idx = alpaka::Idx<Acc>;
 
     alpaka::test::KernelExecutionFixture<Acc> fixture(alpaka::Vec<Dim, Idx>::ones());
-    using MemoryHandle = typename alpaka::test::KernelExecutionFixture<Acc>::ResultMemoryHandle;
+    using ResultAccessor = typename alpaka::test::KernelExecutionFixture<Acc>::ResultAccessor;
+    using MemoryHandle = alpaka::MemoryHandle<ResultAccessor>;
 
-    const auto kernel = nvstd::function<void(
-        Acc const&,
-        alpaka::Accessor<MemoryHandle, bool, alpaka::Idx<Acc>, 1, alpaka::WriteAccess> const,
-        std::int32_t)>(kernelFn<Acc, MemoryHandle>);
+    const auto kernel
+        = nvstd::function<void(Acc const&, ResultAccessor const, std::int32_t)>(kernelFn<Acc, MemoryHandle>);
     REQUIRE(fixture(kernel, 42));
 }
 
