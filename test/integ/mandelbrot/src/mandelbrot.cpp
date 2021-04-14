@@ -97,12 +97,10 @@ public:
     //! \param fMaxI The top border.
     //! \param maxIterations The maximum number of iterations.
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename TIdx>
+    template<typename TAcc, typename TMemoryHandle, typename TIdx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        //alpaka::Accessor<std::uint32_t*, std::uint32_t, TIdx, 2, alpaka::WriteAccess> const colors,
-        alpaka::Accessor<sycl::accessor<std::uint32_t, 2, sycl::access::mode::write, sycl::access::target::global_buffer,
-                                        sycl::access::placeholder::true_t>, std::uint32_t, TIdx, 2, alpaka::WriteAccess> colors,
+        alpaka::Accessor<TMemoryHandle, std::uint32_t, TIdx, 2, alpaka::WriteAccess> const colors,
         float const& fMinR,
         float const& fMaxR,
         float const& fMinI,

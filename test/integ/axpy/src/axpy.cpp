@@ -34,16 +34,12 @@ public:
     //! \param X Vector of at least n elements.
     //! \param Y Vector of at least n elements.
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename TElem, typename TIdx>
+    template<typename TAcc, typename TMemoryHandle, typename TElem, typename TIdx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
         TElem const& alpha,
-        //alpaka::Accessor<TElem*, TElem, TIdx, 1, alpaka::ReadAccess> const X,
-        alpaka::Accessor<sycl::accessor<TElem, 1, sycl::access::mode::read, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>,
-                         TElem, TIdx, 1, alpaka::ReadAccess> X,
-        alpaka::Accessor<sycl::accessor<TElem, 1, sycl::access::mode::read_write, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>,
-                         TElem, TIdx, 1, alpaka::ReadWriteAccess> Y) const -> void
-        //alpaka::Accessor<TElem*, TElem, TIdx, 1, alpaka::ReadWriteAccess> const Y) const -> void
+        alpaka::Accessor<TMemoryHandle, TElem, TIdx, 1, alpaka::ReadAccess> const X,
+        alpaka::Accessor<TMemoryHandle, TElem, TIdx, 1, alpaka::ReadWriteAccess> const Y) const -> void
     {
         static_assert(alpaka::Dim<TAcc>::value == 1, "The AxpyKernel expects 1-dimensional indices!");
 

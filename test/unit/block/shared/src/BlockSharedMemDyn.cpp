@@ -18,10 +18,10 @@ class BlockSharedMemDynTestKernel
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc>
+    template<typename TAcc, typename TMemoryHandle>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
+        alpaka::Accessor<TMemoryHandle, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
     {
         // Assure that the pointer is non null.
         auto a = alpaka::getDynSharedMem<std::uint32_t>(acc);
@@ -46,12 +46,13 @@ namespace alpaka
         struct BlockSharedMemDynSizeBytes<BlockSharedMemDynTestKernel, TAcc>
         {
             //! \return The size of the shared memory allocated for a block.
-            template<typename TVec>
+            template<typename TVec, typename TMemoryHandle>
             ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
                 BlockSharedMemDynTestKernel const& blockSharedMemDyn,
                 TVec const& blockThreadExtent,
                 TVec const& threadElemExtent,
-                alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) -> std::size_t
+                alpaka::Accessor<TMemoryHandle, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success)
+                -> std::size_t
             {
                 alpaka::ignore_unused(blockSharedMemDyn);
                 alpaka::ignore_unused(success);

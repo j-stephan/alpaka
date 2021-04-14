@@ -19,10 +19,10 @@ public:
     static const std::uint8_t gridThreadExtentPerDim = 4u;
 
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc>
+    template<typename TAcc, typename TMemoryHandle>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
+        alpaka::Accessor<TMemoryHandle, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
     {
         using Idx = alpaka::Idx<TAcc>;
 
@@ -58,12 +58,13 @@ namespace alpaka
         struct BlockSharedMemDynSizeBytes<BlockSyncTestKernel, TAcc>
         {
             //! \return The size of the shared memory allocated for a block.
-            template<typename TVec>
+            template<typename TVec, typename TMemoryHandle>
             ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
                 BlockSyncTestKernel const& blockSharedMemDyn,
                 TVec const& blockThreadExtent,
                 TVec const& threadElemExtent,
-                alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) -> std::size_t
+                alpaka::Accessor<TMemoryHandle, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success)
+                -> std::size_t
             {
                 using Idx = alpaka::Idx<TAcc>;
 

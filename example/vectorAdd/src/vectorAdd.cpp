@@ -37,12 +37,12 @@ public:
     //! \param C The destination vector.
     //! \param numElements The number of elements.
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename TElem, typename TIdx>
+    template<typename TAcc, typename TMemoryHandle, typename TElem, typename TIdx>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<TElem*, TElem, TIdx, 1, alpaka::ReadAccess> A,
-        alpaka::Accessor<TElem*, TElem, TIdx, 1, alpaka::ReadAccess> B,
-        alpaka::Accessor<TElem*, TElem, TIdx, 1, alpaka::WriteAccess> C) const -> void
+        alpaka::Accessor<TMemoryHandle, TElem, TIdx, 1, alpaka::ReadAccess> A,
+        alpaka::Accessor<TMemoryHandle, TElem, TIdx, 1, alpaka::ReadAccess> B,
+        alpaka::Accessor<TMemoryHandle, TElem, TIdx, 1, alpaka::WriteAccess> C) const -> void
     {
         static_assert(alpaka::Dim<TAcc>::value == 1, "The VectorAddKernel expects 1-dimensional indices!");
 

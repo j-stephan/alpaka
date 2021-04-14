@@ -35,12 +35,19 @@ struct TestKernel
     //! @param acc Accelerator given from alpaka.
     //! @param functor Accessible with operator().
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename TResults, typename TIdx, typename TFunctor, typename TArgs>
+    template<
+        typename TAcc,
+        typename TMemoryHandleResults,
+        typename TMemoryHandleArgs,
+        typename TResults,
+        typename TIdx,
+        typename TFunctor,
+        typename TArgs>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<TResults*, TResults, TIdx, 1, alpaka::WriteAccess> const results,
+        alpaka::Accessor<TMemoryHandleResults, TResults, TIdx, 1, alpaka::WriteAccess> const results,
         TFunctor const& functor,
-        alpaka::Accessor<TArgs*, TArgs, TIdx, 1, alpaka::ReadAccess> const args) const noexcept -> void
+        alpaka::Accessor<TMemoryHandleArgs, TArgs, TIdx, 1, alpaka::ReadAccess> const args) const noexcept -> void
     {
         for(size_t i = 0; i < TCapacity; ++i)
         {
@@ -392,10 +399,10 @@ namespace custom
 
 struct AdlKernel
 {
-    template<typename TAcc, typename TIdx>
+    template<typename TAcc, typename TMemoryHandle, typename TIdx>
     ALPAKA_FN_ACC void operator()(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success) const noexcept
+        alpaka::Accessor<TMemoryHandle, bool, TIdx, 1, alpaka::WriteAccess> const success) const noexcept
     {
         using custom::Custom;
 

@@ -58,10 +58,10 @@ namespace
 
     struct WriteKernelExplicit
     {
-        template<typename TAcc, typename TPointer, typename TIdx>
+        template<typename TAcc, typename TMemoryHandle, typename TIdx>
         ALPAKA_FN_ACC void operator()(
             TAcc const&,
-            alpaka::Accessor<TPointer, float, TIdx, 1, alpaka::WriteAccess> const data) const
+            alpaka::Accessor<TMemoryHandle, float, TIdx, 1, alpaka::WriteAccess> const data) const
         {
             data[1] = 1.0f;
             data(2) = 2.0f;
@@ -85,10 +85,10 @@ namespace
 
     struct ReadKernelExplicit
     {
-        template<typename TAcc, typename TPointer, typename TIdx>
+        template<typename TAcc, typename TMemoryHandle, typename TIdx>
         ALPAKA_FN_ACC void operator()(
             TAcc const&,
-            alpaka::Accessor<TPointer, float, TIdx, 1, alpaka::ReadAccess> const data) const
+            alpaka::Accessor<TMemoryHandle, float, TIdx, 1, alpaka::ReadAccess> const data) const
         {
             const float v1 = data[1];
             const float v2 = data(2);
@@ -101,10 +101,10 @@ namespace
 
     struct ReadWriteKernelExplicit
     {
-        template<typename TAcc, typename TPointer, typename TIdx>
+        template<typename TAcc, typename TMemoryHandle, typename TIdx>
         ALPAKA_FN_ACC void operator()(
             TAcc const&,
-            alpaka::Accessor<TPointer, float, TIdx, 1, alpaka::ReadWriteAccess> const data) const
+            alpaka::Accessor<TMemoryHandle, float, TIdx, 1, alpaka::ReadWriteAccess> const data) const
         {
             const float v1 = data[1];
             const float v2 = data(2);
@@ -253,7 +253,7 @@ namespace
 
     struct DoubleValue
     {
-        auto operator()(int i) const
+        ALPAKA_FN_ACC auto operator()(int i) const
         {
             return i * 2;
         }
@@ -261,13 +261,13 @@ namespace
 
     struct CopyKernel
     {
-        template<typename TAcc, typename TPointer, typename TIdx>
+        template<typename TAcc, typename TMemoryHandle, typename TIdx>
         ALPAKA_FN_ACC void operator()(
             TAcc const&,
-            alpaka::Accessor<TPointer, int, TIdx, 1, alpaka::ReadAccess> const src,
-            alpaka::Accessor<TPointer, int, TIdx, 1, alpaka::WriteAccess> const dst) const
+            alpaka::Accessor<TMemoryHandle, int, TIdx, 1, alpaka::ReadAccess> const src,
+            alpaka::Accessor<TMemoryHandle, int, TIdx, 1, alpaka::WriteAccess> const dst) const
         {
-            auto const projSrc = AccessorWithProjection<DoubleValue, TPointer, int, TIdx, 1>{src};
+            auto const projSrc = AccessorWithProjection<DoubleValue, TMemoryHandle, int, TIdx, 1>{src};
             dst[0] = projSrc[0];
         }
     };
@@ -309,22 +309,28 @@ TEST_CASE("constraining", "[accessor]")
 
     auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
     auto buffer = alpaka::allocBuf<int, Size>(devAcc, Size{1});
+    using MemoryHandle = alpaka::MemoryHandle<decltype(alpaka::access(buffer))>;
 
-    alpaka::Accessor<int*, int, Size, 1, std::tuple<alpaka::ReadAccess, alpaka::WriteAccess, alpaka::ReadWriteAccess>>
+    alpaka::Accessor<
+        MemoryHandle,
+        int,
+        Size,
+        1,
+        std::tuple<alpaka::ReadAccess, alpaka::WriteAccess, alpaka::ReadWriteAccess>>
         acc = alpaka::accessWith<alpaka::ReadAccess, alpaka::WriteAccess, alpaka::ReadWriteAccess>(buffer);
 
     // constraining from multi-tag to single-tag
-    alpaka::Accessor<int*, int, Size, 1, alpaka::ReadAccess> readAcc = alpaka::readAccess(acc);
-    alpaka::Accessor<int*, int, Size, 1, alpaka::WriteAccess> writeAcc = alpaka::writeAccess(acc);
-    alpaka::Accessor<int*, int, Size, 1, alpaka::ReadWriteAccess> readWriteAcc = alpaka::access(acc);
+    alpaka::Accessor<MemoryHandle, int, Size, 1, alpaka::ReadAccess> readAcc = alpaka::readAccess(acc);
+    alpaka::Accessor<MemoryHandle, int, Size, 1, alpaka::WriteAccess> writeAcc = alpaka::writeAccess(acc);
+    alpaka::Accessor<MemoryHandle, int, Size, 1, alpaka::ReadWriteAccess> readWriteAcc = alpaka::access(acc);
     (void) readAcc;
     (void) writeAcc;
     (void) readWriteAcc;
 
     // constraining from single-tag to single-tag
-    alpaka::Accessor<int*, int, Size, 1, alpaka::ReadAccess> readAcc2 = alpaka::readAccess(readAcc);
-    alpaka::Accessor<int*, int, Size, 1, alpaka::WriteAccess> writeAcc2 = alpaka::writeAccess(writeAcc);
-    alpaka::Accessor<int*, int, Size, 1, alpaka::ReadWriteAccess> readWriteAcc2 = alpaka::access(readWriteAcc);
+    alpaka::Accessor<MemoryHandle, int, Size, 1, alpaka::ReadAccess> readAcc2 = alpaka::readAccess(readAcc);
+    alpaka::Accessor<MemoryHandle, int, Size, 1, alpaka::WriteAccess> writeAcc2 = alpaka::writeAccess(writeAcc);
+    alpaka::Accessor<MemoryHandle, int, Size, 1, alpaka::ReadWriteAccess> readWriteAcc2 = alpaka::access(readWriteAcc);
     (void) readAcc2;
     (void) writeAcc2;
     (void) readWriteAcc2;

@@ -38,11 +38,11 @@ ALPAKA_STATIC_ACC_MEM_CONSTANT Elem g_constantMemory2DUninitialized[3][2];
 struct StaticDeviceMemoryTestKernel
 {
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename TElem>
+    template<typename TAcc, typename TMemoryHandleBool, typename TMemoryHandleElem, typename TElem>
     ALPAKA_FN_ACC void operator()(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
-        alpaka::Accessor<TElem*, TElem, alpaka::Idx<TAcc>, 2, alpaka::ReadAccess> const constantMem) const
+        alpaka::Accessor<TMemoryHandleBool, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
+        alpaka::Accessor<TMemoryHandleElem, TElem, alpaka::Idx<TAcc>, 2, alpaka::ReadAccess> const constantMem) const
     {
         auto const gridThreadExtent = alpaka::getWorkDiv<alpaka::Grid, alpaka::Threads>(acc);
         auto const gridThreadIdx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc);

@@ -21,10 +21,16 @@ class KernelInvocationTemplateDeductionValueSemantics
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename TIdx, typename TByValue, typename TByConstValue, typename TByConstReference>
+    template<
+        typename TAcc,
+        typename TMemoryHandle,
+        typename TIdx,
+        typename TByValue,
+        typename TByConstValue,
+        typename TByConstReference>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
+        alpaka::Accessor<TMemoryHandle, bool, TIdx, 1, alpaka::WriteAccess> const success,
         TByValue,
         TByConstValue const,
         TByConstReference const&) const -> void
@@ -96,10 +102,10 @@ class KernelInvocationTemplateDeductionPointerSemantics
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename TIdx, typename TByPointer, typename TByPointerToConst>
+    template<typename TAcc, typename TMemoryHandle, typename TIdx, typename TByPointer, typename TByPointerToConst>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, TIdx, 1, alpaka::WriteAccess> const success,
+        alpaka::Accessor<TMemoryHandle, bool, TIdx, 1, alpaka::WriteAccess> const success,
         TByPointer*,
         TByPointerToConst const*) const -> void
     {

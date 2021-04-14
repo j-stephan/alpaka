@@ -35,23 +35,17 @@ public:
     //! \param B The accessor to the matrix B data.
     //! \param C The accessor to the matrix C data.
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename TElem, typename TIndex>
+    template<typename TAcc, typename TMemoryHandle, typename TElem, typename TIndex>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
         TIndex const& m,
         TIndex const& n,
         TIndex const& k,
         TElem const& alpha,
-        // alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const A,
-        alpaka::Accessor<sycl::accessor<TElem, 2, sycl::access::mode::read, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>,
-                         TElem, TIndex, 2, alpaka::ReadAccess> A,
-        // alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const B,
-        alpaka::Accessor<sycl::accessor<TElem, 2, sycl::access::mode::read, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>,
-                         TElem, TIndex, 2, alpaka::ReadAccess> B,
+        alpaka::Accessor<TMemoryHandle, TElem, TIndex, 2, alpaka::ReadAccess> const A,
+        alpaka::Accessor<TMemoryHandle, TElem, TIndex, 2, alpaka::ReadAccess> const B,
         TElem const& beta,
-        // alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadWriteAccess> const C) const -> void
-        alpaka::Accessor<sycl::accessor<TElem, 2, sycl::access::mode::read_write, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>,
-                                        TElem, TIndex, 2, alpaka::ReadWriteAccess> C) const -> void
+        alpaka::Accessor<TMemoryHandle, TElem, TIndex, 2, alpaka::ReadWriteAccess> const C) const -> void
     {
         static_assert(
             alpaka::Dim<TAcc>::value == 2u,
@@ -150,6 +144,7 @@ namespace alpaka
                 TIndex const& n,
                 TIndex const& k,
                 TElem const& alpha,
+<<<<<<< HEAD
                 //alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const A,
                 alpaka::Accessor<sycl::accessor<TElem, 2, sycl::access::mode::read, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>,
                                  TElem, TIndex, 2, alpaka::ReadAccess> A,
@@ -160,6 +155,12 @@ namespace alpaka
                 //alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadWriteAccess> const C)
                 alpaka::Accessor<sycl::accessor<TElem, 2, sycl::access::mode::read_write, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>,
                                                 TElem, TIndex, 2, alpaka::ReadWriteAccess> C)
+=======
+                alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const A,
+                alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const B,
+                TElem const& beta,
+                alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadWriteAccess> const C)
+>>>>>>> bernhard/accessor
             {
                 alpaka::ignore_unused(matMulKernel);
                 alpaka::ignore_unused(m);

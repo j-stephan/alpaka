@@ -19,10 +19,10 @@
 class RandTestKernel
 {
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc, typename T_Generator>
+    template<typename TAcc, typename TMemoryHandle, typename T_Generator>
     ALPAKA_FN_ACC void genNumbers(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
+        alpaka::Accessor<TMemoryHandle, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success,
         T_Generator& gen) const
     {
         {
@@ -67,10 +67,10 @@ class RandTestKernel
 
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-    template<typename TAcc>
+    template<typename TAcc, typename TMemoryHandle>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
+        alpaka::Accessor<TMemoryHandle, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
     {
         // default generator for accelerator
         auto genDefault = alpaka::rand::generator::createDefault(acc, 12345u, 6789u);

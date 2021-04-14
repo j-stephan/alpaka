@@ -29,6 +29,9 @@ namespace alpaka
             using PltfAcc = alpaka::Pltf<DevAcc>;
             using QueueAcc = alpaka::test::DefaultQueue<DevAcc>;
             using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
+            using ResultBuf = alpaka::Buf<DevAcc, bool, alpaka::DimInt<1>, Idx>;
+            using ResultAccessor = decltype(alpaka::writeAccess(std::declval<ResultBuf>()));
+            using ResultMemoryHandle = alpaka::MemoryHandle<ResultAccessor>;
 
         public:
             template<typename TExtent>
