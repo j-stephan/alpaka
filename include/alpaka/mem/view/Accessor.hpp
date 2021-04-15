@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <alpaka/mem/buf/Traits.hpp>
 #include <alpaka/mem/view/Traits.hpp>
 #include <alpaka/meta/DependentFalseType.hpp>
 
