@@ -335,3 +335,89 @@ TEST_CASE("constraining", "[accessor]")
     (void) writeAcc2;
     (void) readWriteAcc2;
 }
+
+namespace
+{
+    struct BufferAccessorKernelRead
+    {
+        template<typename TAcc, typename TMemoryHandle, typename TIdx>
+        ALPAKA_FN_ACC void operator()(
+            TAcc const&,
+            alpaka::Accessor<TMemoryHandle, int, TIdx, 1, alpaka::ReadAccess> const r1,
+            alpaka::BufferAccessor<TAcc, int, 1, alpaka::ReadAccess> const r2,
+            alpaka::BufferAccessor<TAcc, int, 1, alpaka::ReadAccess, TIdx> const r3) const
+        {
+            STATIC_REQUIRE(std::is_same<decltype(r1), decltype(r2)>::value);
+            STATIC_REQUIRE(std::is_same<decltype(r2), decltype(r3)>::value);
+        }
+    };
+
+    struct BufferAccessorKernelWrite
+    {
+        template<typename TAcc, typename TMemoryHandle, typename TIdx>
+        ALPAKA_FN_ACC void operator()(
+            TAcc const&,
+            alpaka::Accessor<TMemoryHandle, int, TIdx, 1, alpaka::WriteAccess> const w1,
+            alpaka::BufferAccessor<TAcc, int, 1, alpaka::WriteAccess> const w2,
+            alpaka::BufferAccessor<TAcc, int, 1, alpaka::WriteAccess, TIdx> const w3) const
+        {
+            STATIC_REQUIRE(std::is_same<decltype(w1), decltype(w2)>::value);
+            STATIC_REQUIRE(std::is_same<decltype(w2), decltype(w3)>::value);
+        }
+    };
+    struct BufferAccessorKernelReadWrite
+    {
+        template<typename TAcc, typename TMemoryHandle, typename TIdx>
+        ALPAKA_FN_ACC void operator()(
+            TAcc const&,
+            alpaka::Accessor<TMemoryHandle, int, TIdx, 1, alpaka::ReadWriteAccess> const rw1,
+            alpaka::BufferAccessor<TAcc, int, 1> const rw2,
+            alpaka::BufferAccessor<TAcc, int, 1, alpaka::ReadWriteAccess> const rw3,
+            alpaka::BufferAccessor<TAcc, int, 1, alpaka::ReadWriteAccess, TIdx> const rw4) const
+        {
+            STATIC_REQUIRE(std::is_same<decltype(rw1), decltype(rw2)>::value);
+            STATIC_REQUIRE(std::is_same<decltype(rw2), decltype(rw3)>::value);
+            STATIC_REQUIRE(std::is_same<decltype(rw3), decltype(rw4)>::value);
+        }
+    };
+} // namespace
+
+TEST_CASE("BufferAccessor", "[accessor]")
+{
+    using Dim = alpaka::DimInt<1>;
+    using Size = std::size_t;
+    using Acc = alpaka::ExampleDefaultAcc<Dim, Size>;
+    using DevAcc = alpaka::Dev<Acc>;
+    using Queue = alpaka::Queue<DevAcc, alpaka::Blocking>;
+
+    auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
+    auto queue = Queue{devAcc};
+    auto buffer = alpaka::allocBuf<int, Size>(devAcc, Size{1});
+
+    auto const workdiv = alpaka::WorkDivMembers<Dim, Size>{
+        alpaka::Vec<Dim, Size>{Size{1}},
+        alpaka::Vec<Dim, Size>{Size{1}},
+        alpaka::Vec<Dim, Size>{Size{1}}};
+    alpaka::exec<Acc>(
+        queue,
+        workdiv,
+        BufferAccessorKernelRead{},
+        alpaka::readAccess(buffer),
+        alpaka::readAccess(buffer),
+        alpaka::readAccess(buffer));
+    alpaka::exec<Acc>(
+        queue,
+        workdiv,
+        BufferAccessorKernelWrite{},
+        alpaka::writeAccess(buffer),
+        alpaka::writeAccess(buffer),
+        alpaka::writeAccess(buffer));
+    alpaka::exec<Acc>(
+        queue,
+        workdiv,
+        BufferAccessorKernelReadWrite{},
+        alpaka::access(buffer),
+        alpaka::access(buffer),
+        alpaka::access(buffer),
+        alpaka::access(buffer));
+}
