@@ -1,4 +1,4 @@
-/* Copyright 2019 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera
+/* Copyright 2019-2021 Axel Huebl, Benjamin Worpitz, Matthias Werner, René Widera, Bernhard Manfred Gruber
  *
  * This file is part of alpaka.
  *
@@ -135,7 +135,7 @@ namespace alpaka
         struct BlockSharedMemDynSizeBytes<MatMulKernel, TAcc>
         {
             //! \return The size of the shared memory allocated for a block.
-            template<typename TVec, typename TIndex, typename TElem>
+            template<typename TVec, typename TIndex, typename TElem, typename TMemoryHandle>
             ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
                 MatMulKernel const& matMulKernel,
                 TVec const& blockThreadExtent,
@@ -144,23 +144,10 @@ namespace alpaka
                 TIndex const& n,
                 TIndex const& k,
                 TElem const& alpha,
-<<<<<<< HEAD
-                //alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const A,
-                alpaka::Accessor<sycl::accessor<TElem, 2, sycl::access::mode::read, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>,
-                                 TElem, TIndex, 2, alpaka::ReadAccess> A,
-                //alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const B,
-                alpaka::Accessor<sycl::accessor<TElem, 2, sycl::access::mode::read, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>,
-                                 TElem, TIndex, 2, alpaka::ReadAccess> B,
+                alpaka::Accessor<TMemoryHandle, TElem, TIndex, 2, alpaka::ReadAccess> const A,
+                alpaka::Accessor<TMemoryHandle, TElem, TIndex, 2, alpaka::ReadAccess> const B,
                 TElem const& beta,
-                //alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadWriteAccess> const C)
-                alpaka::Accessor<sycl::accessor<TElem, 2, sycl::access::mode::read_write, sycl::access::target::global_buffer, sycl::access::placeholder::true_t>,
-                                                TElem, TIndex, 2, alpaka::ReadWriteAccess> C)
-=======
-                alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const A,
-                alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const B,
-                TElem const& beta,
-                alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadWriteAccess> const C)
->>>>>>> bernhard/accessor
+                alpaka::Accessor<TMemoryHandle, TElem, TIndex, 2, alpaka::ReadWriteAccess> const C)
             {
                 alpaka::ignore_unused(matMulKernel);
                 alpaka::ignore_unused(m);

@@ -1,4 +1,4 @@
-/* Copyright 2020 Sergei Bastrakov
+/* Copyright 2020-2021 Sergei Bastrakov, Bernhard Manfred Gruber
  *
  * This file is part of Alpaka.
  *
@@ -37,17 +37,10 @@ class BallotMultipleThreadWarpTestKernel
 {
 public:
     ALPAKA_NO_HOST_ACC_WARNING
-<<<<<<< HEAD
-    template<typename TAcc>
-    ALPAKA_FN_ACC auto operator()(
-        TAcc const& acc,
-        alpaka::Accessor<bool*, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
-=======
     template<typename TAcc, typename TMemoryHandle>
     ALPAKA_FN_ACC auto operator()(
         TAcc const& acc,
         alpaka::Accessor<TMemoryHandle, bool, alpaka::Idx<TAcc>, 1, alpaka::WriteAccess> const success) const -> void
->>>>>>> bernhard/accessor
     {
         std::int32_t const warpExtent = alpaka::warp::getSize(acc);
         ALPAKA_CHECK(success[0], warpExtent > 1);

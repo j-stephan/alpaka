@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <alpaka/mem/buf/Traits.hpp>
 #include <alpaka/mem/view/Traits.hpp>
 #include <alpaka/meta/DependentFalseType.hpp>
 
@@ -65,7 +66,7 @@ namespace alpaka
 
     namespace internal
     {
-        template<typename Accessor>
+        template<typename AccessorOrBuffer>
         struct MemoryHandle
         {
         };
@@ -77,7 +78,7 @@ namespace alpaka
         };
     } // namespace internal
 
-    /// Get the memory handle type of the given accessor type.
+    /// Get the memory handle type of the given accessor or buffer type.
     template<typename Accessor>
     using MemoryHandle = typename internal::MemoryHandle<Accessor>::type;
 
@@ -173,4 +174,18 @@ namespace alpaka
     {
         return accessWith<WriteAccess>(std::forward<TMemoryObjectOrAccessor>(viewOrAccessor));
     }
+
+    //! An alias for an accessor accessing a buffer on the given accelerator.
+    template<
+        typename TAcc,
+        typename TElem,
+        std::size_t TDim,
+        typename TAccessModes = ReadWriteAccess,
+        typename TIdx = Idx<TAcc>>
+    using BufferAccessor = Accessor<
+        MemoryHandle<decltype(accessWith<TAccessModes>(std::declval<Buf<TAcc, TElem, DimInt<TDim>, TIdx>>()))>,
+        TElem,
+        TIdx,
+        TDim,
+        TAccessModes>;
 } // namespace alpaka
