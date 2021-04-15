@@ -34,7 +34,7 @@ protected:
 public:
     //! Constructor.
     //!
-    //! \param data A pointer to the data.
+    //! \param data An accessor to the data.
     //! \param index The index.
     //! \param maximum The first index outside of the iterator memory.
     ALPAKA_FN_HOST_ACC ALPAKA_FN_INLINE
@@ -131,7 +131,7 @@ public:
     //! Constructor.
     //!
     //! \param acc The accelerator object.
-    //! \param data A pointer to the data.
+    //! \param data An accessor to the data.
     //! \param linearizedIndex The linearized index.
     //! \param gridSize The grid size.
     //! \param n The problem size.
@@ -256,7 +256,7 @@ private:
 public:
     //! Constructor.
     //!
-    //! \param data A pointer to the data.
+    //! \param data An accessor to the data.
     //! \param linearizedIndex The linearized index.
     //! \param gridSize The grid size.
     //! \param n The problem size.
