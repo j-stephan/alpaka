@@ -16,9 +16,9 @@
 
 #include <catch2/catch.hpp>
 
-TEST_CASE("isView", "[accessor]")
+TEST_CASE("IsView", "[accessor]")
 {
-    using alpaka::traits::internal::isView;
+    using alpaka::traits::internal::IsView;
 
     using Dim = alpaka::DimInt<1>;
     using Size = std::size_t;
@@ -28,17 +28,17 @@ TEST_CASE("isView", "[accessor]")
     // buffer
     auto const devAcc = alpaka::getDevByIdx<Acc>(0u);
     auto buffer = alpaka::allocBuf<int, Size>(devAcc, Size{1});
-    STATIC_REQUIRE(isView<decltype(buffer)>);
+    STATIC_REQUIRE(IsView<decltype(buffer)>::value);
 
     // views
-    STATIC_REQUIRE(isView<alpaka::ViewPlainPtr<Dev, int, Dim, Size>>);
-    STATIC_REQUIRE(isView<std::array<int, 42>>);
-    STATIC_REQUIRE(isView<std::vector<int>>);
-    STATIC_REQUIRE(isView<alpaka::ViewSubView<Dev, int, Dim, Size>>);
+    STATIC_REQUIRE(IsView<alpaka::ViewPlainPtr<Dev, int, Dim, Size>>::value);
+    STATIC_REQUIRE(IsView<std::array<int, 42>>::value);
+    STATIC_REQUIRE(IsView<std::vector<int>>::value);
+    STATIC_REQUIRE(IsView<alpaka::ViewSubView<Dev, int, Dim, Size>>::value);
 
     // accessor
     auto accessor = alpaka::access(buffer);
-    STATIC_REQUIRE(!isView<decltype(accessor)>);
+    STATIC_REQUIRE(!IsView<decltype(accessor)>::value);
 }
 
 namespace

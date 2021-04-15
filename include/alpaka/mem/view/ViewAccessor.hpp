@@ -189,29 +189,22 @@ namespace alpaka
         namespace internal
         {
             template<typename T, typename SFINAE = void>
-#ifdef __cpp_inline_variables
-            inline
-#else
-            static
-#endif
-                constexpr bool isView
-                = false;
+            struct IsView : std::false_type
+            {
+            };
 
             // TODO: replace this by a concept in C++20
             template<typename TView>
-#ifdef __cpp_inline_variables
-            inline
-#else
-            static
-#endif
-                constexpr bool isView<
-                    TView,
-                    meta::Void<
-                        Idx<TView>,
-                        Dim<TView>,
-                        decltype(alpaka::getPtrNative(std::declval<TView>())),
-                        decltype(getPitchBytes<0>(std::declval<TView>())),
-                        decltype(extent::getExtent<0>(std::declval<TView>()))>> = true;
+            struct IsView<
+                TView,
+                meta::Void<
+                    Idx<TView>,
+                    Dim<TView>,
+                    decltype(alpaka::getPtrNative(std::declval<TView>())),
+                    decltype(getPitchBytes<0>(std::declval<TView>())),
+                    decltype(extent::getExtent<0>(std::declval<TView>()))>> : std::true_type
+            {
+            };
 
             template<typename... TAccessModes>
             struct BuildAccessModeList;
@@ -240,7 +233,7 @@ namespace alpaka
                 std::index_sequence<TExtentIs...>)
             {
                 using TView = std::decay_t<TViewForwardRef>;
-                static_assert(isView<TView>, "");
+                static_assert(IsView<TView>::value, "");
                 using TBufferIdx = Idx<TView>;
                 constexpr auto dim = Dim<TView>::value;
                 using Elem = Elem<TView>;
@@ -262,7 +255,7 @@ namespace alpaka
 
         //! Builds an accessor from view like memory objects.
         template<typename TView>
-        struct BuildAccessor<TView, std::enable_if_t<internal::isView<TView>>>
+        struct BuildAccessor<TView, std::enable_if_t<internal::IsView<TView>::value>>
         {
             template<typename... TAccessModes, typename TViewForwardRef>
             ALPAKA_FN_HOST_ACC static auto buildAccessor(TViewForwardRef&& view)

@@ -85,21 +85,14 @@ namespace alpaka
     namespace internal
     {
         template<typename T>
-#ifdef __cpp_inline_variables
-        inline
-#else
-        static
-#endif
-            constexpr bool isAccessor
-            = false;
+        struct IsAccessor : std::false_type
+        {
+        };
 
         template<typename TMemoryHandle, typename TElem, typename TBufferIdx, std::size_t Dim, typename TAccessModes>
-#ifdef __cpp_inline_variables
-        inline
-#else
-        static
-#endif
-            constexpr bool isAccessor<Accessor<TMemoryHandle, TElem, TBufferIdx, Dim, TAccessModes>> = true;
+        struct IsAccessor<Accessor<TMemoryHandle, TElem, TBufferIdx, Dim, TAccessModes>> : std::true_type
+        {
+        };
     } // namespace internal
 
     //! Creates an accessor for the given memory object using the specified access modes. Memory objects are e.g.
@@ -107,7 +100,7 @@ namespace alpaka
     template<
         typename... TAccessModes,
         typename TMemoryObject,
-        typename = std::enable_if_t<!internal::isAccessor<std::decay_t<TMemoryObject>>>>
+        typename = std::enable_if_t<!internal::IsAccessor<std::decay_t<TMemoryObject>>::value>>
     ALPAKA_FN_HOST_ACC auto accessWith(TMemoryObject&& memoryObject)
     {
         return traits::BuildAccessor<std::decay_t<TMemoryObject>>::template buildAccessor<TAccessModes...>(
