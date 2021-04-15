@@ -148,7 +148,9 @@ namespace alpaka
         namespace internal
         {
             template<typename TPltf, typename TElem, typename TDim, typename TIdx>
-            inline constexpr bool isView<ViewSubView<DevGenericSycl<TPltf>, TElem, TDim, TIdx>> = false;
+            struct IsView<ViewSubView<DevGenericSycl<TPltf>, TElem, TDim, TIdx>> : std::false_type
+            {
+            };
         }
 
         //! The customization point for how to build an accessor for a given memory object.

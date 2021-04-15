@@ -336,7 +336,9 @@ namespace alpaka
         namespace internal
         {
             template<typename TElem, typename TDim, typename TIdx, typename TDev>
-            inline constexpr bool isView<BufGenericSycl<TElem, TDim, TIdx, TDev>> = false;
+            struct IsView<BufGenericSycl<TElem, TDim, TIdx, TDev>> : std::false_type
+            {
+            };
         }
 
         //! The customization point for how to build an accessor for a given memory object.
