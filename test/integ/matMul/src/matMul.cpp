@@ -135,7 +135,7 @@ namespace alpaka
         struct BlockSharedMemDynSizeBytes<MatMulKernel, TAcc>
         {
             //! \return The size of the shared memory allocated for a block.
-            template<typename TVec, typename TIndex, typename TElem>
+            template<typename TVec, typename TIndex, typename TElem, typename TMemoryHandle>
             ALPAKA_FN_HOST_ACC static auto getBlockSharedMemDynSizeBytes(
                 MatMulKernel const& matMulKernel,
                 TVec const& blockThreadExtent,
@@ -144,10 +144,10 @@ namespace alpaka
                 TIndex const& n,
                 TIndex const& k,
                 TElem const& alpha,
-                alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const A,
-                alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadAccess> const B,
+                alpaka::Accessor<TMemoryHandle, TElem, TIndex, 2, alpaka::ReadAccess> const A,
+                alpaka::Accessor<TMemoryHandle, TElem, TIndex, 2, alpaka::ReadAccess> const B,
                 TElem const& beta,
-                alpaka::Accessor<TElem*, TElem, TIndex, 2, alpaka::ReadWriteAccess> const C)
+                alpaka::Accessor<TMemoryHandle, TElem, TIndex, 2, alpaka::ReadWriteAccess> const C)
             {
                 alpaka::ignore_unused(matMulKernel);
                 alpaka::ignore_unused(m);
