@@ -1,10 +1,32 @@
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this file.
+
+Copyright (C) 1997-2019 by Dimitri van Heesch
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of version 2 of the GNU General Public License as published by
+the Free Software Foundation
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with this program; if not, write to the Free Software Foundation, Inc.,
+51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+@licend  The above is the entire license notice
+for the JavaScript code in this file
+*/
 var NAVTREE =
 [
   [ "alpaka", "index.html", [
-    [ "**alpaka** - Abstraction Library for Parallel Kernel Acceleration", "index.html", null ],
+    [ "<strong>alpaka</strong> - Abstraction Library for Parallel Kernel Acceleration", "index.html", null ],
     [ "Todo List", "todo.html", null ],
-    [ "Namespaces", null, [
-      [ "Namespace List", "namespaces.html", "namespaces" ],
+    [ "Namespaces", "namespaces.html", [
+      [ "Namespace List", "namespaces.html", "namespaces_dup" ],
       [ "Namespace Members", "namespacemembers.html", [
         [ "All", "namespacemembers.html", "namespacemembers_dup" ],
         [ "Functions", "namespacemembers_func.html", null ],
@@ -26,8 +48,8 @@ var NAVTREE =
         [ "Related Functions", "functions_rela.html", null ]
       ] ]
     ] ],
-    [ "Files", null, [
-      [ "File List", "files.html", "files" ],
+    [ "Files", "files.html", [
+      [ "File List", "files.html", "files_dup" ],
       [ "File Members", "globals.html", [
         [ "All", "globals.html", null ],
         [ "Functions", "globals_func.html", null ],
@@ -41,20 +63,21 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "AbsStdLib_8hpp.html",
-"Filter_8hpp.html#a65e851602fef62781ed5eb23fb1d8fd6",
-"Vec_8hpp.html#ab1ea0e2c9c7d20f30f7802e9b1f00225",
-"classalpaka_1_1BlockSyncBarrierThread.html#a75a6c11af5243dfeadd6b5626ef9548d",
-"classalpaka_1_1Vec.html#a030db9e1fffebfd1ac1c0c771f55fa03",
-"classalpaka_1_1generic_1_1detail_1_1QueueGenericThreadsBlockingImpl.html#ab9d3561c6c58715231904563b17d437f",
-"elem_2Traits_8hpp.html",
-"namespacealpaka_1_1detail.html",
-"structalpaka_1_1detail_1_1CheckFnReturnType_3_01TAcc_00_01typename_01std_1_1enable__if_3_01conce350336f6fc499ffdfde102bd2daf9525.html",
-"structalpaka_1_1math_1_1traits_1_1Exp_3_01ExpUniformCudaHipBuiltIn_00_01TArg_00_01std_1_1enable_3a4c28c6e6400dac22ac825f8de463fe.html",
-"structalpaka_1_1rand_1_1generator_1_1traits_1_1CreateDefault_3_01TinyMersenneTwister_01_4.html#a8d6db18bda1c869f7ca27be16e08aff9",
-"structalpaka_1_1traits_1_1CurrentThreadWaitFor_3_01alpaka_1_1generic_1_1detail_1_1EventGenericThreadsImpl_3_01TDev_01_4_01_4.html",
-"structalpaka_1_1traits_1_1Ffs.html",
-"structalpaka_1_1traits_1_1GetWorkDiv_3_01WorkDivMembers_3_01TDim_00_01TIdx_01_4_00_01origin_1_1Thread_00_01unit_1_1Elems_01_4.html#a241c65c7c74325f721e069ceb3215a3b",
-"structalpaka_1_1traits_1_1Unmap_3_01BufOmp5_3_01TElem_00_01TDim_00_01TIdx_01_4_00_01DevOmp5_01_4.html"
+"EventOacc_8hpp_source.html",
+"TypeListOps_8hpp.html#aa022767003bdbdb48057be42318fa982",
+"classalpaka_1_1BlockSyncBarrierFiber.html#aaf3392317b7a7172e62bb9f24560a209",
+"classalpaka_1_1TimeOmp.html#a57b968e15ce934d309cff680804dc8d0",
+"classalpaka_1_1gb_1_1IdxGbUniformCudaHipBuiltIn.html#a623625d4dfd7f004ecd4032c50b39a5a",
+"dir_820f4fd4051d8a4d65c2fe0dda35bb00.html",
+"meta_2Set_8hpp.html#a7007c16b361a3bbc1184a79223d884dc",
+"structalpaka_1_1core_1_1threads_1_1detail_1_1AtomicOp_3_01BlockOr_01_4.html#ad2a3e362e0bbc3532cb92eff1791f1ca",
+"structalpaka_1_1math_1_1ConceptMathSqrt.html",
+"structalpaka_1_1meta_1_1detail_1_1CartesianProductImpl_3_01TList_00_01Head_3_01Ts_8_8_8_01_4_00_01Tail_8_8_8_01_4.html#a6e65654f91348b94295b44aa9b250bf0",
+"structalpaka_1_1traits_1_1AtomicOp_3_01TOp_00_01AtomicStdLibLock_3_01THashTableSize_01_4_00_01T_00_01THierarchy_01_4.html#a25055b10561a2dd09931fca77f945997",
+"structalpaka_1_1traits_1_1DimType_3_01gb_1_1IdxGbRef_3_01TDim_00_01TIdx_01_4_01_4.html",
+"structalpaka_1_1traits_1_1GetIdx_3_01gb_1_1IdxGbLinear_3_01DimInt_3_011u_01_4_00_01TIdx_01_4_00_71b1b7d3ef9bd8265b62e59eba5c89a2.html#ac16cafc1ee21a0a5f88bfe0dc72d2217",
+"structalpaka_1_1traits_1_1PltfType_3_01DevCpu_01_4.html#a57d86c85e840a8039ab9efc5a4722328",
+"wait_2Traits_8hpp_source.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

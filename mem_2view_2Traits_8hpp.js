@@ -2,7 +2,7 @@ var mem_2view_2Traits_8hpp =
 [
     [ "CreatePitchBytes", "structalpaka_1_1detail_1_1CreatePitchBytes.html", "structalpaka_1_1detail_1_1CreatePitchBytes" ],
     [ "Print", "structalpaka_1_1detail_1_1Print.html", "structalpaka_1_1detail_1_1Print" ],
-    [ "Print< DimInt< Dim< TView >::value-1u >, TView >", "structalpaka_1_1detail_1_1Print_3_01DimInt_3_01Dim_3_01TView_01_4_1_1value-1u_01_4_00_01TView_01_4.html", "structalpaka_1_1detail_1_1Print_3_01DimInt_3_01Dim_3_01TView_01_4_1_1value-1u_01_4_00_01TView_01_4" ],
+    [ "Print< DimInt< Dim< TView >::value - 1u >, TView >", "structalpaka_1_1detail_1_1Print_3_01DimInt_3_01Dim_3_01TView_01_4_1_1value_01-_011u_01_4_00_01TView_01_4.html", "structalpaka_1_1detail_1_1Print_3_01DimInt_3_01Dim_3_01TView_01_4_1_1value_01-_011u_01_4_00_01TView_01_4" ],
     [ "CreateStaticDevMemView", "structalpaka_1_1traits_1_1CreateStaticDevMemView.html", null ],
     [ "CreateTaskMemcpy", "structalpaka_1_1traits_1_1CreateTaskMemcpy.html", null ],
     [ "CreateTaskMemset", "structalpaka_1_1traits_1_1CreateTaskMemset.html", null ],
@@ -19,11 +19,11 @@ var mem_2view_2Traits_8hpp =
     [ "getPitchBytes", "mem_2view_2Traits_8hpp.html#ad6365b89c5be8dd8917954798cc7fc21", null ],
     [ "getPitchBytesVec", "mem_2view_2Traits_8hpp.html#a629297b80753ae06be95148cff7bd807", null ],
     [ "getPitchBytesVecEnd", "mem_2view_2Traits_8hpp.html#a077ab1ce794c066edb479ba04db6af60", null ],
-    [ "getPtrDev", "mem_2view_2Traits_8hpp.html#ac1d34f98ff0d43c5b7b2c95cc4f87ccd", null ],
     [ "getPtrDev", "mem_2view_2Traits_8hpp.html#a420138ddf5280874ce5578b2ba294547", null ],
-    [ "getPtrNative", "mem_2view_2Traits_8hpp.html#a7524e1a8dac8cd18d9b9e07b10e36054", null ],
+    [ "getPtrDev", "mem_2view_2Traits_8hpp.html#ac1d34f98ff0d43c5b7b2c95cc4f87ccd", null ],
     [ "getPtrNative", "mem_2view_2Traits_8hpp.html#ab0892f9211160310c93d8ffef300d3c1", null ],
+    [ "getPtrNative", "mem_2view_2Traits_8hpp.html#a7524e1a8dac8cd18d9b9e07b10e36054", null ],
     [ "memcpy", "mem_2view_2Traits_8hpp.html#a6f69abad399915756f7b28d19f221ace", null ],
     [ "memset", "mem_2view_2Traits_8hpp.html#a7cf3fa52c3c25aa060540a33fe6e6ee7", null ],
-    [ "print", "mem_2view_2Traits_8hpp.html#ac227e64e8e9f6faf92c133dafac2ee9e", null ]
+    [ "print", "mem_2view_2Traits_8hpp.html#a6e4d90e1f7462d76a92f07f09a263d93", null ]
 ];
