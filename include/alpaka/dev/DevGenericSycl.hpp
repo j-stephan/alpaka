@@ -215,7 +215,7 @@ namespace alpaka
         template<typename TPltf>
         struct QueueType<DevGenericSycl<TPltf>, NonBlocking>
         {
-            using type = QueueGenericSyclNonBlocking<TPltf>;
+            using type = QueueGenericSyclNonBlocking<DevGenericSycl<TPltf>>;
         };
     }
 }
