@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL cbrt.
         class CbrtGenericSycl : public concepts::Implements<ConceptMathCbrt, CbrtGenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL cbrt trait specialization.
             template<typename TArg>
             struct Cbrt<CbrtGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto cbrt(CbrtGenericSycl const &, TArg const & arg)
+                auto operator()(CbrtGenericSycl const &, TArg const & arg)
                 {
                     return sycl::cbrt(arg);
                 }

@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL pow.
         class PowGenericSycl : public concepts::Implements<ConceptMathPow, PowGenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL pow trait specialization.
             template<typename TBase, typename TExp>
             struct Pow<PowGenericSycl, TBase, TExp, std::enable_if_t<std::is_arithmetic_v<TBase> && std::is_arithmetic_v<TExp>>>
             {
-                static auto pow(PowGenericSycl const &, TBase const & base, TExp const & exp)
+                auto operator()(PowGenericSycl const &, TBase const & base, TExp const & exp)
                 {
                     return sycl::pow(base, exp);
                 }

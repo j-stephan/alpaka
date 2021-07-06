@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL rsqrt.
         class RsqrtGenericSycl : public concepts::Implements<ConceptMathRsqrt, RsqrtGenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL rsqrt trait specialization.
             template<typename TArg>
             struct Rsqrt<RsqrtGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto rsqrt(RsqrtGenericSycl const &, TArg const & arg)
+                auto operator()(RsqrtGenericSycl const &, TArg const & arg)
                 {
                     return sycl::rsqrt(arg);
                 }

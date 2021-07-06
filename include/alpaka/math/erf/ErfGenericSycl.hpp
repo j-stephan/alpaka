@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL erf.
         class ErfGenericSycl : public concepts::Implements<ConceptMathErf, ErfGenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL erf trait specialization.
             template<typename TArg>
             struct Erf<ErfGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto erf(ErfGenericSycl const &, TArg const & arg)
+                auto operator()(ErfGenericSycl const &, TArg const & arg)
                 {
                     return sycl::erf(arg);
                 }

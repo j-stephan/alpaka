@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL ceil.
         class CeilGenericSycl : public concepts::Implements<ConceptMathCeil, CeilGenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL ceil trait specialization.
             template<typename TArg>
             struct Ceil<CeilGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto ceil(CeilGenericSycl const &, TArg const & arg)
+                auto operator()(CeilGenericSycl const &, TArg const & arg)
                 {
                     return sycl::ceil(arg);
                 }

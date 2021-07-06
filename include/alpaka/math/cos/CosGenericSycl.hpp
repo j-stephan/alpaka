@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL cos.
         class CosGenericSycl : public concepts::Implements<ConceptMathCos, CosGenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL cos trait specialization.
             template<typename TArg>
             struct Cos<CosGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto cos(CosGenericSycl const &, TArg const & arg)
+                auto operator()(CosGenericSycl const &, TArg const & arg)
                 {
                     return sycl::cos(arg);
                 }

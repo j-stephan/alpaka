@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL sin.
         class SinGenericSycl : public concepts::Implements<ConceptMathSin, SinGenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL sin trait specialization.
             template<typename TArg>
             struct Sin<SinGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto sin(SinGenericSycl const &, TArg const & arg)
+                auto operator()(SinGenericSycl const &, TArg const & arg)
                 {
                     return sycl::sin(arg);
                 }

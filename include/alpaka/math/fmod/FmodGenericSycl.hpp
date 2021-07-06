@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL fmod.
         class FmodGenericSycl : public concepts::Implements<ConceptMathFmod, FmodGenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL fmod trait specialization.
             template<typename Tx, typename Ty>
             struct Fmod<FmodGenericSycl, Tx, Ty, std::enable_if_t<std::is_arithmetic_v<Tx> && std::is_arithmetic_v<Ty>>>
             {
-                static auto fmod(FmodGenericSycl const &, Tx const & x, Ty const & y)
+                auto operator()(FmodGenericSycl const &, Tx const & x, Ty const & y)
                 {
                     return sycl::fmod(x, y);
                 }

@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL trunc.
         class TruncGenericSycl : public concepts::Implements<ConceptMathTrunc, TruncGenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL trunc trait specialization.
             template<typename TArg>
             struct Trunc<TruncGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto trunc(TruncGenericSycl const &, TArg const & arg)
+                auto operator()(TruncGenericSycl const &, TArg const & arg)
                 {
                     return sycl::trunc(arg);
                 }

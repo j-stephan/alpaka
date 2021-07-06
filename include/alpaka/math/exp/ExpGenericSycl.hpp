@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL exp.
         class ExpGenericSycl : public concepts::Implements<ConceptMathExp, ExpGenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL exp trait specialization.
             template<typename TArg>
             struct Exp<ExpGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto exp(ExpGenericSycl const &, TArg const & arg)
+                auto operator()(ExpGenericSycl const &, TArg const & arg)
                 {
                     return sycl::exp(arg);
                 }

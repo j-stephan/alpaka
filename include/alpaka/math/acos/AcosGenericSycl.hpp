@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL acos.
         class AcosGenericSycl : public concepts::Implements<ConceptMathAcos, AcosGenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL acos trait specialization.
             template<typename TArg>
             struct Acos<AcosGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto acos(AcosGenericSycl const&, TArg const & arg)
+                auto operator()(AcosGenericSycl const&, TArg const & arg)
                 {
                     return sycl::acos(arg);
                 }

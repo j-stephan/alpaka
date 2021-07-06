@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL log.
         class LogGenericSycl : public concepts::Implements<ConceptMathLog, LogGenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL log trait specialization.
             template<typename TArg>
             struct Log<LogGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto log(LogGenericSycl const &, TArg const & arg)
+                auto operator()(LogGenericSycl const &, TArg const & arg)
                 {
                     return sycl::log(arg);
                 }

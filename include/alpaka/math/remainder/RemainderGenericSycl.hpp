@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL remainder.
         class RemainderGenericSycl : public concepts::Implements<ConceptMathRemainder, RemainderGenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL remainder trait specialization.
             template<typename Tx, typename Ty>
             struct Remainder<RemainderGenericSycl, Tx, Ty, std::enable_if_t<std::is_floating_point_v<Tx> && std::is_floating_point_v<Ty>>>
             {
-                static auto remainder(RemainderGenericSycl const &, Tx const & x, Ty const & y)
+                auto operator()(RemainderGenericSycl const &, Tx const & x, Ty const & y)
                 {
                     return sycl::remainder(x, y);
                 }

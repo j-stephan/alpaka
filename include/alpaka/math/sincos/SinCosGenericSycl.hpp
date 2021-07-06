@@ -20,7 +20,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL sincos.
         class SinCosGenericSycl : public concepts::Implements<ConceptMathSinCos, SinCosGenericSycl>
         {
@@ -28,13 +27,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
-
             //! The SYCL sincos trait specialization.
             template<typename TArg>
             struct SinCos<SinCosGenericSycl, TArg, std::enable_if_t<std::is_floating_point_v<TArg>>>
             {
-                static auto sincos(SinCosGenericSycl const &, TArg const & arg, TArg & result_sin, TArg & result_cos) -> void
+                auto operator()(SinCosGenericSycl const &, TArg const & arg, TArg & result_sin, TArg & result_cos)
                 {
                     result_sin = sycl::sincos(arg, &result_cos);
                 }

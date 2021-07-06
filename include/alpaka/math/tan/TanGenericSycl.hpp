@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL tan.
         class TanGenericSycl : public concepts::Implements<ConceptMathTan, TanGenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL tan trait specialization.
             template<typename TArg>
             struct Tan<TanGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto tan(TanGenericSycl const &, TArg const & arg)
+                auto operator()(TanGenericSycl const &, TArg const & arg)
                 {
                     return sycl::tan(arg);
                 }

@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL library max.
         class MaxGenericSycl : public concepts::Implements<ConceptMathMax, MaxGenericSycl>
         {
@@ -30,23 +29,22 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL integral max trait specialization.
             template<typename Tx, typename Ty>
             struct Max<MaxGenericSycl, Tx, Ty, std::enable_if_t<std::is_integral_v<Tx> && std::is_integral_v<Ty>>>
             {
-                static auto max(MaxGenericSycl const &, Tx const & x, Ty const & y)
+                auto operator()(MaxGenericSycl const &, Tx const & x, Ty const & y)
                 {
                     return sycl::max(x, y);
                 }
             };
-            //#############################################################################
+
             //! The SYCL mixed integral floating point max trait specialization.
             template<typename Tx, typename Ty>
             struct Max<MaxGenericSycl, Tx, Ty, std::enable_if_t<std::is_arithmetic_v<Tx> && std::is_arithmetic_v<Ty>
                                                                 && !(std::is_integral_v<Tx> && std::is_integral_v<Ty>)>>
             {
-                static auto max(MaxGenericSycl const &, Tx const & x, Ty const & y)
+                auto operator()(MaxGenericSycl const &, Tx const & x, Ty const & y)
                 {
                     return sycl::fmax(x, y);
                 }

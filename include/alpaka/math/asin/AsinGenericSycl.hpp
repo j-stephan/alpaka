@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL asin.
         class AsinGenericSycl : public concepts::Implements<ConceptMathAsin, AsinGenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL asin trait specialization.
             template<typename TArg>
             struct Asin<AsinGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto asin(AsinGenericSycl const&, TArg const & arg)
+                auto operator()(AsinGenericSycl const&, TArg const & arg)
                 {
                     return sycl::asin(arg);
                 }

@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL library abs.
         class AbsGenericSycl : public concepts::Implements<ConceptMathAbs, AbsGenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL abs trait specialization.
             template<typename TArg>
             struct Abs<AbsGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg> && std::is_signed_v<TArg>>>
             {
-                static auto abs(AbsGenericSycl const&, TArg const & arg)
+                auto operator()(AbsGenericSycl const&, TArg const & arg)
                 {
                     return sycl::fabs(arg);
                 }

@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL round.
         class RoundGenericSycl : public concepts::Implements<ConceptMathRound, RoundGenericSycl>
         {
@@ -30,32 +29,31 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL round trait specialization.
             template<typename TArg>
             struct Round<RoundGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto round(RoundGenericSycl const &, TArg const & arg)
+                auto operator()(RoundGenericSycl const &, TArg const & arg)
                 {
                     return sycl::round(arg);
                 }
             };
-            //#############################################################################
+
             //! The standard library round trait specialization.
             template<typename TArg>
             struct Lround<RoundGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto lround(RoundGenericSycl const &, TArg const & arg)
+                auto operator()(RoundGenericSycl const &, TArg const & arg)
                 {
                     return static_cast<long int>(sycl::round(arg));
                 }
             };
-            //#############################################################################
+            
             //! The SYCL library round trait specialization.
             template<typename TArg>
             struct Llround<RoundGenericSycl, TArg, std::enable_if_t<std::is_arithmetic_v<TArg>>>
             {
-                static auto llround(RoundGenericSycl const &, TArg const & arg)
+                auto operator()(RoundGenericSycl const &, TArg const & arg)
                 {
                     return static_cast<long long int>(sycl::round(arg));
                 }

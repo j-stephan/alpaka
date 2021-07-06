@@ -22,7 +22,6 @@ namespace alpaka
 {
     namespace math
     {
-        //#############################################################################
         //! The SYCL atan2.
         class Atan2GenericSycl : public concepts::Implements<ConceptMathAtan2, Atan2GenericSycl>
         {
@@ -30,12 +29,11 @@ namespace alpaka
 
         namespace traits
         {
-            //#############################################################################
             //! The SYCL atan2 trait specialization.
             template<typename Ty, typename Tx>
             struct Atan2< Atan2GenericSycl, Ty, Tx, std::enable_if_t<std::is_arithmetic_v<Ty> && std::is_arithmetic_v<Tx>>>
             {
-                static auto atan2(Atan2GenericSycl const &, Ty const & y, Tx const & x)
+                auto operator()(Atan2GenericSycl const &, Ty const & y, Tx const & x)
                 {
                     return sycl::atan2(y, x);
                 }
