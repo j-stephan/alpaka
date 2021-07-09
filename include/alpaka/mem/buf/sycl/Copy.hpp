@@ -25,6 +25,8 @@
 
 #include <memory>
 #include <shared_mutex>
+#include <stdexcept>
+#include <sstream>
 #include <type_traits>
 #include <vector>
 
@@ -108,7 +110,34 @@ namespace alpaka
                 using TaskType = alpaka::detail::TaskCopySycl<SrcHandle, DstHandle>;
                 using ImplType = alpaka::detail::TaskCopySyclImpl<SrcHandle, DstHandle>;
 
-                return TaskType{std::make_shared<ImplType>(getPtrNative(viewSrc), accessWith<WriteAccess>(viewDst).m_acc)};
+                auto const src_ptr = getPtrNative(viewSrc);
+                auto dst_accessor = accessWith<WriteAccess>(viewDst);
+                if(ext == dst_accessor.extents)
+                    return TaskType{std::make_shared<ImplType>(src_ptr, dst_accessor.m_acc)};
+                else
+                {
+                    auto const oob_vec = (ext > dst_accessor.extents);
+                    for(auto i = std::size_t{0}; i < Dim<TExtent>::value; ++i)
+                    {
+                        if(oob_vec[i] == true)
+                        {
+                            auto&& err = std::stringstream{};
+                            err << "Host-to-device copy extent out of bounds: " << ext;
+                            throw std::runtime_error{err.str()};
+                        }
+                    }
+
+                    using SYCLAcc = decltype(dst_accessor.m_acc);
+                    auto new_dst_accessor = SYCLAcc{viewDst.m_buf};
+                    if constexpr(Dim<TViewDst>::value == 1)
+                        new_dst_accessor = SYCLAcc{viewDst.m_buf, sycl::range<1>{ext[0ul]}};
+                    else if constexpr(Dim<TViewDst>::value == 2)
+                        new_dst_accessor = SYCLAcc{viewDst.m_buf, sycl::range<1>{ext[1ul], ext[0ul]}};
+                    else if constexpr(Dim<TViewDst>::value == 3)
+                        new_dst_accessor = SYCLAcc{viewDst.m_buf, sycl::range<1>{ext[2ul], ext[1ul], ext[0ul]}};
+
+                    return TaskType{std::make_shared<ImplType>(src_ptr, new_dst_accessor)};
+                }
             }
         };
 
@@ -142,7 +171,37 @@ namespace alpaka
                 using TaskType = alpaka::detail::TaskCopySycl<SrcHandle, DstHandle>;
                 using ImplType = alpaka::detail::TaskCopySyclImpl<SrcHandle, DstHandle>;
 
-                return TaskType{std::make_shared<ImplType>(accessWith<ReadAccess>(viewSrc).m_acc, getPtrNative(viewDst))};
+                auto src_accessor = accessWith<ReadAccess>(viewSrc);
+                auto const dst_ptr = getPtrNative(viewDst);
+                
+                if(ext == src_accessor.extents)
+                    return TaskType{std::make_shared<ImplType>(src_accessor.m_acc, dst_ptr)};
+                else
+                {
+                    auto const oob_vec = (ext > src_accessor.extents);
+                    for(auto i = std::size_t{0}; i < Dim<TExtent>::value; ++i)
+                    {
+                        if(oob_vec[i] == true)
+                        {
+                            auto&& err = std::stringstream{};
+                            err << "Device-to-host copy extent out of bounds: " << ext;
+                            throw std::runtime_error{err.str()};
+                        }
+                    }
+                }
+
+                auto src_buf = viewSrc.m_buf; // buffers are reference counted, so we can copy to work around constness
+                using SYCLAcc = decltype(src_accessor.m_acc);
+                auto new_src_accessor = SYCLAcc{src_buf};
+
+                if constexpr(Dim<TViewDst>::value == 1)
+                    new_src_accessor = SYCLAcc{src_buf, sycl::range<1>{ext[0ul]}};
+                else if constexpr(Dim<TViewDst>::value == 2)
+                    new_src_accessor = SYCLAcc{src_buf, sycl::range<1>{ext[1ul], ext[0ul]}};
+                else if constexpr(Dim<TViewDst>::value == 3)
+                    new_src_accessor = SYCLAcc{src_buf, sycl::range<1>{ext[2ul], ext[1ul], ext[0ul]}};
+
+                return TaskType{std::make_shared<ImplType>(new_src_accessor, dst_ptr)};
             }
         };
 
