@@ -637,20 +637,20 @@ if(ALPAKA_ACC_SYCL_ENABLE)
 
     if(ALPAKA_SYCL_ONEAPI_FPGA)
         target_compile_definitions(alpaka INTERFACE "ALPAKA_SYCL_ONEAPI_FPGA")
-        # try to come as close to -fintelfpga as possible with the following two flags
-        alpaka_set_compiler_options(DEVICE target alpaka $<$<AND:$<CONFIG:Debug>,$<PLATFORM_ID:Linux>>:"SHELL:-g">
-                                                         $<$<AND:$<CONFIG:Debug>,$<PLATFORM_ID:Windows>>:"SHELL:-Zi">)
+        alpaka_set_compiler_options(DEVICE target alpaka $<$<AND:$<CONFIG:Debug>,$<PLATFORM_ID:Linux>>:"-g">
+                                                          $<$<AND:$<CONFIG:Debug>,$<PLATFORM_ID:Windows>>:"-Zi">)
         alpaka_set_compiler_options(DEVICE target alpaka "-MMD") # prevent FPGA compiler from complaining about missing dependency files
 
         if(ALPAKA_SYCL_ONEAPI_FPGA_MODE STREQUAL "emulation")
             target_compile_definitions(alpaka INTERFACE "ALPAKA_FPGA_EMULATION")
-            # No extra link flag needed because emulation is the default
+            # alpaka_set_compiler_options(DEVICE target alpaka "-Xsemulator")
+            # target_link_options(alpaka INTERFACE "-Xsemulator")
         elseif(ALPAKA_SYCL_ONEAPI_FPGA_MODE STREQUAL "simulation")
-            alpaka_set_compiler_options(DEVICE target alpaka "SHELL:-Xsycl-target-backend=${ALPAKA_SYCL_ONEAPI_FPGA_TARGET} \"-simulation\"")
-            target_link_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_SYCL_ONEAPI_FPGA_TARGET} \"-simulation\"")
+            alpaka_set_compiler_options(DEVICE target alpaka "-Xssimulation")
+            target_link_options(alpaka INTERFACE "-Xssimulation")
         elseif(ALPAKA_SYCL_ONEAPI_FPGA_MODE STREQUAL "hardware")
-            alpaka_set_compiler_options(DEVICE target alpaka "SHELL:-Xsycl-target-backend=${ALPAKA_SYCL_ONEAPI_FPGA_TARGET} \"-hardware\"")
-            target_link_options(alpaka INTERFACE "SHELL:-Xsycl-target-backend=${ALPAKA_SYCL_ONEAPI_FPGA_TARGET} \"-hardware\"")
+            alpaka_set_compiler_options(DEVICE target alpaka "-Xshardware")
+            target_link_options(alpaka INTERFACE "-Xshardware")
         endif()
 
         if(NOT ALPAKA_SYCL_ONEAPI_FPGA_MODE STREQUAL "emulation")
@@ -659,7 +659,7 @@ if(ALPAKA_ACC_SYCL_ENABLE)
 
             set(ALPAKA_SYCL_ONEAPI_FPGA_BSP "intel_a10gx_pac" CACHE STRING "Path to or name of the Intel FPGA board support package")
             set_property(CACHE ALPAKA_SYCL_ONEAPI_FPGA_BSP PROPERTY STRINGS "intel_a10gx_pac;intel_s10sx_pac")
-            target_link_options(alpaka INTERFACE "-Xsycl-target-backend=${ALPAKA_SYCL_ONEAPI_FPGA_TARGET} \"-board=${ALPAKA_SYCL_ONEAPI_FPGA_BSP}:${ALPAKA_SYCL_ONEAPI_FPGA_BOARD}\"")
+            target_link_options(alpaka INTERFACE "SHELL:-Xsboard=${ALPAKA_SYCL_ONEAPI_FPGA_BSP}:${ALPAKA_SYCL_ONEAPI_FPGA_BOARD}")
         endif()
 
     endif()
